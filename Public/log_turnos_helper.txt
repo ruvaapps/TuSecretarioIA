@@ -1,0 +1,553 @@
+[2026-10-10 20:30:32] === INICIO AGENDAR TURNO ===
+[2026-10-10 20:30:32] Params: Negocio: 9 | Cliente: Aldo Varela (5493513256711) | Servicio: 19 | Fecha: 2026-10-10 | Hora: 21:00 | Origen: panel
+[2026-10-10 20:30:32] Cliente existente encontrado ID: 21
+[2026-10-10 20:30:32] Rango calculado: Inicio [2026-10-10 21:00:00] -> Fin [2026-10-10 22:00:00] (Duración: 60 mins)
+[2026-10-10 20:30:32] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-10 20:30:32] Turno insertado exitosamente con ID: 160
+[2026-10-10 20:30:32] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-10 20:30:33] Disparando WebPush al dueño...
+[2026-10-10 20:30:33] Procesando WebPush para Negocio ID: 9
+[2026-10-10 20:30:33] Validando si existe la clase 
+[2026-10-10 20:30:33] La clase existe
+[2026-10-10 20:30:34] === FIN AGENDAR TURNO EXITOSO (ID: 160) ===
+[2026-10-10 20:31:34] === INICIO CANCELAR TURNO ===
+[2026-10-10 20:31:34] Params: Turno ID: 160 | Negocio ID: 9
+[2026-10-10 20:31:34] Estado del turno ID 160 actualizado a 'cancelado' en BD.
+[2026-10-10 20:31:34] Recordatorios asociados desactivados.
+[2026-10-10 20:31:34] Enviando plantilla de cancelación vía WhatsApp a 5493513256711...
+[2026-10-10 20:31:34] Disparando WebPush de cancelación al dueño...
+[2026-10-10 20:31:34] Antes de llamar a notificaciones push
+[2026-10-10 20:31:34] Procesando WebPush para Negocio ID: 9
+[2026-10-10 20:31:34] Validando si existe la clase 
+[2026-10-10 20:31:34] La clase existe
+[2026-10-10 20:31:35] === FIN CANCELAR TURNO EXITOSO (ID: 160) ===
+[2026-10-10 20:32:25] === INICIO AGENDAR TURNO ===
+[2026-10-10 20:32:25] Params: Negocio: 9 | Cliente: Aldo (5493513256711) | Servicio: 19 | Fecha: 2026-10-10 | Hora: 21:00 | Origen: panel
+[2026-10-10 20:32:25] Cliente existente encontrado ID: 21
+[2026-10-10 20:32:25] Rango calculado: Inicio [2026-10-10 21:00:00] -> Fin [2026-10-10 22:00:00] (Duración: 60 mins)
+[2026-10-10 20:32:25] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-10 20:32:25] Turno insertado exitosamente con ID: 161
+[2026-10-10 20:32:25] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-10 20:32:26] Disparando WebPush al dueño...
+[2026-10-10 20:32:26] Procesando WebPush para Negocio ID: 9
+[2026-10-10 20:32:26] Validando si existe la clase 
+[2026-10-10 20:32:26] La clase existe
+[2026-10-10 20:32:27] === FIN AGENDAR TURNO EXITOSO (ID: 161) ===
+[2026-10-10 20:52:47] === INICIO AGENDAR TURNO ===
+[2026-10-10 20:52:47] Params: Negocio: 9 | Cliente: Aldo Varela (5493513256711) | Servicio: 19 | Fecha: 2026-10-10 | Hora: 21:00 | Origen: panel
+[2026-10-10 20:52:47] Cliente existente encontrado ID: 21
+[2026-10-10 20:52:47] Rango calculado: Inicio [2026-10-10 21:00:00] -> Fin [2026-10-10 22:00:00] (Duración: 60 mins)
+[2026-10-10 20:52:47] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-10 20:52:47] Turno insertado exitosamente con ID: 162
+[2026-10-10 20:52:47] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-10 20:52:48] Disparando WebPush al dueño...
+[2026-10-10 20:52:48] Procesando WebPush para Negocio ID: 9
+[2026-10-10 20:52:48] Validando si existe la clase 
+[2026-10-10 20:52:48] La clase existe
+[2026-10-10 20:52:50] === FIN AGENDAR TURNO EXITOSO (ID: 162) ===
+[2026-10-10 20:55:47] === INICIO CANCELAR TURNO ===
+[2026-10-10 20:55:47] Params: Turno ID: 162 | Negocio ID: 9
+[2026-10-10 20:55:47] Estado del turno ID 162 actualizado a 'cancelado' en BD.
+[2026-10-10 20:55:47] Recordatorios asociados desactivados.
+[2026-10-10 20:55:47] Disparando WebPush de cancelación al dueño...
+[2026-10-10 20:55:47] Antes de llamar a notificaciones push
+[2026-10-10 20:55:49] === FIN CANCELAR TURNO EXITOSO (ID: 162) ===
+[2026-10-10 20:57:24] === INICIO AGENDAR TURNO ===
+[2026-10-10 20:57:24] Params: Negocio: 9 | Cliente: Aldo Varela (5493513256711) | Servicio: 19 | Fecha: 2026-10-10 | Hora: 21:00 | Origen: panel
+[2026-10-10 20:57:24] Cliente existente encontrado ID: 21
+[2026-10-10 20:57:24] Rango calculado: Inicio [2026-10-10 21:00:00] -> Fin [2026-10-10 22:00:00] (Duración: 60 mins)
+[2026-10-10 20:57:24] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-10 20:57:24] Turno insertado exitosamente con ID: 163
+[2026-10-10 20:57:24] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-10 20:57:25] Disparando WebPush al dueño...
+[2026-10-10 20:57:25] Procesando WebPush para Negocio ID: 9
+[2026-10-10 20:57:25] Validando si existe la clase 
+[2026-10-10 20:57:25] La clase existe
+[2026-10-10 20:57:27] === FIN AGENDAR TURNO EXITOSO (ID: 163) ===
+[2026-10-10 21:49:51] === INICIO AGENDAR TURNO ===
+[2026-10-10 21:49:51] Params: Negocio: 10 | Cliente: Dario (5493521448027) | Servicio: 25 | Fecha: 2026-10-21 | Hora: 09:30 | Origen: panel
+[2026-10-10 21:49:51] Nuevo cliente creado ID: 26
+[2026-10-10 21:49:51] Rango calculado: Inicio [2026-10-21 09:30:00] -> Fin [2026-10-21 10:30:00] (Duración: 60 mins)
+[2026-10-10 21:49:51] Estado inicial: 'pendiente_pago' | Seña:  | Método Pago: 'transferencia'
+[2026-10-10 21:49:51] Turno insertado exitosamente con ID: 164
+[2026-10-10 21:49:51] Enviando notificación por WhatsApp al cliente 5493521448027...
+[2026-10-10 21:49:52] Disparando WebPush al dueño...
+[2026-10-10 21:49:52] Procesando WebPush para Negocio ID: 10
+[2026-10-10 21:49:52] Validando si existe la clase 
+[2026-10-10 21:49:52] La clase existe
+[2026-10-10 21:49:53] === FIN AGENDAR TURNO EXITOSO (ID: 164) ===
+[2026-10-10 21:53:04] === INICIO CANCELAR TURNO ===
+[2026-10-10 21:53:04] Params: Turno ID: 163 | Negocio ID: 9
+[2026-10-10 21:53:04] Estado del turno ID 163 actualizado a 'cancelado' en BD.
+[2026-10-10 21:53:04] Recordatorios asociados desactivados.
+[2026-10-10 21:53:04] Enviando plantilla de cancelación vía WhatsApp a 5493513256711...
+[2026-10-10 21:53:04] Disparando WebPush de cancelación al dueño...
+[2026-10-10 21:53:04] Antes de llamar a notificaciones push
+[2026-10-10 21:53:04] Procesando WebPush para Negocio ID: 9
+[2026-10-10 21:53:04] Validando si existe la clase 
+[2026-10-10 21:53:04] La clase existe
+[2026-10-10 21:53:06] === FIN CANCELAR TURNO EXITOSO (ID: 163) ===
+[2026-10-11 18:05:28] === INICIO AGENDAR TURNO ===
+[2026-10-11 18:05:28] Params: Negocio: 10 | Cliente: Flor (5493521538037) | Servicio: 8 | Fecha: 2026-10-14 | Hora: 17:00 | Origen: panel
+[2026-10-11 18:05:28] Nuevo cliente creado ID: 27
+[2026-10-11 18:05:28] Rango calculado: Inicio [2026-10-14 17:00:00] -> Fin [2026-10-14 19:00:00] (Duración: 120 mins)
+[2026-10-11 18:05:28] Estado inicial: 'pendiente_pago' | Seña:  | Método Pago: 'transferencia'
+[2026-10-11 18:05:28] Turno insertado exitosamente con ID: 165
+[2026-10-11 18:05:28] Enviando notificación por WhatsApp al cliente 5493521538037...
+[2026-10-11 18:05:29] Disparando WebPush al dueño...
+[2026-10-11 18:05:29] Procesando WebPush para Negocio ID: 10
+[2026-10-11 18:05:29] Validando si existe la clase 
+[2026-10-11 18:05:29] La clase existe
+[2026-10-11 18:05:30] === FIN AGENDAR TURNO EXITOSO (ID: 165) ===
+[2026-10-11 20:19:20] === INICIO CANCELAR TURNO ===
+[2026-10-11 20:19:20] Params: Turno ID: 164 | Negocio ID: 10
+[2026-10-11 20:19:20] Estado del turno ID 164 actualizado a 'cancelado' en BD.
+[2026-10-11 20:19:20] Recordatorios asociados desactivados.
+[2026-10-11 20:19:20] Enviando plantilla de cancelación vía WhatsApp a 5493521448027...
+[2026-10-11 20:19:21] Disparando WebPush de cancelación al dueño...
+[2026-10-11 20:19:21] Antes de llamar a notificaciones push
+[2026-10-11 20:19:21] Procesando WebPush para Negocio ID: 10
+[2026-10-11 20:19:21] Validando si existe la clase 
+[2026-10-11 20:19:21] La clase existe
+[2026-10-11 20:19:22] === FIN CANCELAR TURNO EXITOSO (ID: 164) ===
+[2026-10-11 20:21:48] === INICIO AGENDAR TURNO ===
+[2026-10-11 20:21:48] Params: Negocio: 10 | Cliente: Dario (5493521408027) | Servicio: 25 | Fecha: 2026-10-21 | Hora: 17:00 | Origen: panel
+[2026-10-11 20:21:48] Nuevo cliente creado ID: 28
+[2026-10-11 20:21:48] Rango calculado: Inicio [2026-10-21 17:00:00] -> Fin [2026-10-21 18:00:00] (Duración: 60 mins)
+[2026-10-11 20:21:48] Estado inicial: 'pendiente_pago' | Seña:  | Método Pago: 'transferencia'
+[2026-10-11 20:21:48] Turno insertado exitosamente con ID: 166
+[2026-10-11 20:21:48] Enviando notificación por WhatsApp al cliente 5493521408027...
+[2026-10-11 20:21:49] Disparando WebPush al dueño...
+[2026-10-11 20:21:49] Procesando WebPush para Negocio ID: 10
+[2026-10-11 20:21:49] Validando si existe la clase 
+[2026-10-11 20:21:49] La clase existe
+[2026-10-11 20:21:50] === FIN AGENDAR TURNO EXITOSO (ID: 166) ===
+[2026-10-11 20:31:07] === INICIO AGENDAR TURNO ===
+[2026-10-11 20:31:07] Params: Negocio: 10 | Cliente: elver galarga (5493521538746) | Servicio: 15 | Fecha: 2026-10-23 | Hora: 18:00 | Origen: panel
+[2026-10-11 20:31:07] Cliente existente encontrado ID: 25
+[2026-10-11 20:31:07] Rango calculado: Inicio [2026-10-23 18:00:00] -> Fin [2026-10-23 18:30:00] (Duración: 30 mins)
+[2026-10-11 20:31:07] Estado inicial: 'pendiente_pago' | Seña:  | Método Pago: 'transferencia'
+[2026-10-11 20:31:07] Turno insertado exitosamente con ID: 167
+[2026-10-11 20:31:07] Enviando notificación por WhatsApp al cliente 5493521538746...
+[2026-10-11 20:31:08] Disparando WebPush al dueño...
+[2026-10-11 20:31:08] Procesando WebPush para Negocio ID: 10
+[2026-10-11 20:31:08] Validando si existe la clase 
+[2026-10-11 20:31:08] La clase existe
+[2026-10-11 20:31:09] === FIN AGENDAR TURNO EXITOSO (ID: 167) ===
+[2026-10-11 20:32:50] === INICIO CANCELAR TURNO ===
+[2026-10-11 20:32:50] Params: Turno ID: 167 | Negocio ID: 10
+[2026-10-11 20:32:50] Estado del turno ID 167 actualizado a 'cancelado' en BD.
+[2026-10-11 20:32:50] Recordatorios asociados desactivados.
+[2026-10-11 20:32:50] Enviando plantilla de cancelación vía WhatsApp a 5493521538746...
+[2026-10-11 20:32:51] Disparando WebPush de cancelación al dueño...
+[2026-10-11 20:32:51] Antes de llamar a notificaciones push
+[2026-10-11 20:32:51] Procesando WebPush para Negocio ID: 10
+[2026-10-11 20:32:51] Validando si existe la clase 
+[2026-10-11 20:32:51] La clase existe
+[2026-10-11 20:32:52] === FIN CANCELAR TURNO EXITOSO (ID: 167) ===
+[2026-10-11 20:32:55] === INICIO CANCELAR TURNO ===
+[2026-10-11 20:32:55] Params: Turno ID: 166 | Negocio ID: 10
+[2026-10-11 20:32:55] Estado del turno ID 166 actualizado a 'cancelado' en BD.
+[2026-10-11 20:32:55] Recordatorios asociados desactivados.
+[2026-10-11 20:32:55] Enviando plantilla de cancelación vía WhatsApp a 5493521408027...
+[2026-10-11 20:32:56] Disparando WebPush de cancelación al dueño...
+[2026-10-11 20:32:56] Antes de llamar a notificaciones push
+[2026-10-11 20:32:56] Procesando WebPush para Negocio ID: 10
+[2026-10-11 20:32:56] Validando si existe la clase 
+[2026-10-11 20:32:56] La clase existe
+[2026-10-11 20:32:57] === FIN CANCELAR TURNO EXITOSO (ID: 166) ===
+[2026-10-14 10:36:01] === INICIO CANCELAR TURNO ===
+[2026-10-14 10:36:01] Params: Turno ID: 165 | Negocio ID: 10
+[2026-10-14 10:36:01] Estado del turno ID 165 actualizado a 'cancelado' en BD.
+[2026-10-14 10:36:01] Recordatorios asociados desactivados.
+[2026-10-14 10:36:01] Enviando plantilla de cancelación vía WhatsApp a 5493521538037...
+[2026-10-14 10:36:01] Disparando WebPush de cancelación al dueño...
+[2026-10-14 10:36:01] Antes de llamar a notificaciones push
+[2026-10-14 10:36:01] Procesando WebPush para Negocio ID: 10
+[2026-10-14 10:36:01] Validando si existe la clase 
+[2026-10-14 10:36:01] La clase existe
+[2026-10-14 10:36:02] === FIN CANCELAR TURNO EXITOSO (ID: 165) ===
+[2026-10-14 11:04:03] === INICIO AGENDAR TURNO ===
+[2026-10-14 11:04:03] Params: Negocio: 10 | Cliente: Carla (5493521438146) | Servicio: 13 | Fecha: 2026-10-17 | Hora: 10:30 | Origen: panel
+[2026-10-14 11:04:03] Nuevo cliente creado ID: 29
+[2026-10-14 11:04:03] Rango calculado: Inicio [2026-10-17 10:30:00] -> Fin [2026-10-17 11:30:00] (Duración: 60 mins)
+[2026-10-14 11:04:03] Estado inicial: 'pendiente_pago' | Seña:  | Método Pago: 'transferencia'
+[2026-10-14 11:04:03] Turno insertado exitosamente con ID: 168
+[2026-10-14 11:04:03] Enviando notificación por WhatsApp al cliente 5493521438146...
+[2026-10-14 11:04:04] Disparando WebPush al dueño...
+[2026-10-14 11:04:04] Procesando WebPush para Negocio ID: 10
+[2026-10-14 11:04:04] Validando si existe la clase 
+[2026-10-14 11:04:04] La clase existe
+[2026-10-14 11:04:04] === FIN AGENDAR TURNO EXITOSO (ID: 168) ===
+[2026-10-14 13:25:11] === INICIO AGENDAR TURNO ===
+[2026-10-14 13:25:11] Params: Negocio: 4 | Cliente: Aldana (5493518002696) | Servicio: 5 | Fecha: 2026-10-14 | Hora: 13:30 | Origen: panel
+[2026-10-14 13:25:11] Nuevo cliente creado ID: 30
+[2026-10-14 13:25:11] Rango calculado: Inicio [2026-10-14 13:30:00] -> Fin [2026-10-14 14:00:00] (Duración: 30 mins)
+[2026-10-14 13:25:11] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-14 13:25:11] Turno insertado exitosamente con ID: 169
+[2026-10-14 13:25:11] Enviando notificación por WhatsApp al cliente 5493518002696...
+[2026-10-14 13:25:12] Disparando WebPush al dueño...
+[2026-10-14 13:25:12] Procesando WebPush para Negocio ID: 4
+[2026-10-14 13:25:12] Validando si existe la clase 
+[2026-10-14 13:25:12] La clase existe
+[2026-10-14 13:25:12] === FIN AGENDAR TURNO EXITOSO (ID: 169) ===
+[2026-10-14 20:47:50] === INICIO AGENDAR TURNO ===
+[2026-10-14 20:47:50] Params: Negocio: 10 | Cliente: Noe (5493521514632) | Servicio: 26 | Fecha: 2026-10-15 | Hora: 17:40 | Origen: panel
+[2026-10-14 20:47:50] Nuevo cliente creado ID: 31
+[2026-10-14 20:47:50] Rango calculado: Inicio [2026-10-15 17:40:00] -> Fin [2026-10-15 18:20:00] (Duración: 40 mins)
+[2026-10-14 20:47:50] Estado inicial: 'pendiente_pago' | Seña:  | Método Pago: 'transferencia'
+[2026-10-14 20:47:50] Turno insertado exitosamente con ID: 170
+[2026-10-14 20:47:50] Enviando notificación por WhatsApp al cliente 5493521514632...
+[2026-10-14 20:47:51] Disparando WebPush al dueño...
+[2026-10-14 20:47:51] Procesando WebPush para Negocio ID: 10
+[2026-10-14 20:47:51] Validando si existe la clase 
+[2026-10-14 20:47:51] La clase existe
+[2026-10-14 20:47:51] === FIN AGENDAR TURNO EXITOSO (ID: 170) ===
+[2026-10-15 16:34:24] === INICIO AGENDAR TURNO ===
+[2026-10-15 16:34:24] Params: Negocio: 4 | Cliente: Aldo Roberto Varela (5493513256711) | Servicio: 3 | Fecha: 2026-10-15 | Hora: 17:00 | Origen: panel
+[2026-10-15 16:34:24] Cliente existente encontrado ID: 12
+[2026-10-15 16:34:24] Rango calculado: Inicio [2026-10-15 17:00:00] -> Fin [2026-10-15 17:30:00] (Duración: 30 mins)
+[2026-10-15 16:34:24] Estado inicial: 'pendiente_pago' | Seña:  | Método Pago: 'transferencia'
+[2026-10-15 16:34:24] Turno insertado exitosamente con ID: 171
+[2026-10-15 16:34:24] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-15 16:34:25] Disparando WebPush al dueño...
+[2026-10-15 16:34:25] Procesando WebPush para Negocio ID: 4
+[2026-10-15 16:34:25] Validando si existe la clase 
+[2026-10-15 16:34:25] La clase existe
+[2026-10-15 16:34:25] === FIN AGENDAR TURNO EXITOSO (ID: 171) ===
+[2026-10-15 17:07:15] === INICIO AGENDAR TURNO ===
+[2026-10-15 17:07:15] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Fecha: 2026-10-15 | Hora: 17:30 | Origen: panel
+[2026-10-15 17:07:15] Cliente existente encontrado ID: 32
+[2026-10-15 17:07:15] Rango calculado: Inicio [2026-10-15 17:30:00] -> Fin [2026-10-15 18:30:00] (Duración: 60 mins)
+[2026-10-15 17:07:15] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-15 17:07:15] Turno insertado exitosamente con ID: 172
+[2026-10-15 17:07:15] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-15 17:07:16] Disparando WebPush al dueño...
+[2026-10-15 17:07:16] Procesando WebPush para Negocio ID: 11
+[2026-10-15 17:07:16] Validando si existe la clase 
+[2026-10-15 17:07:16] La clase existe
+[2026-10-15 17:07:16] === FIN AGENDAR TURNO EXITOSO (ID: 172) ===
+[2026-10-15 17:10:14] === INICIO CANCELAR TURNO ===
+[2026-10-15 17:10:14] Params: Turno ID: 172 | Negocio ID: 11
+[2026-10-15 17:10:14] Estado del turno ID 172 actualizado a 'cancelado' en BD.
+[2026-10-15 17:10:14] Recordatorios asociados desactivados.
+[2026-10-15 17:10:14] Disparando WebPush de cancelación al dueño...
+[2026-10-15 17:10:14] Antes de llamar a notificaciones push
+[2026-10-15 17:10:14] === FIN CANCELAR TURNO EXITOSO (ID: 172) ===
+[2026-10-15 20:13:56] === INICIO AGENDAR TURNO ===
+[2026-10-15 20:13:56] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: Ninguno | Fecha: 2026-10-16 | Hora: 09:00 | Origen: panel
+[2026-10-15 20:13:56] Cliente existente encontrado ID: 32
+[2026-10-15 20:13:56] Rango calculado: Inicio [2026-10-16 09:00:00] -> Fin [2026-10-16 10:00:00] (Duración: 60 mins)
+[2026-10-15 20:13:56] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-15 20:13:56] Turno insertado exitosamente con ID: 173
+[2026-10-15 20:13:56] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-15 20:13:58] Disparando WebPush al dueño...
+[2026-10-15 20:13:58] Procesando WebPush para Negocio ID: 11
+[2026-10-15 20:13:59] === FIN AGENDAR TURNO EXITOSO (ID: 173) ===
+[2026-10-16 07:33:28] === INICIO CANCELAR TURNO ===
+[2026-10-16 07:33:28] Params: Turno ID: 173 | Negocio ID: 11
+[2026-10-16 07:33:28] Estado del turno ID 173 actualizado a 'cancelado' en BD.
+[2026-10-16 07:33:28] Recordatorios asociados desactivados.
+[2026-10-16 07:33:28] Disparando WebPush de cancelación al dueño...
+[2026-10-16 07:33:29] === FIN CANCELAR TURNO EXITOSO (ID: 173) ===
+[2026-10-16 08:32:40] === INICIO AGENDAR TURNO ===
+[2026-10-16 08:32:40] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 2 | Fecha: 2026-10-16 | Hora: 10:00 | Origen: panel
+[2026-10-16 08:32:40] Cliente existente encontrado ID: 32
+[2026-10-16 08:32:40] Rango calculado: Inicio [2026-10-16 10:00:00] -> Fin [2026-10-16 11:00:00] (Duración: 60 mins)
+[2026-10-16 08:32:40] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 08:32:40] Turno insertado exitosamente con ID: 174
+[2026-10-16 08:32:40] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 08:32:41] Disparando WebPush al dueño...
+[2026-10-16 08:32:41] Procesando WebPush para Negocio ID: 11
+[2026-10-16 08:32:42] === FIN AGENDAR TURNO EXITOSO (ID: 174) ===
+[2026-10-16 08:33:46] === INICIO CANCELAR TURNO ===
+[2026-10-16 08:33:46] Params: Turno ID: 174 | Negocio ID: 11
+[2026-10-16 08:33:46] Estado del turno ID 174 actualizado a 'cancelado' en BD.
+[2026-10-16 08:33:46] Recordatorios asociados desactivados.
+[2026-10-16 08:33:46] Enviando plantilla de cancelación vía WhatsApp a 5493513256711...
+[2026-10-16 08:33:47] Disparando WebPush de cancelación al dueño...
+[2026-10-16 08:33:47] Procesando WebPush para Negocio ID: 11
+[2026-10-16 08:33:48] === FIN CANCELAR TURNO EXITOSO (ID: 174) ===
+[2026-10-16 08:41:16] === INICIO AGENDAR TURNO ===
+[2026-10-16 08:41:16] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 1 | Fecha: 2026-10-16 | Hora: 09:00 | Origen: panel
+[2026-10-16 08:41:16] Cliente existente encontrado ID: 32
+[2026-10-16 08:41:16] Rango calculado: Inicio [2026-10-16 09:00:00] -> Fin [2026-10-16 10:00:00] (Duración: 60 mins)
+[2026-10-16 08:41:16] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 08:41:16] Turno insertado exitosamente con ID: 175
+[2026-10-16 08:41:16] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 08:41:17] Disparando WebPush al dueño...
+[2026-10-16 08:41:17] Procesando WebPush para Negocio ID: 11
+[2026-10-16 08:41:19] === FIN AGENDAR TURNO EXITOSO (ID: 175) ===
+[2026-10-16 08:41:53] === INICIO AGENDAR TURNO ===
+[2026-10-16 08:41:53] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 2 | Fecha: 2026-10-16 | Hora: 09:00 | Origen: panel
+[2026-10-16 08:41:53] Cliente existente encontrado ID: 32
+[2026-10-16 08:41:53] Rango calculado: Inicio [2026-10-16 09:00:00] -> Fin [2026-10-16 10:00:00] (Duración: 60 mins)
+[2026-10-16 08:41:53] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 08:41:53] Turno insertado exitosamente con ID: 176
+[2026-10-16 08:41:53] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 08:41:53] Disparando WebPush al dueño...
+[2026-10-16 08:41:53] Procesando WebPush para Negocio ID: 11
+[2026-10-16 08:41:54] === FIN AGENDAR TURNO EXITOSO (ID: 176) ===
+[2026-10-16 08:45:15] === INICIO CANCELAR TURNO ===
+[2026-10-16 08:45:15] Params: Turno ID: 175 | Negocio ID: 11
+[2026-10-16 08:45:15] Estado del turno ID 175 actualizado a 'cancelado' en BD.
+[2026-10-16 08:45:15] Recordatorios asociados desactivados.
+[2026-10-16 08:45:15] Disparando WebPush de cancelación al dueño...
+[2026-10-16 08:45:16] === FIN CANCELAR TURNO EXITOSO (ID: 175) ===
+[2026-10-16 08:45:21] === INICIO CANCELAR TURNO ===
+[2026-10-16 08:45:21] Params: Turno ID: 176 | Negocio ID: 11
+[2026-10-16 08:45:21] Estado del turno ID 176 actualizado a 'cancelado' en BD.
+[2026-10-16 08:45:21] Recordatorios asociados desactivados.
+[2026-10-16 08:45:21] Disparando WebPush de cancelación al dueño...
+[2026-10-16 08:45:22] === FIN CANCELAR TURNO EXITOSO (ID: 176) ===
+[2026-10-16 09:06:02] === INICIO AGENDAR TURNO ===
+[2026-10-16 09:06:02] Params: Negocio: 11 | Cliente: Aldo () | Servicio: 32 | Recurso ID: 1 | Fecha: 2026-10-16 | Hora: 10:00 | Origen: panel
+[2026-10-16 09:06:02] Nuevo cliente creado ID: 71
+[2026-10-16 09:06:02] Rango calculado: Inicio [2026-10-16 10:00:00] -> Fin [2026-10-16 11:00:00] (Duración: 60 mins)
+[2026-10-16 09:06:02] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 09:06:02] Turno insertado exitosamente con ID: 177
+[2026-10-16 09:06:02] Disparando WebPush al dueño...
+[2026-10-16 09:06:02] Procesando WebPush para Negocio ID: 11
+[2026-10-16 09:06:03] === FIN AGENDAR TURNO EXITOSO (ID: 177) ===
+[2026-10-16 09:06:21] === INICIO AGENDAR TURNO ===
+[2026-10-16 09:06:21] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 2 | Fecha: 2026-10-16 | Hora: 10:00 | Origen: panel
+[2026-10-16 09:06:21] Cliente existente encontrado ID: 32
+[2026-10-16 09:06:21] Rango calculado: Inicio [2026-10-16 10:00:00] -> Fin [2026-10-16 11:00:00] (Duración: 60 mins)
+[2026-10-16 09:06:21] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 09:06:21] Turno insertado exitosamente con ID: 178
+[2026-10-16 09:06:21] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 09:06:22] Disparando WebPush al dueño...
+[2026-10-16 09:06:22] Procesando WebPush para Negocio ID: 11
+[2026-10-16 09:06:23] === FIN AGENDAR TURNO EXITOSO (ID: 178) ===
+[2026-10-16 09:06:47] === INICIO CANCELAR TURNO ===
+[2026-10-16 09:06:47] Params: Turno ID: 177 | Negocio ID: 11
+[2026-10-16 09:06:47] Estado del turno ID 177 actualizado a 'cancelado' en BD.
+[2026-10-16 09:06:47] Disparando WebPush de cancelación al dueño...
+[2026-10-16 09:06:47] Procesando WebPush para Negocio ID: 11
+[2026-10-16 09:06:48] === FIN CANCELAR TURNO EXITOSO (ID: 177) ===
+[2026-10-16 09:07:09] === INICIO CANCELAR TURNO ===
+[2026-10-16 09:07:09] Params: Turno ID: 178 | Negocio ID: 11
+[2026-10-16 09:07:09] Estado del turno ID 178 actualizado a 'cancelado' en BD.
+[2026-10-16 09:07:09] Recordatorios asociados desactivados.
+[2026-10-16 09:07:09] Enviando plantilla de cancelación vía WhatsApp a 5493513256711...
+[2026-10-16 09:07:10] Disparando WebPush de cancelación al dueño...
+[2026-10-16 09:07:10] Procesando WebPush para Negocio ID: 11
+[2026-10-16 09:07:11] === FIN CANCELAR TURNO EXITOSO (ID: 178) ===
+[2026-10-16 09:09:46] === INICIO AGENDAR TURNO ===
+[2026-10-16 09:09:46] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 1 | Fecha: 2026-10-16 | Hora: 10:00 | Origen: panel
+[2026-10-16 09:09:46] Cliente existente encontrado ID: 32
+[2026-10-16 09:09:46] Rango calculado: Inicio [2026-10-16 10:00:00] -> Fin [2026-10-16 11:00:00] (Duración: 60 mins)
+[2026-10-16 09:09:46] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 09:09:46] Turno insertado exitosamente con ID: 179
+[2026-10-16 09:09:46] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 09:09:47] Disparando WebPush al dueño...
+[2026-10-16 09:09:47] Procesando WebPush para Negocio ID: 11
+[2026-10-16 09:09:48] === FIN AGENDAR TURNO EXITOSO (ID: 179) ===
+[2026-10-16 09:11:07] === INICIO AGENDAR TURNO ===
+[2026-10-16 09:11:07] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 2 | Fecha: 2026-10-16 | Hora: 13:00 | Origen: panel
+[2026-10-16 09:11:07] Cliente existente encontrado ID: 32
+[2026-10-16 09:11:07] Rango calculado: Inicio [2026-10-16 13:00:00] -> Fin [2026-10-16 14:00:00] (Duración: 60 mins)
+[2026-10-16 09:11:07] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 09:11:07] Turno insertado exitosamente con ID: 180
+[2026-10-16 09:11:07] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 09:11:08] Disparando WebPush al dueño...
+[2026-10-16 09:11:08] Procesando WebPush para Negocio ID: 11
+[2026-10-16 09:11:09] === FIN AGENDAR TURNO EXITOSO (ID: 180) ===
+[2026-10-16 09:59:22] === INICIO AGENDAR TURNO ===
+[2026-10-16 09:59:22] Params: Negocio: 4 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: Ninguno | Fecha: 2026-10-16 | Hora: 10:00 | Origen: panel
+[2026-10-16 09:59:22] Cliente existente encontrado ID: 12
+[2026-10-16 09:59:22] ERROR: Servicio ID 32 no encontrado para negocio 4.
+[2026-10-16 10:08:10] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:08:10] Params: Negocio: 4 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: Ninguno | Fecha: 2026-10-16 | Hora: 10:30 | Origen: panel
+[2026-10-16 10:08:10] Cliente existente encontrado ID: 12
+[2026-10-16 10:08:10] ERROR: Servicio ID 32 no encontrado para negocio 4.
+[2026-10-16 10:08:47] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:08:47] Params: Negocio: 4 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: Ninguno | Fecha: 2026-10-16 | Hora: 10:30 | Origen: panel
+[2026-10-16 10:08:47] Cliente existente encontrado ID: 12
+[2026-10-16 10:08:47] ERROR: Servicio ID 32 no encontrado para negocio 4.
+[2026-10-16 10:09:54] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:09:54] Params: Negocio: 4 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: Ninguno | Fecha: 2026-10-16 | Hora: 10:30 | Origen: panel
+[2026-10-16 10:09:54] Cliente existente encontrado ID: 12
+[2026-10-16 10:09:54] ERROR: Servicio ID 32 no encontrado para negocio 4.
+[2026-10-16 10:19:01] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:19:01] Params: Negocio: 4 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: Ninguno | Fecha: 2026-10-16 | Hora: 10:30 | Origen: panel
+[2026-10-16 10:19:01] Cliente existente encontrado ID: 12
+[2026-10-16 10:19:01] ERROR: Servicio ID 32 no encontrado para negocio 4.
+[2026-10-16 10:19:14] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:19:14] Params: Negocio: 4 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: Ninguno | Fecha: 2026-10-16 | Hora: 10:30 | Origen: panel
+[2026-10-16 10:19:14] Cliente existente encontrado ID: 12
+[2026-10-16 10:19:14] ERROR: Servicio ID 32 no encontrado para negocio 4.
+[2026-10-16 10:27:25] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:27:25] Params: Negocio: 4 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: Ninguno | Fecha: 2026-10-16 | Hora: 10:30 | Origen: publico
+[2026-10-16 10:27:25] Cliente existente encontrado ID: 12
+[2026-10-16 10:27:25] ERROR: Servicio ID 32 no encontrado para negocio 4.
+[2026-10-16 10:27:39] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:27:39] Params: Negocio: 4 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: Ninguno | Fecha: 2026-10-16 | Hora: 10:30 | Origen: publico
+[2026-10-16 10:27:39] Cliente existente encontrado ID: 12
+[2026-10-16 10:27:39] ERROR: Servicio ID 32 no encontrado para negocio 4.
+[2026-10-16 10:28:25] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:28:25] Params: Negocio: 4 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 1 | Fecha: 2026-10-16 | Hora: 10:30 | Origen: publico
+[2026-10-16 10:28:25] Cliente existente encontrado ID: 12
+[2026-10-16 10:28:25] ERROR: Servicio ID 32 no encontrado para negocio 4.
+[2026-10-16 10:44:42] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:44:42] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 1 | Fecha: 2026-10-16 | Hora: 11:00 | Origen: publico
+[2026-10-16 10:44:42] Cliente existente encontrado ID: 32
+[2026-10-16 10:44:42] Rango calculado: Inicio [2026-10-16 11:00:00] -> Fin [2026-10-16 12:00:00] (Duración: 60 mins)
+[2026-10-16 10:44:42] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 10:44:42] Turno insertado exitosamente con ID: 181
+[2026-10-16 10:44:42] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 10:44:43] Disparando WebPush al dueño...
+[2026-10-16 10:44:43] Procesando WebPush para Negocio ID: 11
+[2026-10-16 10:44:43] === FIN AGENDAR TURNO EXITOSO (ID: 181) ===
+[2026-10-16 10:45:17] === INICIO CANCELAR TURNO ===
+[2026-10-16 10:45:17] Params: Turno ID: 181 | Negocio ID: 11
+[2026-10-16 10:45:17] Estado del turno ID 181 actualizado a 'cancelado' en BD.
+[2026-10-16 10:45:17] Recordatorios asociados desactivados.
+[2026-10-16 10:45:17] Disparando WebPush de cancelación al dueño...
+[2026-10-16 10:45:18] === FIN CANCELAR TURNO EXITOSO (ID: 181) ===
+[2026-10-16 10:45:59] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:45:59] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 1 | Fecha: 2026-10-16 | Hora: 11:00 | Origen: publico
+[2026-10-16 10:45:59] Cliente existente encontrado ID: 32
+[2026-10-16 10:45:59] Rango calculado: Inicio [2026-10-16 11:00:00] -> Fin [2026-10-16 12:00:00] (Duración: 60 mins)
+[2026-10-16 10:45:59] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 10:45:59] Turno insertado exitosamente con ID: 182
+[2026-10-16 10:45:59] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 10:46:00] Disparando WebPush al dueño...
+[2026-10-16 10:46:00] Procesando WebPush para Negocio ID: 11
+[2026-10-16 10:46:00] === FIN AGENDAR TURNO EXITOSO (ID: 182) ===
+[2026-10-16 10:46:40] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:46:40] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 2 | Fecha: 2026-10-16 | Hora: 11:00 | Origen: publico
+[2026-10-16 10:46:40] Cliente existente encontrado ID: 32
+[2026-10-16 10:46:40] Rango calculado: Inicio [2026-10-16 11:00:00] -> Fin [2026-10-16 12:00:00] (Duración: 60 mins)
+[2026-10-16 10:46:40] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 10:46:40] Turno insertado exitosamente con ID: 183
+[2026-10-16 10:46:40] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 10:46:41] Disparando WebPush al dueño...
+[2026-10-16 10:46:41] Procesando WebPush para Negocio ID: 11
+[2026-10-16 10:46:42] === FIN AGENDAR TURNO EXITOSO (ID: 183) ===
+[2026-10-16 10:50:11] === INICIO CANCELAR TURNO ===
+[2026-10-16 10:50:11] Params: Turno ID: 183 | Negocio ID: 11
+[2026-10-16 10:50:11] Estado del turno ID 183 actualizado a 'cancelado' en BD.
+[2026-10-16 10:50:11] Recordatorios asociados desactivados.
+[2026-10-16 10:50:11] Disparando WebPush de cancelación al dueño...
+[2026-10-16 10:50:11] === FIN CANCELAR TURNO EXITOSO (ID: 183) ===
+[2026-10-16 10:53:17] === INICIO AGENDAR TURNO ===
+[2026-10-16 10:53:17] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 2 | Fecha: 2026-10-16 | Hora: 11:00 | Origen: panel
+[2026-10-16 10:53:17] Cliente existente encontrado ID: 32
+[2026-10-16 10:53:17] Rango calculado: Inicio [2026-10-16 11:00:00] -> Fin [2026-10-16 12:00:00] (Duración: 60 mins)
+[2026-10-16 10:53:17] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 10:53:17] Turno insertado exitosamente con ID: 184
+[2026-10-16 10:53:17] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 10:53:18] Disparando WebPush al dueño...
+[2026-10-16 10:53:18] Procesando WebPush para Negocio ID: 11
+[2026-10-16 10:53:18] === FIN AGENDAR TURNO EXITOSO (ID: 184) ===
+[2026-10-16 10:59:31] === INICIO CANCELAR TURNO ===
+[2026-10-16 10:59:31] Params: Turno ID: 184 | Negocio ID: 11
+[2026-10-16 10:59:31] Estado del turno ID 184 actualizado a 'cancelado' en BD.
+[2026-10-16 10:59:31] Recordatorios asociados desactivados.
+[2026-10-16 10:59:31] Disparando WebPush de cancelación al dueño...
+[2026-10-16 10:59:31] === FIN CANCELAR TURNO EXITOSO (ID: 184) ===
+[2026-10-16 10:59:58] === INICIO CANCELAR TURNO ===
+[2026-10-16 10:59:58] Params: Turno ID: 182 | Negocio ID: 11
+[2026-10-16 10:59:58] Estado del turno ID 182 actualizado a 'cancelado' en BD.
+[2026-10-16 10:59:58] Recordatorios asociados desactivados.
+[2026-10-16 10:59:58] Disparando WebPush de cancelación al dueño...
+[2026-10-16 10:59:59] === FIN CANCELAR TURNO EXITOSO (ID: 182) ===
+[2026-10-16 11:00:10] === INICIO CANCELAR TURNO ===
+[2026-10-16 11:00:10] Params: Turno ID: 180 | Negocio ID: 11
+[2026-10-16 11:00:10] Estado del turno ID 180 actualizado a 'cancelado' en BD.
+[2026-10-16 11:00:10] Recordatorios asociados desactivados.
+[2026-10-16 11:00:10] Disparando WebPush de cancelación al dueño...
+[2026-10-16 11:00:11] === FIN CANCELAR TURNO EXITOSO (ID: 180) ===
+[2026-10-16 11:00:40] === INICIO AGENDAR TURNO ===
+[2026-10-16 11:00:40] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 1 | Fecha: 2026-10-16 | Hora: 12:00 | Origen: publico
+[2026-10-16 11:00:40] Cliente existente encontrado ID: 32
+[2026-10-16 11:00:40] Rango calculado: Inicio [2026-10-16 12:00:00] -> Fin [2026-10-16 13:00:00] (Duración: 60 mins)
+[2026-10-16 11:00:40] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 11:00:40] Turno insertado exitosamente con ID: 185
+[2026-10-16 11:00:40] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 11:00:41] Disparando WebPush al dueño...
+[2026-10-16 11:00:41] Procesando WebPush para Negocio ID: 11
+[2026-10-16 11:00:42] === FIN AGENDAR TURNO EXITOSO (ID: 185) ===
+[2026-10-16 11:04:44] === INICIO AGENDAR TURNO ===
+[2026-10-16 11:04:44] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 2 | Fecha: 2026-10-16 | Hora: 12:00 | Origen: publico
+[2026-10-16 11:04:44] Cliente existente encontrado ID: 32
+[2026-10-16 11:04:44] Rango calculado: Inicio [2026-10-16 12:00:00] -> Fin [2026-10-16 13:00:00] (Duración: 60 mins)
+[2026-10-16 11:04:44] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 11:04:44] Turno insertado exitosamente con ID: 186
+[2026-10-16 11:04:44] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 11:04:44] Disparando WebPush al dueño...
+[2026-10-16 11:04:44] Procesando WebPush para Negocio ID: 11
+[2026-10-16 11:04:45] === FIN AGENDAR TURNO EXITOSO (ID: 186) ===
+[2026-10-16 11:05:24] === INICIO CANCELAR TURNO ===
+[2026-10-16 11:05:24] Params: Turno ID: 185 | Negocio ID: 11
+[2026-10-16 11:05:24] Estado del turno ID 185 actualizado a 'cancelado' en BD.
+[2026-10-16 11:05:24] Recordatorios asociados desactivados.
+[2026-10-16 11:05:24] Disparando WebPush de cancelación al dueño...
+[2026-10-16 11:05:25] === FIN CANCELAR TURNO EXITOSO (ID: 185) ===
+[2026-10-16 11:05:27] === INICIO CANCELAR TURNO ===
+[2026-10-16 11:05:27] Params: Turno ID: 186 | Negocio ID: 11
+[2026-10-16 11:05:27] Estado del turno ID 186 actualizado a 'cancelado' en BD.
+[2026-10-16 11:05:27] Recordatorios asociados desactivados.
+[2026-10-16 11:05:27] Disparando WebPush de cancelación al dueño...
+[2026-10-16 11:05:27] === FIN CANCELAR TURNO EXITOSO (ID: 186) ===
+[2026-10-16 11:11:00] === INICIO AGENDAR TURNO ===
+[2026-10-16 11:11:00] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 1 | Fecha: 2026-10-16 | Hora: 12:00 | Origen: publico
+[2026-10-16 11:11:00] Cliente existente encontrado ID: 32
+[2026-10-16 11:11:00] Rango calculado: Inicio [2026-10-16 12:00:00] -> Fin [2026-10-16 13:00:00] (Duración: 60 mins)
+[2026-10-16 11:11:00] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 11:11:00] Turno insertado exitosamente con ID: 187
+[2026-10-16 11:11:00] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 11:11:01] Disparando WebPush al dueño...
+[2026-10-16 11:11:01] Procesando WebPush para Negocio ID: 11
+[2026-10-16 11:11:02] === FIN AGENDAR TURNO EXITOSO (ID: 187) ===
+[2026-10-16 11:11:18] === INICIO AGENDAR TURNO ===
+[2026-10-16 11:11:18] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 2 | Fecha: 2026-10-16 | Hora: 12:00 | Origen: publico
+[2026-10-16 11:11:18] Cliente existente encontrado ID: 32
+[2026-10-16 11:11:18] Rango calculado: Inicio [2026-10-16 12:00:00] -> Fin [2026-10-16 13:00:00] (Duración: 60 mins)
+[2026-10-16 11:11:18] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 11:11:18] Turno insertado exitosamente con ID: 188
+[2026-10-16 11:11:18] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 11:11:19] Disparando WebPush al dueño...
+[2026-10-16 11:11:19] Procesando WebPush para Negocio ID: 11
+[2026-10-16 11:11:20] === FIN AGENDAR TURNO EXITOSO (ID: 188) ===
+[2026-10-16 11:11:46] === INICIO CANCELAR TURNO ===
+[2026-10-16 11:11:46] Params: Turno ID: 187 | Negocio ID: 11
+[2026-10-16 11:11:46] Estado del turno ID 187 actualizado a 'cancelado' en BD.
+[2026-10-16 11:11:46] Recordatorios asociados desactivados.
+[2026-10-16 11:11:46] Enviando plantilla de cancelación vía WhatsApp a 5493513256711...
+[2026-10-16 11:11:47] Disparando WebPush de cancelación al dueño...
+[2026-10-16 11:11:47] Procesando WebPush para Negocio ID: 11
+[2026-10-16 11:11:47] === FIN CANCELAR TURNO EXITOSO (ID: 187) ===
+[2026-10-16 11:11:57] === INICIO AGENDAR TURNO ===
+[2026-10-16 11:11:57] Params: Negocio: 11 | Cliente: Aldo (5493513256711) | Servicio: 32 | Recurso ID: 1 | Fecha: 2026-10-16 | Hora: 12:00 | Origen: panel
+[2026-10-16 11:11:57] Cliente existente encontrado ID: 32
+[2026-10-16 11:11:57] Rango calculado: Inicio [2026-10-16 12:00:00] -> Fin [2026-10-16 13:00:00] (Duración: 60 mins)
+[2026-10-16 11:11:57] Estado inicial: 'confirmado' | Seña:  | Método Pago: ''
+[2026-10-16 11:11:57] Turno insertado exitosamente con ID: 189
+[2026-10-16 11:11:57] Enviando notificación por WhatsApp al cliente 5493513256711...
+[2026-10-16 11:11:57] Disparando WebPush al dueño...
+[2026-10-16 11:11:57] Procesando WebPush para Negocio ID: 11
+[2026-10-16 11:11:58] === FIN AGENDAR TURNO EXITOSO (ID: 189) ===
+[2026-10-16 11:19:11] === INICIO CANCELAR TURNO ===
+[2026-10-16 11:19:11] Params: Turno ID: 188 | Negocio ID: 11
+[2026-10-16 11:19:11] Estado del turno ID 188 actualizado a 'cancelado' en BD.
+[2026-10-16 11:19:11] Recordatorios asociados desactivados.
+[2026-10-16 11:19:11] Disparando WebPush de cancelación al dueño...
+[2026-10-16 11:19:11] === FIN CANCELAR TURNO EXITOSO (ID: 188) ===
+[2026-10-16 11:19:12] === INICIO CANCELAR TURNO ===
+[2026-10-16 11:19:12] Params: Turno ID: 189 | Negocio ID: 11
+[2026-10-16 11:19:12] Estado del turno ID 189 actualizado a 'cancelado' en BD.
+[2026-10-16 11:19:12] Recordatorios asociados desactivados.
+[2026-10-16 11:19:12] Disparando WebPush de cancelación al dueño...
+[2026-10-16 11:19:13] === FIN CANCELAR TURNO EXITOSO (ID: 189) ===
+[2026-10-16 13:17:45] === INICIO AGENDAR TURNO ===
+[2026-10-16 13:17:45] Params: Negocio: 10 | Cliente: Alicia (5493518016889) | Servicio: 9 | Recurso ID: Ninguno | Fecha: 2026-10-16 | Hora: 17:00 | Origen: panel
+[2026-10-16 13:17:45] Cliente existente encontrado ID: 58
+[2026-10-16 13:17:45] Rango calculado: Inicio [2026-10-16 17:00:00] -> Fin [2026-10-16 18:30:00] (Duración: 90 mins)
+[2026-10-16 13:17:45] Estado inicial: 'pendiente_pago' | Seña:  | Método Pago: 'transferencia'
+[2026-10-16 13:17:45] Turno insertado exitosamente con ID: 190
+[2026-10-16 13:17:45] Enviando notificación por WhatsApp al cliente 5493518016889...
+[2026-10-16 13:17:47] Disparando WebPush al dueño...
+[2026-10-16 13:17:47] Procesando WebPush para Negocio ID: 10
+[2026-10-16 13:17:48] === FIN AGENDAR TURNO EXITOSO (ID: 190) ===

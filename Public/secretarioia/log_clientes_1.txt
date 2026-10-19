@@ -1,0 +1,383 @@
+[2026-10-14 17:21:52] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-14 17:21:52] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"clau\ud83d\udc51"},"wa_id":"5493513256712","user_id":"AR.1443400254274392"}],"messages":[{"from":"5493513256712","from_user_id":"AR.1443400254274392","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMhUCABIYFDNBNEM1NkMzMjk3MTc4OTBDRUREAA==","timestamp":"1792009308","text":{"body":"Hola"},"type":"text"}]},"field":"messages"}]}]}
+[2026-10-14 17:21:52] [CLIENTE] Evaluando mensaje con GPT-4o-mini...
+[2026-10-14 17:21:52] [CLIENTE] Enviando curl a OpenAI con historial de 7 mensajes
+[2026-10-14 17:21:54] [CLIENTE] Respuesta RAW de OpenAI: {
+  "id": "chatcmpl-EYzlyMnmvw9BdfWWRwfbTuIlXfbh1",
+  "object": "chat.completion",
+  "created": 1792009314,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"accion\": \"LISTAR_NEGOCIOS\", \"rubro\": \"lavadero autos\"}",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1845,
+    "completion_tokens": 19,
+    "total_tokens": 1864,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_3089aa24bb"
+}
+
+[2026-10-14 17:21:54] [CLIENTE] Acción determinada por IA: LISTAR_NEGOCIOS | JSON IA: {"accion":"LISTAR_NEGOCIOS","rubro":"lavadero autos"}
+[2026-10-14 17:21:54] [CLIENTE] Enviando lista de negocios a WhatsApp
+[2026-10-14 17:21:55] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256712","wa_id":"5493513256712"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMhUCABEYEjNCRjJENDg0Mjk4QzYxNjU4MgA="}]}
+[2026-10-14 17:22:13] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-14 17:22:13] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"clau\ud83d\udc51"},"wa_id":"5493513256712","user_id":"AR.1443400254274392"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMhUCABEYEjNCRjJENDg0Mjk4QzYxNjU4MgA="},"from":"5493513256712","from_user_id":"AR.1443400254274392","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMhUCABIYFDNBNDM0NTQ5RTY0ODUwNDZGMERDAA==","timestamp":"1792009332","type":"interactive","interactive":{"type":"list_reply","list_reply":{"id":"negocio_11","title":"Lava autos Aldo","description":"a 0,4 km | Agustin Piaggio 828, Cordoba"}}}]},"field":"messages"}]}]}
+[2026-10-14 17:22:13] [CLIENTE] Respuesta interactiva seleccionada: negocio_11
+[2026-10-14 17:22:13] [CLIENTE] Procesando lista de servicios para negocio ID: 11
+[2026-10-14 17:22:14] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256712","wa_id":"5493513256712"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMhUCABEYEjAwQzhFNDZERUVDQThEOTY5OAA="}]}
+[2026-10-14 20:54:15] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-14 20:54:15] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Familia\u2764\ufe0f"},"wa_id":"5493521514632","user_id":"AR.1418845466416448"}],"messages":[{"from":"5493521514632","from_user_id":"AR.1418845466416448","id":"wamid.HBgNNTQ5MzUyMTUxNDYzMhUCABIYIEFDOTAwRDM4MDhEQTU4OUREMDc2NkI4NkIzOUQyNjE4AA==","timestamp":"1792022052","type":"image","image":{"mime_type":"image\/jpeg","sha256":"Uxy8MFhbFYlIvR\/WSKH3kEZlR4HjKEf\/i0esKpB2XVY=","id":"1113505574401354","url":"https:\/\/lookaside.fbsbx.com\/whatsapp_business\/attachments\/?mid=1113505574401354&source=webhook&ext=1792022353&hash=ATwvSeuXL_5ts-TXUCw3c8HIwdHg9rfjqQJN27Kp4XOXrw"}}]},"field":"messages"}]}]}
+[2026-10-14 20:54:15] [CLIENTE] Archivo/Comprobante (image) recibido de 5493521514632
+[2026-10-14 20:54:15] [CLIENTE] Archivo/Comprobante (1113505574401354) 
+[2026-10-14 20:54:21] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493521514632","wa_id":"5493521514632"}],"messages":[{"id":"wamid.HBgNNTQ5MzUyMTUxNDYzMhUCABEYEjgzMkRFQzdFMTdCNzcxNTZBOQA="}]}
+[2026-10-14 20:54:21] [CLIENTE] Comienza a procesar push 
+[2026-10-15 15:53:11] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-15 15:53:11] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Familia\u2764\ufe0f"},"wa_id":"5493521514632","user_id":"AR.1418845466416448"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUyMTUxNDYzMhUCABEYEjQxNTE0MDVCRTI0NDNBMUVDRQA="},"from":"5493521514632","from_user_id":"AR.1418845466416448","id":"wamid.HBgNNTQ5MzUyMTUxNDYzMhUCABIYIEFDQjAyRjZEMzQ4MTc4RjkyNTY5OTdEMTFDNDM2QkMyAA==","timestamp":"1792090389","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"confirmar_turno_170","title":"\u2705 Confirmar"}}}]},"field":"messages"}]}]}
+[2026-10-15 15:53:11] [CLIENTE] Botón seleccionado: confirmar_turno_170
+[2026-10-15 15:53:12] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493521514632","wa_id":"5493521514632"}],"messages":[{"id":"wamid.HBgNNTQ5MzUyMTUxNDYzMhUCABEYEkFGQ0I0NENGRjA2RTk4MzlERQA="}]}
+[2026-10-15 16:49:49] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-15 16:49:49] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjBCRENEQTRGRjI2MTA5OTA2MkYA","timestamp":"1792093787","text":{"body":"Hola"},"type":"text"}]},"field":"messages"}]}]}
+[2026-10-15 16:49:49] [CLIENTE] Evaluando mensaje con GPT-4o-mini...
+[2026-10-15 16:49:49] [CLIENTE] Enviando curl a OpenAI con historial de 10 mensajes
+[2026-10-15 16:49:52] [CLIENTE] Respuesta RAW de OpenAI: {
+  "id": "chatcmpl-EZLkVfsVe5lZ7SPSxONtXMYkoPDE6",
+  "object": "chat.completion",
+  "created": 1792093791,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"accion\": \"LISTAR_RUBROS\"}",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 3109,
+    "completion_tokens": 10,
+    "total_tokens": 3119,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_f74778a2c0"
+}
+
+[2026-10-15 16:49:52] [CLIENTE] Acción determinada por IA: LISTAR_RUBROS | JSON IA: {"accion":"LISTAR_RUBROS"}
+[2026-10-15 16:49:52] [CLIENTE] Enviando lista de rubros a WhatsApp
+[2026-10-15 16:49:52] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjZGRjVBOUY1M0E0MjgyQzcxRAA="}]}
+[2026-10-15 16:50:03] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-15 16:50:03] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjA2ODQwMjYxMUNEQzZGMjczQzQA","timestamp":"1792093802","text":{"body":"inicio"},"type":"text"}]},"field":"messages"}]}]}
+[2026-10-15 16:50:03] [CLIENTE] Enviando invitación de ubicación/categorías a WhatsApp
+[2026-10-15 16:50:04] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjg2OTExNDA4REQ1QjNERDYxRgA="}]}
+[2026-10-15 17:10:14] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-15 17:10:14] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjJDMkEzRDRGNjNEMDBBNjUxQQA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjBBRDk1NjFGQ0YzMzY5RjZBQzEA","timestamp":"1792095012","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_172","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-15 17:10:14] [CLIENTE] Botón seleccionado: cancelar_turno_172
+[2026-10-15 17:10:14] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-15 17:10:14] [CLIENTE] [HELPER] Params: Turno ID: 172 | Negocio ID: 11
+[2026-10-15 17:10:14] [CLIENTE] [HELPER] Estado del turno ID 172 actualizado a 'cancelado' en BD.
+[2026-10-15 17:10:14] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-15 17:10:14] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-15 17:10:14] [CLIENTE] [HELPER] Antes de llamar a notificaciones push
+[2026-10-15 17:10:14] [CLIENTE] Comienza a procesar push 
+[2026-10-15 17:10:14] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 172) ===
+[2026-10-15 17:10:14] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkY0QzUwRTk1NEMxRjUyMTBCQgA="}]}
+[2026-10-15 19:34:18] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-15 19:34:18] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"marisasanuy75"},"wa_id":"5493521432213","user_id":"AR.3980425072099023"}],"messages":[{"from":"5493521432213","from_user_id":"AR.3980425072099023","id":"wamid.HBgNNTQ5MzUyMTQzMjIxMxUCABIYIEE1MTE3MjA2NzgzNzJCOThENjQxOEE0RkI2RDY2MTJFAA==","timestamp":"1792103657","text":{"body":"Hola!!!\nSoy Marisa de \n \ud83d\udc51 Reina Sof\u00eda \u2764 \n\n\u2b07\ufe0fDejame por favor algunos datos para agilizar la atenci\u00f3n:\n\n\ud83d\udcc5 Fecha del evento.\n\ud83d\udccd Ubicaci\u00f3n del evento \n\ud83c\udf88Tem\u00e1tica.\n\nPronto te respondo!\n\u2728D\u00e9jame tu nombre...\ud83d\ude43\nNO AUDIOS\n\n\u2728\ufe0fGracias por contactarme\u2728\ufe0f"},"type":"text"}]},"field":"messages"}]}]}
+[2026-10-15 19:34:18] [CLIENTE] Evaluando mensaje con GPT-4o-mini...
+[2026-10-15 19:34:18] [CLIENTE] Enviando curl a OpenAI con historial de 1 mensajes
+[2026-10-15 19:34:21] [CLIENTE] Respuesta RAW de OpenAI: {
+  "id": "chatcmpl-EZOJgS7JQtqPWe9OdxLvd7F4ieMTB",
+  "object": "chat.completion",
+  "created": 1792103660,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"accion\": \"PREGUNTAR_UBICACION_O_RUBRO\"}",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1847,
+    "completion_tokens": 17,
+    "total_tokens": 1864,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_8d9b39cc09"
+}
+
+[2026-10-15 19:34:21] [CLIENTE] Acción determinada por IA: PREGUNTAR_UBICACION_O_RUBRO | JSON IA: {"accion":"PREGUNTAR_UBICACION_O_RUBRO"}
+[2026-10-15 19:34:21] [CLIENTE] Enviando invitación de ubicación/categorías a WhatsApp
+[2026-10-15 19:34:21] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493521432213","wa_id":"5493521432213"}],"messages":[{"id":"wamid.HBgNNTQ5MzUyMTQzMjIxMxUCABEYEjkzOTdFMzlGM0EzMUZBQTk1QQA="}]}
+[2026-10-16 07:33:28] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 07:33:28] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjgzNjU1NDI3NUMwMDZFNTVFQgA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYIEFDOTI2MUQ1RjY5RDdCNkZBRDA3Nzk5RjgzRDlFOUY1AA==","timestamp":"1792146805","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_173","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 07:33:28] [CLIENTE] Botón seleccionado: cancelar_turno_173
+[2026-10-16 07:33:28] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 07:33:28] [CLIENTE] [HELPER] Params: Turno ID: 173 | Negocio ID: 11
+[2026-10-16 07:33:28] [CLIENTE] [HELPER] Estado del turno ID 173 actualizado a 'cancelado' en BD.
+[2026-10-16 07:33:28] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 07:33:28] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 07:33:28] [CLIENTE] Comienza a procesar push 
+[2026-10-16 07:33:29] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 173) ===
+[2026-10-16 07:33:30] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjY0OUNFNjY5MzZCNUZFQTI0MgA="}]}
+[2026-10-16 08:45:15] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 08:45:15] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkU4MjQ1NkVDNjhCREUwODMwQwA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjA3RTU1QjUzRkIwMjVCNEE4N0UA","timestamp":"1792151113","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_175","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 08:45:15] [CLIENTE] Botón seleccionado: cancelar_turno_175
+[2026-10-16 08:45:15] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 08:45:15] [CLIENTE] [HELPER] Params: Turno ID: 175 | Negocio ID: 11
+[2026-10-16 08:45:15] [CLIENTE] [HELPER] Estado del turno ID 175 actualizado a 'cancelado' en BD.
+[2026-10-16 08:45:15] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 08:45:15] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 08:45:15] [CLIENTE] Comienza a procesar push 
+[2026-10-16 08:45:16] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 175) ===
+[2026-10-16 08:45:16] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkJBM0M4RkI2QzNGNkVENzkxRQA="}]}
+[2026-10-16 08:45:21] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 08:45:21] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjI0NTJGNTcxMkE3QzU0Rjc0MgA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjA2ODVBMkEyMkMzMkVBMUVERDMA","timestamp":"1792151119","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_176","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 08:45:21] [CLIENTE] Botón seleccionado: cancelar_turno_176
+[2026-10-16 08:45:21] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 08:45:21] [CLIENTE] [HELPER] Params: Turno ID: 176 | Negocio ID: 11
+[2026-10-16 08:45:21] [CLIENTE] [HELPER] Estado del turno ID 176 actualizado a 'cancelado' en BD.
+[2026-10-16 08:45:21] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 08:45:21] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 08:45:21] [CLIENTE] Comienza a procesar push 
+[2026-10-16 08:45:22] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 176) ===
+[2026-10-16 08:45:23] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkI0Qjg3M0Y2NzQ4RTA2MkVFNgA="}]}
+[2026-10-16 10:45:17] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 10:45:17] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkRBOEY5ODdBMkJEMEU3NTFERgA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjA2QkVDMzI3RDk4RDBGN0U5RDEA","timestamp":"1792158311","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_181","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 10:45:17] [CLIENTE] Botón seleccionado: cancelar_turno_181
+[2026-10-16 10:45:17] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 10:45:17] [CLIENTE] [HELPER] Params: Turno ID: 181 | Negocio ID: 11
+[2026-10-16 10:45:17] [CLIENTE] [HELPER] Estado del turno ID 181 actualizado a 'cancelado' en BD.
+[2026-10-16 10:45:17] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 10:45:17] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 10:45:17] [CLIENTE] Comienza a procesar push 
+[2026-10-16 10:45:18] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 181) ===
+[2026-10-16 10:45:19] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjYxNEY3QzFCMjQ2OTczNkEyMgA="}]}
+[2026-10-16 10:50:11] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 10:50:11] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkM0QzE1MkZFRkVENDE3NTEyNAA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjAyNzA3NzkyNzUwMjM2Q0VBRTYA","timestamp":"1792158609","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_183","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 10:50:11] [CLIENTE] Botón seleccionado: cancelar_turno_183
+[2026-10-16 10:50:11] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 10:50:11] [CLIENTE] [HELPER] Params: Turno ID: 183 | Negocio ID: 11
+[2026-10-16 10:50:11] [CLIENTE] [HELPER] Estado del turno ID 183 actualizado a 'cancelado' en BD.
+[2026-10-16 10:50:11] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 10:50:11] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 10:50:11] [CLIENTE] Comienza a procesar push 
+[2026-10-16 10:50:11] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 183) ===
+[2026-10-16 10:50:12] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkUwOTAyRDA1ODA1QjZFMzZFMgA="}]}
+[2026-10-16 10:59:31] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 10:59:31] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkY4QUFEMDJFODg5OEY0RTJENQA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjA5RTk2MjM1NTA3QTE2QTQ4NTEA","timestamp":"1792159169","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_184","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 10:59:31] [CLIENTE] Botón seleccionado: cancelar_turno_184
+[2026-10-16 10:59:31] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 10:59:31] [CLIENTE] [HELPER] Params: Turno ID: 184 | Negocio ID: 11
+[2026-10-16 10:59:31] [CLIENTE] [HELPER] Estado del turno ID 184 actualizado a 'cancelado' en BD.
+[2026-10-16 10:59:31] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 10:59:31] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 10:59:31] [CLIENTE] Comienza a procesar push 
+[2026-10-16 10:59:31] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 184) ===
+[2026-10-16 10:59:32] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjkzRjk2NEYzNTI2N0NBN0RDRAA="}]}
+[2026-10-16 10:59:58] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 10:59:58] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjlCNjdDMUExODAyNzk1Rjg3MQA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjBEOUU3QTU2OEY3MEIxQjBFNDgA","timestamp":"1792159196","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_182","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 10:59:58] [CLIENTE] Botón seleccionado: cancelar_turno_182
+[2026-10-16 10:59:58] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 10:59:58] [CLIENTE] [HELPER] Params: Turno ID: 182 | Negocio ID: 11
+[2026-10-16 10:59:58] [CLIENTE] [HELPER] Estado del turno ID 182 actualizado a 'cancelado' en BD.
+[2026-10-16 10:59:58] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 10:59:58] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 10:59:58] [CLIENTE] Comienza a procesar push 
+[2026-10-16 10:59:59] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 182) ===
+[2026-10-16 11:00:00] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkIwQzYzMkNDMTBBRkUzNENFRgA="}]}
+[2026-10-16 11:00:10] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 11:00:10] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkFEN0Q4NjkwMzlGMTQ2RDEzNgA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjAyOUZGQjAwRDY3ODU3QzYxNTkA","timestamp":"1792159208","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_180","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 11:00:10] [CLIENTE] Botón seleccionado: cancelar_turno_180
+[2026-10-16 11:00:10] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 11:00:10] [CLIENTE] [HELPER] Params: Turno ID: 180 | Negocio ID: 11
+[2026-10-16 11:00:10] [CLIENTE] [HELPER] Estado del turno ID 180 actualizado a 'cancelado' en BD.
+[2026-10-16 11:00:10] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 11:00:10] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 11:00:10] [CLIENTE] Comienza a procesar push 
+[2026-10-16 11:00:11] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 180) ===
+[2026-10-16 11:00:12] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjg4NTQ0Q0E4MTBFOUQxMkFGQgA="}]}
+[2026-10-16 11:05:24] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 11:05:24] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjk4MDExNDlFNkM5NDcyODE4OAA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjA2RjQ3OTg3Q0MwRDI4QTEyNDIA","timestamp":"1792159523","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_185","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 11:05:24] [CLIENTE] Botón seleccionado: cancelar_turno_185
+[2026-10-16 11:05:24] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 11:05:24] [CLIENTE] [HELPER] Params: Turno ID: 185 | Negocio ID: 11
+[2026-10-16 11:05:24] [CLIENTE] [HELPER] Estado del turno ID 185 actualizado a 'cancelado' en BD.
+[2026-10-16 11:05:24] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 11:05:24] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 11:05:24] [CLIENTE] Comienza a procesar push 
+[2026-10-16 11:05:25] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 185) ===
+[2026-10-16 11:05:26] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkQyMDc3Q0YyQkJCRTA1REM5RAA="}]}
+[2026-10-16 11:05:27] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 11:05:27] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjdCOERBMjIyMDAzNEQ3Mjg3NgA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjAyQjRBM0MxMjVGNzdEOEMxN0IA","timestamp":"1792159525","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_186","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 11:05:27] [CLIENTE] Botón seleccionado: cancelar_turno_186
+[2026-10-16 11:05:27] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 11:05:27] [CLIENTE] [HELPER] Params: Turno ID: 186 | Negocio ID: 11
+[2026-10-16 11:05:27] [CLIENTE] [HELPER] Estado del turno ID 186 actualizado a 'cancelado' en BD.
+[2026-10-16 11:05:27] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 11:05:27] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 11:05:27] [CLIENTE] Comienza a procesar push 
+[2026-10-16 11:05:27] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 186) ===
+[2026-10-16 11:05:28] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjE1NTVDQTFDRkY2OTZFRjI4NwA="}]}
+[2026-10-16 11:19:11] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 11:19:11] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjg2QTU2QUM1RUEzMUQ3QjhFRQA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjBFNjlFNDg5OTExMkMwRENFMUYA","timestamp":"1792160349","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_188","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 11:19:11] [CLIENTE] Botón seleccionado: cancelar_turno_188
+[2026-10-16 11:19:11] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 11:19:11] [CLIENTE] [HELPER] Params: Turno ID: 188 | Negocio ID: 11
+[2026-10-16 11:19:11] [CLIENTE] [HELPER] Estado del turno ID 188 actualizado a 'cancelado' en BD.
+[2026-10-16 11:19:11] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 11:19:11] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 11:19:11] [CLIENTE] Comienza a procesar push 
+[2026-10-16 11:19:11] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 188) ===
+[2026-10-16 11:19:12] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkJEQ0U3NzFFODJEREQzNjE3OAA="}]}
+[2026-10-16 11:19:12] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-16 11:19:12] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Celualdo Lar"},"wa_id":"5493513256711","user_id":"AR.1348504237083133"}],"messages":[{"context":{"from":"5493517537781","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjY0NjYwMDdCMENGNDAzQzE1MgA="},"from":"5493513256711","from_user_id":"AR.1348504237083133","id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABIYFjNFQjBCOEI2NzJFNzZDRDYxREQ4N0UA","timestamp":"1792160350","type":"interactive","interactive":{"type":"button_reply","button_reply":{"id":"cancelar_turno_189","title":"\u274c Cancelar"}}}]},"field":"messages"}]}]}
+[2026-10-16 11:19:12] [CLIENTE] Botón seleccionado: cancelar_turno_189
+[2026-10-16 11:19:12] [CLIENTE] [HELPER] === INICIO CANCELAR TURNO ===
+[2026-10-16 11:19:12] [CLIENTE] [HELPER] Params: Turno ID: 189 | Negocio ID: 11
+[2026-10-16 11:19:12] [CLIENTE] [HELPER] Estado del turno ID 189 actualizado a 'cancelado' en BD.
+[2026-10-16 11:19:12] [CLIENTE] [HELPER] Recordatorios asociados desactivados.
+[2026-10-16 11:19:12] [CLIENTE] [HELPER] Disparando WebPush de cancelación al dueño...
+[2026-10-16 11:19:12] [CLIENTE] Comienza a procesar push 
+[2026-10-16 11:19:13] [CLIENTE] [HELPER] === FIN CANCELAR TURNO EXITOSO (ID: 189) ===
+[2026-10-16 11:19:14] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjU4N0Q2N0JFQkRGMzNGRENFQQA="}]}
+[2026-10-17 09:40:32] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-17 09:40:32] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"marisasanuy75"},"wa_id":"5493521432213","user_id":"AR.3980425072099023"}],"messages":[{"from":"5493521432213","from_user_id":"AR.3980425072099023","id":"wamid.HBgNNTQ5MzUyMTQzMjIxMxUCABIYIEE1MDMzRjEyODgwRDk1NThBMjk4MDBEODdENEYwQzczAA==","timestamp":"1792240830","text":{"body":"Hola!!!\nSoy Marisa de \n \ud83d\udc51 Reina Sof\u00eda \u2764 \n\n\u2b07\ufe0fDejame por favor algunos datos para agilizar la atenci\u00f3n:\n\n\ud83d\udcc5 Fecha del evento.\n\ud83d\udccd Ubicaci\u00f3n del evento \n\ud83c\udf88Tem\u00e1tica.\n\nPronto te respondo!\n\u2728D\u00e9jame tu nombre...\ud83d\ude43\nNO AUDIOS\n\n\u2728\ufe0fGracias por contactarme\u2728\ufe0f"},"type":"text"}]},"field":"messages"}]}]}
+[2026-10-17 09:40:32] [CLIENTE] Evaluando mensaje con GPT-4o-mini...
+[2026-10-17 09:40:32] [CLIENTE] Enviando curl a OpenAI con historial de 2 mensajes
+[2026-10-17 09:40:35] [CLIENTE] Respuesta RAW de OpenAI: {
+  "id": "chatcmpl-EZy0AU3pbX2KTTFEizIoidhkkBDXN",
+  "object": "chat.completion",
+  "created": 1792240834,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"accion\": \"PREGUNTAR_UBICACION_O_RUBRO\"}",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1927,
+    "completion_tokens": 17,
+    "total_tokens": 1944,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_6c1965d4ed"
+}
+
+[2026-10-17 09:40:35] [CLIENTE] Acción determinada por IA: PREGUNTAR_UBICACION_O_RUBRO | JSON IA: {"accion":"PREGUNTAR_UBICACION_O_RUBRO"}
+[2026-10-17 09:40:35] [CLIENTE] Enviando invitación de ubicación/categorías a WhatsApp
+[2026-10-17 09:40:35] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493521432213","wa_id":"5493521432213"}],"messages":[{"id":"wamid.HBgNNTQ5MzUyMTQzMjIxMxUCABEYEjQ2QzA2MjkwOUE0NDg3M0FBNwA="}]}
+[2026-10-17 11:48:04] [CLIENTE] --- NUEVA PETICION RECIBIDA ---
+[2026-10-17 11:48:04] [CLIENTE] RAW Input: {"object":"whatsapp_business_account","entry":[{"id":"1508109778005493","changes":[{"value":{"messaging_product":"whatsapp","metadata":{"display_phone_number":"5493517537781","phone_number_id":"1297893416744537"},"contacts":[{"profile":{"name":"Lau Luna"},"wa_id":"5493521412464","user_id":"AR.1445881574158900"}],"messages":[{"from":"5493521412464","from_user_id":"AR.1445881574158900","id":"wamid.HBgNNTQ5MzUyMTQxMjQ2NBUCABIYIEFDMUQ5N0I1NzJBOUQ5Qjk4MUVCNzg1RTYzQkEzREMwAA==","timestamp":"1792248482","text":{"body":"\ud83e\udef6\ud83c\udffc"},"type":"text"}]},"field":"messages"}]}]}
+[2026-10-17 11:48:04] [CLIENTE] Evaluando mensaje con GPT-4o-mini...
+[2026-10-17 11:48:04] [CLIENTE] Enviando curl a OpenAI con historial de 1 mensajes
+[2026-10-17 11:48:06] [CLIENTE] Respuesta RAW de OpenAI: {
+  "id": "chatcmpl-EZzzaxdbF3Sr4moxI4k0HdTgogaGE",
+  "object": "chat.completion",
+  "created": 1792248486,
+  "model": "gpt-4o-mini-2024-07-18",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\"accion\": \"PREGUNTAR_UBICACION_O_RUBRO\"}",
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1775,
+    "completion_tokens": 17,
+    "total_tokens": 1792,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_cf928db870"
+}
+
+[2026-10-17 11:48:06] [CLIENTE] Acción determinada por IA: PREGUNTAR_UBICACION_O_RUBRO | JSON IA: {"accion":"PREGUNTAR_UBICACION_O_RUBRO"}
+[2026-10-17 11:48:06] [CLIENTE] Enviando invitación de ubicación/categorías a WhatsApp
+[2026-10-17 11:48:08] [CLIENTE] Respuesta Meta API: {"messaging_product":"whatsapp","contacts":[{"input":"5493521412464","wa_id":"5493521412464"}],"messages":[{"id":"wamid.HBgNNTQ5MzUyMTQxMjQ2NBUCABEYEjdGMkUxNERGRUE2RUMxQzc2QgA="}]}

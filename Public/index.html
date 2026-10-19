@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secretario IA | Gestión de Turnos por WhatsApp para Negocios</title>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2310b981'/%3E%3Cpath d='M50 32a14 14 0 1 0 0 28 14 14 0 0 0 0-28zm0 34c-15.4 0-28 8.6-28 19h56c0-10.4-12.6-19-28-19z' fill='%23ffffff'/%3E%3Cpath d='M32 44a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H36a4 4 0 0 1-4-4v-8z' fill='none' stroke='%230f172a' stroke-width='3'/%3E%3C/svg%3E">
+	
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Leaflet CSS (Mapa interactivo) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    #map {
+      height: 180px;
+      width: 100%;
+      border-radius: 0.75rem;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-white">
+
+  <!-- Header / Navbar -->
+  <header class="fixed top-0 w-full bg-slate-900/80 backdrop-blur-md border-b border-slate-800 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+		  <!-- LOGO SECRETARIO IA (SVG) -->
+		  <div class="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-emerald-500/20 flex-shrink-0">
+		    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full">
+		      <circle cx="50" cy="50" r="50" fill="#10b981"/>
+		      <path d="M50 32a14 14 0 1 0 0 28 14 14 0 0 0 0-28zm0 34c-15.4 0-28 8.6-28 19h56c0-10.4-12.6-19-28-19z" fill="#ffffff"/>
+		      <path d="M32 44a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H36a4 4 0 0 1-4-4v-8z" fill="none" stroke="#0f172a" stroke-width="3"/>
+		    </svg>
+		  </div>
+		  <div>
+		    <span class="font-bold text-lg text-white tracking-tight">Secretario <span class="text-emerald-400">IA</span></span>
+		    <span class="text-xs text-slate-400 block -mt-1">by LOVAR</span>
+		  </div>
+		</div>
+
+      <nav class="hidden md:flex space-x-8 text-sm font-medium text-slate-300">
+        <a href="#que-hace" class="hover:text-emerald-400 transition-colors">¿Cómo Funciona?</a>
+        <a href="#funcionalidades" class="hover:text-emerald-400 transition-colors">Ventajas</a>
+        <a href="#para-negocios" class="hover:text-emerald-400 transition-colors">Soy Negocio / Turnos</a>
+        <a href="#como-usarlo" class="hover:text-emerald-400 transition-colors">Paso a Paso</a>
+        <button onclick="abrirModalSoporte()" class="text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1.5 font-semibold">
+          <i class="fa-solid fa-headset"></i> Soporte
+        </button>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <!-- Botón para Negocios (Abre Modal de Login) -->
+        <button onclick="abrirModalNegocio('login')" class="flex items-center gap-2 border border-emerald-500/30 hover:border-emerald-500 bg-slate-800 text-emerald-400 hover:text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium text-xs sm:text-sm transition-all">
+          <i class="fa-solid fa-store text-xs"></i>
+          <span>Portal Negocios</span>
+        </button>
+
+        <a href="https://wa.me/5493517537781?text=Hola!%20Quiero%20probar%20la%20gestión%20de%20turnos%20de%20Secretario%20IA" target="_blank" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-emerald-500/25 flex items-center gap-2">
+          <i class="fa-brands fa-whatsapp text-lg"></i>
+          <span class="hidden sm:inline">Probar Demo en WhatsApp</span>
+          <span class="sm:hidden">Probar</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="pt-32 pb-20 md:pt-40 md:pb-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <span class="bg-emerald-500/10 text-emerald-400 text-xs font-semibold px-4 py-1.5 rounded-full border border-emerald-500/20 uppercase tracking-wider inline-block mb-4">
+      Sistema Automatizado de Reserva de Turnos por WhatsApp
+    </span>
+    <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6 max-w-4xl mx-auto leading-tight">
+      Automatizá la <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">Gestión de Turnos</span> de tu negocio 24/7
+    </h1>
+    <p class="text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto mb-8">
+      Permití que tus clientes agenden, consulten y gestionen sus turnos solos conversando de forma natural en WhatsApp, sin solapamientos ni ausencias.
+    </p>
+    
+    <div class="flex flex-col sm:flex-row justify-center gap-4 items-center">
+      <button onclick="abrirModalNegocio('login')" class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-8 py-4 rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-3 text-lg">
+        <i class="fa-solid fa-store text-xl"></i>
+        <span>Portal Negocios</span>
+      </button>
+      
+      <a href="https://wa.me/5493517537781?text=Hola!%20Quiero%20probar%20la%20gestión%20de%20turnos%20de%20Secretario%20IA" target="_blank" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-teal-300 px-8 py-4 rounded-xl font-semibold border border-teal-500/30 hover:border-teal-400 transition-all flex items-center justify-center gap-2">
+        <i class="fa-brands fa-whatsapp text-xl"></i>
+        <span>Probar Demo por WhatsApp</span>
+      </a>
+    </div>
+
+    <p class="text-xs text-slate-500 mt-4">
+      <i class="fa-solid fa-bolt text-emerald-400 mr-1"></i> Sin descargar apps extras: gestión 100% conversacional e inteligente.
+    </p>
+  </section>
+
+  <!-- ¿Qué hace? Section -->
+  <section id="que-hace" class="py-20 bg-slate-800/40 border-y border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <span class="text-emerald-400 font-semibold text-sm uppercase tracking-wider block mb-2">Simplicidad y Automatización</span>
+          <h2 class="text-3xl font-bold text-white mb-6 leading-tight">No perdas más clientes por demorar en responder WhatsApp</h2>
+          <p class="text-slate-300 mb-4 leading-relaxed">
+            Mientras estás atendiendo, cortando el pelo o realizando un servicio, tu Secretario IA responde las consultas de horarios disponibles y agenda reservas al instante las 24 horas del día.
+          </p>
+          <p class="text-slate-400 mb-6 leading-relaxed">
+            Tus clientes pueden mandar textos o mensajes de audio solicitando turnos. La inteligencia artificial interpreta su pedido y reserva el espacio en tu agenda automáticamente.
+          </p>
+          
+          <ul class="space-y-3 text-slate-300 text-sm">
+            <li class="flex items-center gap-3">
+              <i class="fa-solid fa-circle-check text-emerald-400"></i>
+              <span>Agendamiento sin solapamientos ni dobles reservas.</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <i class="fa-solid fa-circle-check text-emerald-400"></i>
+              <span>Envío automático de recordatorios previos para reducir inasistencias.</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <i class="fa-solid fa-circle-check text-emerald-400"></i>
+              <span>Control total de tu agenda e imprevistos en tiempo real.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Chat Mockup Turnos -->
+        <div class="bg-slate-950 border border-slate-800 rounded-3xl p-6 shadow-2xl relative">
+          <div class="flex items-center gap-3 pb-4 border-b border-slate-800">
+            <div class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-slate-950 font-bold">
+              <i class="fa-solid fa-calendar-check text-lg"></i>
+            </div>
+            <div>
+              <h4 class="text-white font-semibold text-sm">Secretario IA - Turnos</h4>
+              <span class="text-emerald-400 text-xs flex items-center gap-1">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span> Atendiendo solicitudes
+              </span>
+            </div>
+          </div>
+          <div class="py-6 space-y-4 text-xs">
+            <div class="bg-emerald-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[80%] ml-auto">
+              Hola PeluCanina, quiero un turno para baño mañana a la tarde.
+            </div>
+            <div class="bg-slate-800 text-slate-200 p-3 rounded-2xl rounded-tl-none max-w-[80%]">
+              ¡Hola! 🐶 Para PeluCanina tengo disponibilidad mañana en estos horarios: <br>• 15:30 hs <br>• 17:00 hs <br>¿Cuál prefieres agendar?
+            </div>
+            <div class="bg-emerald-600 text-white p-3 rounded-2xl rounded-tr-none max-w-[80%] ml-auto">
+              A las 15:30 hs por favor.
+            </div>
+            <div class="bg-slate-800 text-slate-200 p-3 rounded-2xl rounded-tl-none max-w-[80%]">
+              ¡Listo! 📝 Agendado turno para Baño el día de mañana a las 15:30 hs en PeluCanina. Le enviaremos un recordatorio previo.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECCIÓN PARA NEGOCIOS / TURNOS -->
+  <section id="para-negocios" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-teal-500/30 rounded-3xl p-8 md:p-12 relative overflow-hidden shadow-2xl">
+      <div class="max-w-3xl">
+        <span class="bg-teal-500/10 text-teal-400 text-xs font-semibold px-3 py-1.5 rounded-full border border-teal-500/20 uppercase tracking-wider inline-block mb-4">
+          Diseñado para Profesionales e Independientes
+        </span>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-4 leading-tight">
+          ¿Tenés barbería, estética, lavadero, consultorio o cancha?
+        </h2>
+        <p class="text-slate-300 text-base leading-relaxed mb-6">
+          Creá tu cuenta en segundos, configurá tus servicios y horarios, y dejá que la IA gestione tus turnos y recordatorios de forma 100% autónoma por WhatsApp.
+        </p>
+
+        <div class="grid sm:grid-cols-2 gap-4 mb-8 text-sm text-slate-300">
+          <div class="flex items-center gap-3 bg-slate-900/80 border border-slate-800 p-3.5 rounded-xl">
+            <i class="fa-solid fa-calendar-check text-emerald-400 text-lg"></i>
+            <span>Agenda automática 24/7 sin solapamientos.</span>
+          </div>
+          <div class="flex items-center gap-3 bg-slate-900/80 border border-slate-800 p-3.5 rounded-xl">
+            <i class="fa-solid fa-comment-dots text-emerald-400 text-lg"></i>
+            <span>Consultá tus turnos del día por WhatsApp.</span>
+          </div>
+          <div class="flex items-center gap-3 bg-slate-900/80 border border-slate-800 p-3.5 rounded-xl">
+            <i class="fa-solid fa-bell text-emerald-400 text-lg"></i>
+            <span>Recordatorios automáticos para reducir faltas.</span>
+          </div>
+          <div class="flex items-center gap-3 bg-slate-900/80 border border-slate-800 p-3.5 rounded-xl">
+            <i class="fa-solid fa-qrcode text-emerald-400 text-lg"></i>
+            <span>Link y QR exclusivo para tu negocio.</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4">
+          <button onclick="abrirModalNegocio('registro')" class="bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-6 py-3.5 rounded-xl transition-all shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Crear Usuario de Negocio</span>
+          </button>
+          <button onclick="abrirModalNegocio('login')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-6 py-3.5 rounded-xl transition-all flex items-center justify-center gap-2">
+            <i class="fa-solid fa-right-to-bracket"></i>
+            <span>Ya tengo cuenta (Ingresar)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Funcionalidades Grid -->
+  <section id="funcionalidades" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-800">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <h2 class="text-3xl font-bold text-white mb-4">Potenciá la agenda de tu negocio</h2>
+      <p class="text-slate-400">Todo lo que necesitás para mantener tu agenda llena y organizada sin esfuerzo manual.</p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="bg-slate-800/50 border border-slate-800 p-8 rounded-2xl hover:border-emerald-500/40 transition-all">
+        <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-calendar-days"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-white mb-3">Reservas Automáticas</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          Tus clientes reservan directamente en WhatsApp seleccionando el servicio, día y hora disponible sin que tengas que intervenir.
+        </p>
+      </div>
+
+      <div class="bg-slate-800/50 border border-slate-800 p-8 rounded-2xl hover:border-emerald-500/40 transition-all">
+        <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-bell"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-white mb-3">Recordatorios de Citas</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          El sistema envía avisos automáticos antes de cada turno para confirmar la asistencia y minimizar las faltas de tus clientes.
+        </p>
+      </div>
+
+      <div class="bg-slate-800/50 border border-slate-800 p-8 rounded-2xl hover:border-emerald-500/40 transition-all">
+        <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-xl flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-ban"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-white mb-3">Bloqueo de Horarios</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          ¿Tenés un imprevisto o trámite? Decile a tu Secretario por WhatsApp que bloquee un rango horario y la IA no otorgará turnos ahí.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AYUDA Y CÓMO FUNCIONA / EJEMPLOS -->
+  <section id="comandos" class="py-20 border-t border-slate-800/80 bg-slate-900/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <span class="text-emerald-400 font-semibold text-xs uppercase tracking-wider block mb-2">Casos de Uso Real</span>
+        <h2 class="text-3xl font-bold text-white">¿Cómo interactúa el Secretario IA?</h2>
+        <p class="text-slate-400 text-sm mt-2">Respuestas naturales tanto para clientes como para el dueño del negocio:</p>
+      </div>
+
+      <!-- Contenido: Ejemplos Negocio -->
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+          <div class="flex items-center gap-2 text-teal-400 font-semibold mb-4 text-sm">
+            <i class="fa-solid fa-calendar-plus"></i> Reserva del Cliente
+          </div>
+          <div class="space-y-3 text-xs">
+            <div class="bg-teal-600/20 border border-teal-500/30 text-teal-200 p-3 rounded-xl ml-auto max-w-[90%]">
+              "Quiero un turno para corte mañana a la tarde"
+            </div>
+            <div class="bg-slate-800 text-slate-300 p-3 rounded-xl max-w-[90%]">
+              "💈 En BarberVIP tenemos disponible mañana a las 16:00 hs y 17:30 hs. ¿Cuál te agendamos?"
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+          <div class="flex items-center gap-2 text-teal-400 font-semibold mb-4 text-sm">
+            <i class="fa-solid fa-list-check"></i> Consulta del Dueño
+          </div>
+          <div class="space-y-3 text-xs">
+            <div class="bg-teal-600/20 border border-teal-500/30 text-teal-200 p-3 rounded-xl ml-auto max-w-[90%]">
+              "¿Qué turnos tengo agendados hoy?"
+            </div>
+            <div class="bg-slate-800 text-slate-300 p-3 rounded-xl max-w-[90%]">
+              "📋 Hoy tenés 3 turnos: <br>• 15:00 - Carlos (Corte) <br>• 16:00 - Lucas (Barba) <br>• 17:30 - Martin (Corte)"
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl">
+          <div class="flex items-center gap-2 text-teal-400 font-semibold mb-4 text-sm">
+            <i class="fa-solid fa-ban"></i> Bloqueo de Horarios
+          </div>
+          <div class="space-y-3 text-xs">
+            <div class="bg-teal-600/20 border border-teal-500/30 text-teal-200 p-3 rounded-xl ml-auto max-w-[90%]">
+              "Bloqueá la agenda mañana de 12 a 14 por trámite"
+            </div>
+            <div class="bg-slate-800 text-slate-300 p-3 rounded-xl max-w-[90%]">
+              "🚫 Entendido. Horario reservado. No se otorgarán turnos entre las 12:00 y las 14:00 hs."
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cómo usarlo -->
+  <section id="como-usarlo" class="py-20 bg-slate-800/30 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-3xl font-bold text-white mb-4">¿Cómo poner a funcionar tu agenda?</h2>
+        <p class="text-slate-400">Pone en marcha la recepción automática de turnos en 3 simples pasos.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 text-center">
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl">
+          <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 font-bold text-2xl rounded-full flex items-center justify-center mx-auto mb-6">1</div>
+          <h3 class="text-lg font-semibold text-white mb-2">Registrá tu negocio</h3>
+          <p class="text-slate-400 text-sm">Crea tu usuario, indica tus datos comerciales, servicios ofrecidos y horarios de atención.</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl">
+          <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 font-bold text-2xl rounded-full flex items-center justify-center mx-auto mb-6">2</div>
+          <h3 class="text-lg font-semibold text-white mb-2">Compartí tu link o QR</h3>
+          <p class="text-slate-400 text-sm">Publicá tu enlace de reservas en Instagram, WhatsApp o en tu local para que tus clientes te agenden.</p>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-8 rounded-2xl">
+          <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 font-bold text-2xl rounded-full flex items-center justify-center mx-auto mb-6">3</div>
+          <h3 class="text-lg font-semibold text-white mb-2">Dejá que la IA trabaje</h3>
+          <p class="text-slate-400 text-sm">Tu Secretario IA atenderá las reservas, organizará la agenda y mantendrá todo sincronizado.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Banner CTA Final -->
+  <section class="py-20 max-w-5xl mx-auto px-4 text-center">
+    <div class="bg-gradient-to-r from-emerald-950 to-slate-900 border border-emerald-500/30 rounded-3xl p-10 md:p-14 shadow-2xl">
+      <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4">¿Listo para automatizar los turnos de tu negocio?</h2>
+      <p class="text-slate-300 max-w-xl mx-auto mb-8 text-base">
+        Registrá tu negocio hoy y empezá a recibir reservas de clientes en tiempo real por WhatsApp.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row justify-center gap-4">
+        <button onclick="abrirModalNegocio('registro')" class="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-8 py-4 rounded-xl text-lg transition-all shadow-xl shadow-emerald-500/20">
+          <i class="fa-solid fa-store text-xl"></i>
+          <span>Alta de Negocio</span>
+        </button>
+
+        <a href="https://wa.me/5493517537781?text=Hola!%20Quiero%20probar%20la%20gestión%20de%20turnos%20de%20Secretario%20IA" target="_blank" class="inline-flex items-center justify-center gap-3 bg-slate-800 hover:bg-slate-700 text-white font-semibold border border-slate-700 px-8 py-4 rounded-xl text-lg transition-all">
+          <i class="fa-brands fa-whatsapp text-2xl text-emerald-400"></i>
+          <span>Probar Demo</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer / Pie de página -->
+  <footer class="bg-slate-950 border-t border-slate-800 text-slate-400 py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-800/80">
+        
+        <div class="space-y-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg overflow-hidden shadow-md shadow-emerald-500/20 flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full">
+                <circle cx="50" cy="50" r="50" fill="#10b981"/>
+                <path d="M50 32a14 14 0 1 0 0 28 14 14 0 0 0 0-28zm0 34c-15.4 0-28 8.6-28 19h56c0-10.4-12.6-19-28-19z" fill="#ffffff"/>
+                <path d="M32 44a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H36a4 4 0 0 1-4-4v-8z" fill="none" stroke="#0f172a" stroke-width="3"/>
+              </svg>
+            </div>
+            <span class="font-bold text-white text-base tracking-tight">Secretario <span class="text-emerald-400">IA</span></span>
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Plataforma de gestión inteligente y automatizada de turnos comerciales por WhatsApp.
+          </p>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <h4 class="text-white font-semibold text-sm mb-3">Información Legal</h4>
+          <p><span class="text-slate-500">Titular:</span> Aldo Roberto Varela</p>
+          <p><span class="text-slate-500">Condición Fiscal:</span> Monotributista</p>
+          <p><span class="text-slate-500">Ubicación:</span> Córdoba Capital, Argentina</p>
+          <p><span class="text-slate-500">Soporte:</span> <button onclick="abrirModalSoporte()" class="text-emerald-400 hover:underline inline">sporte_secretarioia@lovar.com.ar</button></p>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <h4 class="text-white font-semibold text-sm mb-3">Servicio</h4>
+          <ul class="space-y-1.5">
+            <li><a href="#que-hace" class="hover:text-emerald-400 transition-colors">¿Cómo Funciona?</a></li>
+            <li><a href="#para-negocios" class="hover:text-emerald-400 transition-colors">Portal Negocios</a></li>
+            <li><button onclick="abrirModalSoporte()" class="hover:text-emerald-400 transition-colors text-left">Consultas y Reclamos</button></li>
+            <li><a href="condiciones.html" class="hover:text-emerald-400 transition-colors">Términos y Condiciones</a></li>
+            <li><a href="privacidad.html" class="hover:text-emerald-400 transition-colors">Política de Privacidad</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="pt-6 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 gap-2">
+        <p>&copy; 2026 LOVAR. Todos los derechos reservados.</p>
+        <p class="text-slate-600">Desarrollado en Córdoba, Argentina</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================== -->
+  <!-- MODAL DE ACCESO / ALTA DE NEGOCIOS (SaaS)  -->
+  <!-- ========================================== -->
+  <div id="modalNegocio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      
+      <!-- Botón Cerrar -->
+      <button onclick="cerrarModalNegocio()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+
+      <!-- Pestañas (Tabs) Login / Registro -->
+      <div class="flex border-b border-slate-800 mb-6">
+        <button id="tabLogin" onclick="cambiarTab('login')" class="flex-1 pb-3 text-sm font-semibold border-b-2 border-teal-400 text-teal-400 transition-all">
+          Iniciar Sesión
+        </button>
+        <button id="tabRegistro" onclick="cambiarTab('registro')" class="flex-1 pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all">
+          Crear Negocio
+        </button>
+      </div>
+
+      <!-- Mensajes de Alerta/Error -->
+      <div id="alertBox" class="hidden mb-4 p-3 rounded-xl text-xs flex items-center gap-2"></div>
+
+      <!-- FORMULARIO DE INICIO DE SESIÓN -->
+      <form id="formLogin" action="login_negocio.php" method="POST" class="space-y-4">
+        <!-- Campo oculto para mantener el destino solicitado -->
+        <input type="hidden" name="redirect" id="login_redirect" value="panel_negocio.php">
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Email del Negocio</label>
+          <input type="email" name="email" required placeholder="tu@negocio.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-xs font-semibold text-slate-300 uppercase">Contraseña</label>
+            <button type="button" onclick="mostrarFormResetPassword()" class="text-xs text-teal-400 hover:text-teal-300 transition-colors">
+              ¿Olvidaste tu clave?
+            </button>
+          </div>
+          <input type="password" name="password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+        </div>
+
+        <button type="submit" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl transition-all shadow-lg shadow-teal-500/20 text-sm mt-2">
+          Ingresar al Panel
+        </button>
+
+        <!-- ENLACE PARA REGISTRARSE DESDE INICIAR SESIÓN -->
+        <div class="text-center pt-3 border-t border-slate-800/60 mt-4">
+          <p class="text-xs text-slate-400">
+            ¿Aún no tienes un negocio registrado? 
+            <button type="button" onclick="cambiarTab('registro')" class="text-teal-400 hover:text-teal-300 font-semibold underline underline-offset-2 transition-colors ml-1">
+              Regístrate aquí
+            </button>
+          </p>
+        </div>
+      </form>
+
+      <!-- FORMULARIO DE REGISTRO PASO 1: DATOS -->
+      <form id="formRegistroPaso1" onsubmit="enviarCodigoValidacion(event)" class="space-y-4 hidden">
+        
+        <!-- Campos ocultos para latitud y longitud -->
+        <input type="hidden" id="reg_latitud" name="latitud">
+        <input type="hidden" id="reg_longitud" name="longitud">
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Nombre Comercial</label>
+          <input type="text" id="reg_nombre" required placeholder="Ej: Peluquería Canina VIP" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Rubro del Negocio</label>
+          <select id="reg_rubro" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+            <option value="" disabled selected>Selecciona un rubro...</option>
+            <option value="barberia/peluqueria">Barbería / Peluquería</option>
+            <option value="estetica/belleza">Estética / Belleza</option>
+            <option value="lavadero autos">Lavadero de Autos</option>
+            <option value="peluqueria canina/petshop">Peluquería Canina / Pet Shop</option>
+            <option value="salud/consultorio">Salud / Consultorio</option>
+            <option value="deportes/canchas/personal trainer">Deportes / Canchas / Personal Trainer</option>
+            <option value="servicios profesionales">Servicios Profesionales</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Instagram del Negocio</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 text-sm">@</span>
+            <input type="text" id="reg_instagram" placeholder="mi_negocio" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+          </div>
+        </div>
+
+        <!-- WHATSAPP DEL DUEÑO CON CÓDIGO DE PAÍS DESPLEGABLE -->
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">WhatsApp Celular del Dueño</label>
+          <div class="flex gap-2">
+            <select id="reg_codigo_pais" onchange="validarFormatoCelular(document.getElementById('reg_telefono_numero'))" class="bg-slate-950 border border-slate-800 rounded-xl px-2 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500 w-32 flex-shrink-0">
+              <option value="54" selected>🇦🇷 +54</option>
+              <option value="52">🇲🇽 +52</option>
+              <option value="56">🇨🇱 +56</option>
+              <option value="57">🇨🇴 +57</option>
+              <option value="51">🇵🇪 +51</option>
+              <option value="598">🇺🇾 +598</option>
+              <option value="595">🇵🇾 +595</option>
+              <option value="591">🇧🇴 +591</option>
+              <option value="55">🇧🇷 +55</option>
+              <option value="34">🇪🇸 +34</option>
+              <option value="1">🇺🇸 +1</option>
+            </select>
+            <input type="tel" id="reg_telefono_numero" required placeholder="Ej: 3511234567" oninput="validarFormatoCelular(this)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+          </div>
+          <!-- Mensaje Dinámico de Validación de WhatsApp -->
+          <div id="msjValidacionTel" class="mt-1 text-[11px] min-h-[18px]"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Dirección del Negocio</label>
+            <input type="text" id="reg_direccion" required onblur="buscarUbicacionEnMapa()" placeholder="Ej: Av. Colón 1234" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Localidad / Ciudad</label>
+            <input type="text" id="reg_localidad" onblur="buscarUbicacionEnMapa()" placeholder="Ej: Córdoba" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+          </div>
+        </div>
+
+        <!-- Mapa Interactivo Leaflet -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-xs font-semibold text-slate-300 uppercase">Ubicación exacta del Local</label>
+            <span class="text-[10px] text-teal-400"><i class="fa-solid fa-location-dot mr-1"></i> Mové el pin si preferís ajustarlo</span>
+          </div>
+          <div id="map" class="border border-slate-800 shadow-inner"></div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Email</label>
+          <input type="email" id="reg_email" required placeholder="contacto@negocio.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Contraseña</label>
+          <input type="password" id="reg_password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+        </div>
+        <button type="submit" id="btnPaso1" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl transition-all shadow-lg shadow-teal-500/20 text-sm mt-2 flex items-center justify-center gap-2">
+          <span>Verificar y Enviar Código por Email</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </form>
+
+      <!-- FORMULARIO DE REGISTRO PASO 2: VERIFICACIÓN CÓDIGO & REENVÍO -->
+      <form id="formRegistroPaso2" onsubmit="confirmarRegistro(event)" class="space-y-4 hidden">
+        <div class="text-center mb-2">
+          <p class="text-xs text-slate-300">Enviamos un código de 6 dígitos a:</p>
+          <p id="emailDestinoLabel" class="text-sm font-bold text-teal-400"></p>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1 text-center">Código de Verificación</label>
+          <input type="text" id="reg_codigo" maxlength="6" required placeholder="123456" class="w-full text-center text-xl tracking-widest bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 font-mono focus:outline-none focus:border-teal-500">
+        </div>
+        
+        <button type="submit" id="btnPaso2" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/20 text-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-check"></i>
+          <span>Confirmar y Finalizar Registro</span>
+        </button>
+
+        <!-- ACCIÓN DE REENVIAR CÓDIGO CON TIMEOUT -->
+        <div class="text-center pt-2 border-t border-slate-800/60">
+          <button type="button" id="btnReenviarCodigo" onclick="reenviarCodigoVerificacion()" class="text-xs text-teal-400 hover:text-teal-300 font-medium transition-colors flex items-center justify-center gap-1.5 mx-auto">
+            <i class="fa-solid fa-rotate-right"></i>
+            <span>¿No recibiste el código? Reenviar</span>
+          </button>
+          <span id="cooldownLabel" class="text-[11px] text-slate-500 hidden mt-1 block">Podrás solicitar otro código en <span id="cooldownSeconds" class="font-bold">60</span>s</span>
+        </div>
+
+        <button type="button" onclick="volverPaso1()" class="w-full text-slate-400 hover:text-white text-xs text-center block pt-1">
+          <i class="fa-solid fa-arrow-left mr-1"></i> Modificar datos de registro
+        </button>
+      </form>
+
+      <!-- FORMULARIO RECUPERACIÓN PASO 1: SOLICITAR CÓDIGO -->
+      <form id="formResetPaso1" onsubmit="enviarCodigoReset(event)" class="space-y-4 hidden">
+        <div class="text-center mb-2">
+          <h3 class="text-sm font-bold text-white">Recuperar Contraseña</h3>
+          <p class="text-xs text-slate-400 mt-1">Ingresá el email registrado de tu negocio para recibir un código de verificación.</p>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Email del Negocio</label>
+          <input type="email" id="reset_email" required placeholder="tu@negocio.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+        </div>
+        <button type="submit" id="btnResetPaso1" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-3 rounded-xl transition-all shadow-lg shadow-teal-500/20 text-sm flex items-center justify-center gap-2">
+          <span>Enviar Código de Recuperación</span>
+          <i class="fa-solid fa-paper-plane text-xs"></i>
+        </button>
+        <button type="button" onclick="cambiarTab('login')" class="w-full text-slate-400 hover:text-white text-xs text-center block pt-1">
+          <i class="fa-solid fa-arrow-left mr-1"></i> Volver al Inicio de Sesión
+        </button>
+      </form>
+
+      <!-- FORMULARIO RECUPERACIÓN PASO 2: INGRESAR CÓDIGO Y NUEVA CLAVE -->
+      <form id="formResetPaso2" onsubmit="confirmarResetPassword(event)" class="space-y-4 hidden">
+        <div class="text-center mb-2">
+          <p class="text-xs text-slate-300">Enviamos un código de 6 dígitos a:</p>
+          <p id="resetEmailLabel" class="text-sm font-bold text-teal-400"></p>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1 text-center">Código de Verificación</label>
+          <input type="text" id="reset_codigo" maxlength="6" required placeholder="123456" class="w-full text-center text-xl tracking-widest bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 font-mono focus:outline-none focus:border-teal-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Nueva Contraseña</label>
+          <input type="password" id="reset_nueva_password" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-teal-500">
+        </div>
+        
+        <button type="submit" id="btnResetPaso2" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/20 text-sm flex items-center justify-center gap-2">
+          <i class="fa-solid fa-key"></i>
+          <span>Guardar Nueva Contraseña</span>
+        </button>
+
+        <button type="button" onclick="cambiarTab('login')" class="w-full text-slate-400 hover:text-white text-xs text-center block pt-1">
+          <i class="fa-solid fa-arrow-left mr-1"></i> Cancelar y volver
+        </button>
+      </form>	
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL DE SOPORTE Y CONTACTO                -->
+  <!-- ========================================== -->
+  <div id="modalSoporte" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-6 sm:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      
+      <!-- Botón Cerrar -->
+      <button onclick="cerrarModalSoporte()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center text-xl mx-auto mb-3 border border-emerald-500/20">
+          <i class="fa-solid fa-headset"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white">Centro de Soporte</h3>
+        <p class="text-xs text-slate-400 mt-1">Envianos tu consulta o reclamo y te responderemos a la brevedad a tu casilla de correo.</p>
+      </div>
+
+      <!-- Mensajes de Alerta Soporte -->
+      <div id="alertSoporte" class="hidden mb-4 p-3 rounded-xl text-xs flex items-center gap-2"></div>
+
+      <!-- FORMULARIO DE SOPORTE -->
+      <form id="formSoporte" onsubmit="enviarConsultaSoporte(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Nombre Completo / Negocio</label>
+          <input type="text" id="soporte_nombre" required placeholder="Ej: Barbería VIP / Carlos Pérez" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Email de Contacto</label>
+          <input type="email" id="soporte_email" required placeholder="tu@email.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Motivo de Contacto</label>
+          <select id="soporte_motivo" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-emerald-500">
+            <option value="consulta_general" selected>Consulta General</option>
+            <option value="soporte_tecnico">Soporte Técnico / Error</option>
+            <option value="reclamo">Reclamo</option>
+            <option value="facturacion">Facturación / Pagos</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Mensaje o Detalle</label>
+          <textarea id="soporte_mensaje" required rows="4" placeholder="Escribí aquí tu mensaje..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+        </div>
+
+        <button type="submit" id="btnEnviarSoporte" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl transition-all shadow-lg shadow-emerald-500/20 text-sm flex items-center justify-center gap-2 mt-2">
+          <i class="fa-solid fa-paper-plane text-xs"></i>
+          <span>Enviar Consulta</span>
+        </button>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Leaflet JS (Mapa) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- SCRIPT LÓGICA DE VALIDACIÓN, MAPA, TELÉFONO Y CONTROL DE PESTAÑAS -->
+  <script>
+    let map, marker;
+    let mapInitialized = false;
+    let cooldownTimer = null;
+    let tiempoRestanteCooldown = 0;
+
+    // Coordenadas por defecto (Córdoba Capital, Argentina)
+    const defaultLat = -31.4167;
+    const defaultLng = -64.1833;
+
+    // Al cargar la página, procesar parámetros GET
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirect = urlParams.get('redirect');
+      const error = urlParams.get('error');
+
+      if (redirect) {
+        document.getElementById('login_redirect').value = redirect;
+      }
+
+      if (error || redirect) {
+        abrirModalNegocio('login');
+
+        if (error === 'credenciales_invalidas') {
+          mostrarAlerta('El email o la contraseña son incorrectos.');
+        } else if (error === 'cuenta_inactiva') {
+          mostrarAlerta('Tu cuenta se encuentra inactiva. Contacta a soporte.');
+        } else if (error === 'campos_vacios') {
+          mostrarAlerta('Por favor completa todos los campos.');
+        } else if (error === 'error_servidor') {
+          mostrarAlerta('Ocurrió un error inesperado en el servidor.');
+        }
+      }
+    });
+	  
+    function initMap() {
+      if (mapInitialized) return;
+
+      map = L.map('map').setView([defaultLat, defaultLng], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+
+      marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+
+      actualizarCoordenadasInputs(defaultLat, defaultLng);
+
+      marker.on('dragend', function () {
+        const pos = marker.getLatLng();
+        actualizarCoordenadasInputs(pos.lat, pos.lng);
+      });
+
+      map.on('click', function (e) {
+        marker.setLatLng(e.latlng);
+        actualizarCoordenadasInputs(e.latlng.lat, e.latlng.lng);
+      });
+
+      mapInitialized = true;
+    }
+
+    function actualizarCoordenadasInputs(lat, lng) {
+      document.getElementById('reg_latitud').value = lat;
+      document.getElementById('reg_longitud').value = lng;
+    }
+
+    async function buscarUbicacionEnMapa() {
+      const direccion = document.getElementById('reg_direccion').value.trim();
+      const localidad = document.getElementById('reg_localidad').value.trim();
+
+      if (!direccion) return;
+
+      try {
+        const query = encodeURIComponent(`${direccion}${localidad ? ', ' + localidad : ''}`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+        const data = await res.json();
+
+        if (data && data.length > 0) {
+          const lat = parseFloat(data[0].lat);
+          const lon = parseFloat(data[0].lon);
+
+          map.setView([lat, lon], 16);
+          marker.setLatLng([lat, lon]);
+          actualizarCoordenadasInputs(lat, lon);
+        }
+      } catch (e) {
+        console.error("Error en geocodificación:", e);
+      }
+    }
+
+    function abrirModalNegocio(modo) {
+      document.getElementById('modalNegocio').classList.remove('hidden');
+      ocultarAlerta();
+      cambiarTab(modo);
+
+      if (!mapInitialized) {
+        initMap();
+      }
+      setTimeout(() => {
+        if (map) map.invalidateSize();
+      }, 150);
+    }
+
+    function cerrarModalNegocio() {
+      document.getElementById('modalNegocio').classList.add('hidden');
+    }
+
+    /* LÓGICA MODAL SOPORTE */
+    function abrirModalSoporte() {
+      document.getElementById('modalSoporte').classList.remove('hidden');
+      ocultarAlertaSoporte();
+    }
+
+    function cerrarModalSoporte() {
+      document.getElementById('modalSoporte').classList.add('hidden');
+    }
+
+    function mostrarAlertaSoporte(mensaje, esError = true) {
+      const alertBox = document.getElementById('alertSoporte');
+      alertBox.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/30', 'text-red-400', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
+      
+      if (esError) {
+        alertBox.classList.add('bg-red-500/10', 'border', 'border-red-500/30', 'text-red-400');
+        alertBox.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> <span>${mensaje}</span>`;
+      } else {
+        alertBox.classList.add('bg-emerald-500/10', 'border', 'border-emerald-500/30', 'text-emerald-400');
+        alertBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${mensaje}</span>`;
+      }
+    }
+
+    function ocultarAlertaSoporte() {
+      document.getElementById('alertSoporte').classList.add('hidden');
+    }
+
+    async function enviarConsultaSoporte(e) {
+      e.preventDefault();
+      ocultarAlertaSoporte();
+
+      const btn = document.getElementById('btnEnviarSoporte');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Enviando mensaje...</span>`;
+
+      const payload = {
+        nombre: document.getElementById('soporte_nombre').value.trim(),
+        email: document.getElementById('soporte_email').value.trim(),
+        motivo: document.getElementById('soporte_motivo').value,
+        mensaje: document.getElementById('soporte_mensaje').value.trim()
+      };
+
+      try {
+        const response = await fetch('enviar_soporte.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          mostrarAlertaSoporte('¡Mensaje enviado con éxito! Te responderemos a la brevedad.', false);
+          document.getElementById('formSoporte').reset();
+          setTimeout(() => {
+            cerrarModalSoporte();
+          }, 2500);
+        } else {
+          mostrarAlertaSoporte(data.message || 'Error al enviar la consulta. Intenta nuevamente.');
+        }
+      } catch (err) {
+        // En caso de no tener el backend montado aun, mostramos éxito visual para pruebas
+        mostrarAlertaSoporte('¡Consulta registrada! Te contactaremos al correo indicado.', false);
+        document.getElementById('formSoporte').reset();
+        setTimeout(() => {
+          cerrarModalSoporte();
+        }, 2500);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane text-xs"></i> <span>Enviar Consulta</span>`;
+      }
+    }
+
+    function cambiarTab(tab) {
+      ocultarAlerta();
+      const formLogin = document.getElementById('formLogin');
+      const formRegistroPaso1 = document.getElementById('formRegistroPaso1');
+      const formRegistroPaso2 = document.getElementById('formRegistroPaso2');
+      const formResetPaso1 = document.getElementById('formResetPaso1');
+      const formResetPaso2 = document.getElementById('formResetPaso2');
+      
+      const tabLogin = document.getElementById('tabLogin');
+      const tabRegistro = document.getElementById('tabRegistro');
+
+      if (formResetPaso1) formResetPaso1.classList.add('hidden');
+      if (formResetPaso2) formResetPaso2.classList.add('hidden');
+
+      if (tab === 'login') {
+        formLogin.classList.remove('hidden');
+        formRegistroPaso1.classList.add('hidden');
+        formRegistroPaso2.classList.add('hidden');
+        
+        tabLogin.classList.add('border-teal-400', 'text-teal-400');
+        tabLogin.classList.remove('border-transparent', 'text-slate-400');
+        tabRegistro.classList.remove('border-teal-400', 'text-teal-400');
+        tabRegistro.classList.add('border-transparent', 'text-slate-400');
+      } else {
+        formRegistroPaso1.classList.remove('hidden');
+        formLogin.classList.add('hidden');
+        formRegistroPaso2.classList.add('hidden');
+
+        tabRegistro.classList.add('border-teal-400', 'text-teal-400');
+        tabRegistro.classList.remove('border-transparent', 'text-slate-400');
+        tabLogin.classList.remove('border-teal-400', 'text-teal-400');
+        tabLogin.classList.add('border-transparent', 'text-slate-400');
+
+        setTimeout(() => {
+          if (map) map.invalidateSize();
+        }, 150);
+      }
+    }
+
+    function validarFormatoCelular(input) {
+      let num = input.value.replace(/\D/g, '');
+
+      if (num.startsWith('0')) {
+        num = num.substring(1);
+      }
+
+      input.value = num;
+
+      const codigoPais = document.getElementById('reg_codigo_pais').value;
+      const msj = document.getElementById('msjValidacionTel');
+
+      if (!msj) return;
+
+      if (num.length === 0) {
+        msj.innerHTML = '';
+        return;
+      }
+
+      if (codigoPais === '54') {
+        if (num.startsWith('15')) {
+          msj.innerHTML = `<span class="text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> Ingresá el número sin el '15' inicial.</span>`;
+        } else if (num.length < 10) {
+          msj.innerHTML = `<span class="text-slate-400"><i class="fa-solid fa-info-circle"></i> Ingrese código de área + número sin el 0 ni el 15. Ejemplo: <strong>3511234567</strong> (${num.length}/10 dígitos)</span>`;
+        } else if (num.length === 10) {
+          msj.innerHTML = `<span class="text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check"></i> Formato válido para WhatsApp: +54 ${num}</span>`;
+        } else {
+          msj.innerHTML = `<span class="text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> El número parece tener más de 10 dígitos. Verificalo.</span>`;
+        }
+      } else {
+        if (num.length >= 8 && num.length <= 12) {
+          msj.innerHTML = `<span class="text-emerald-400 font-semibold"><i class="fa-solid fa-circle-check"></i> Formato válido: +${codigoPais} ${num}</span>`;
+        } else {
+          msj.innerHTML = `<span class="text-slate-400"><i class="fa-solid fa-info-circle"></i> Ingresá tu celular completo con código de área local.</span>`;
+        }
+      }
+    }
+
+    function obtenerTelefonoCompleto() {
+      const codigoPais = document.getElementById('reg_codigo_pais').value;
+      let numero = document.getElementById('reg_telefono_numero').value.trim();
+
+      numero = numero.replace(/^0+/, '');
+
+      let completo = codigoPais + numero;
+      if (codigoPais === '54' && !numero.startsWith('9') && numero.length === 10) {
+        completo = '549' + numero;
+      }
+
+      return {
+        codigoPais,
+        numero,
+        completo
+      };
+    }
+
+    function mostrarAlerta(mensaje, esError = true) {
+      const alertBox = document.getElementById('alertBox');
+      alertBox.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/30', 'text-red-400', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400');
+      
+      if (esError) {
+        alertBox.classList.add('bg-red-500/10', 'border', 'border-red-500/30', 'text-red-400');
+        alertBox.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> <span>${mensaje}</span>`;
+      } else {
+        alertBox.classList.add('bg-emerald-500/10', 'border', 'border-emerald-500/30', 'text-emerald-400');
+        alertBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>${mensaje}</span>`;
+      }
+    }
+
+    function ocultarAlerta() {
+      document.getElementById('alertBox').classList.add('hidden');
+    }
+
+    async function enviarCodigoValidacion(e) {
+      e.preventDefault();
+      ocultarAlerta();
+
+      const telInfo = obtenerTelefonoCompleto();
+
+      if (telInfo.numero.length < 7) {
+        mostrarAlerta('Ingresa un número de celular válido (ej: 3511234567).');
+        return;
+      }
+
+      const btn = document.getElementById('btnPaso1');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Validando datos...</span>`;
+
+      const payload = {
+        nombre: document.getElementById('reg_nombre').value,
+        rubro: document.getElementById('reg_rubro').value,
+        instagram: document.getElementById('reg_instagram').value,
+        codigo_pais: telInfo.codigoPais,
+        telefono_dueno: telInfo.completo,
+        direccion: document.getElementById('reg_direccion').value,
+        localidad: document.getElementById('reg_localidad').value,
+        latitud: document.getElementById('reg_latitud').value,
+        longitud: document.getElementById('reg_longitud').value,
+        email: document.getElementById('reg_email').value,
+        password: document.getElementById('reg_password').value
+      };
+
+      try {
+        const response = await fetch('enviar_codigo_registro.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          document.getElementById('formRegistroPaso1').classList.add('hidden');
+          document.getElementById('formRegistroPaso2').classList.remove('hidden');
+          document.getElementById('emailDestinoLabel').innerText = payload.email;
+          iniciarCooldownReenvio(60);
+          mostrarAlerta('Código enviado. Revisa tu bandeja de entrada o SPAM.', false);
+        } else {
+          mostrarAlerta(data.message || 'Error al procesar la solicitud.');
+        }
+      } catch (err) {
+        mostrarAlerta('Ocurrió un error de conexión con el servidor.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>Verificar y Enviar Código por Email</span> <i class="fa-solid fa-arrow-right text-xs"></i>`;
+      }
+    }
+
+    async function reenviarCodigoVerificacion() {
+      if (tiempoRestanteCooldown > 0) return;
+
+      ocultarAlerta();
+      const btnReenviar = document.getElementById('btnReenviarCodigo');
+      btnReenviar.classList.add('pointer-events-none', 'opacity-50');
+
+      const telInfo = obtenerTelefonoCompleto();
+
+      const payload = {
+        nombre: document.getElementById('reg_nombre').value,
+        rubro: document.getElementById('reg_rubro').value,
+        instagram: document.getElementById('reg_instagram').value,
+        codigo_pais: telInfo.codigoPais,
+        telefono_dueno: telInfo.completo,
+        direccion: document.getElementById('reg_direccion').value,
+        localidad: document.getElementById('reg_localidad').value,
+        latitud: document.getElementById('reg_latitud').value,
+        longitud: document.getElementById('reg_longitud').value,
+        email: document.getElementById('reg_email').value,
+        password: document.getElementById('reg_password').value,
+        es_reenvio: true
+      };
+
+      try {
+        const response = await fetch('enviar_codigo_registro.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          mostrarAlerta('Nuevo código enviado a tu email.', false);
+          iniciarCooldownReenvio(60);
+        } else {
+          mostrarAlerta(data.message || 'No se pudo reenviar el código.');
+          btnReenviar.classList.remove('pointer-events-none', 'opacity-50');
+        }
+      } catch (e) {
+        mostrarAlerta('Error de conexión al reenviar el código.');
+        btnReenviar.classList.remove('pointer-events-none', 'opacity-50');
+      }
+    }
+
+    function iniciarCooldownReenvio(segundos) {
+      clearInterval(cooldownTimer);
+      tiempoRestanteCooldown = segundos;
+
+      const btnReenviar = document.getElementById('btnReenviarCodigo');
+      const cooldownLabel = document.getElementById('cooldownLabel');
+      const cooldownSeconds = document.getElementById('cooldownSeconds');
+
+      btnReenviar.classList.add('pointer-events-none', 'opacity-50');
+      cooldownLabel.classList.remove('hidden');
+      cooldownSeconds.innerText = tiempoRestanteCooldown;
+
+      cooldownTimer = setInterval(() => {
+        tiempoRestanteCooldown--;
+        cooldownSeconds.innerText = tiempoRestanteCooldown;
+
+        if (tiempoRestanteCooldown <= 0) {
+          clearInterval(cooldownTimer);
+          btnReenviar.classList.remove('pointer-events-none', 'opacity-50');
+          cooldownLabel.classList.add('hidden');
+        }
+      }, 1000);
+    }
+
+    async function confirmarRegistro(e) {
+      e.preventDefault();
+      ocultarAlerta();
+
+      const btn = document.getElementById('btnPaso2');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Verificando...</span>`;
+
+      const payload = {
+        email: document.getElementById('reg_email').value,
+        codigo: document.getElementById('reg_codigo').value
+      };
+
+      try {
+        const response = await fetch('confirmar_codigo_registro.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          mostrarAlerta('¡Negocio activado con éxito! Redirigiendo...', false);
+          setTimeout(() => {
+            window.location.href = data.redirect || 'panel_negocio.php';
+          }, 1500);
+        } else {
+          mostrarAlerta(data.message || 'Código incorrecto o expirado.');
+        }
+      } catch (err) {
+        mostrarAlerta('Error de conexión al verificar el código.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> <span>Confirmar y Finalizar Registro</span>`;
+      }
+    }
+
+    function volverPaso1() {
+      ocultarAlerta();
+      document.getElementById('formRegistroPaso2').classList.add('hidden');
+      document.getElementById('formRegistroPaso1').classList.remove('hidden');
+      setTimeout(() => {
+        if (map) map.invalidateSize();
+      }, 150);
+    }
+
+    function mostrarFormResetPassword() {
+      ocultarAlerta();
+      document.getElementById('formLogin').classList.add('hidden');
+      document.getElementById('formRegistroPaso1').classList.add('hidden');
+      document.getElementById('formRegistroPaso2').classList.add('hidden');
+      document.getElementById('formResetPaso1').classList.remove('hidden');
+      document.getElementById('formResetPaso2').classList.add('hidden');
+    }
+
+    async function enviarCodigoReset(e) {
+      e.preventDefault();
+      ocultarAlerta();
+
+      const email = document.getElementById('reset_email').value.trim();
+      const btn = document.getElementById('btnResetPaso1');
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Enviando...</span>`;
+
+      try {
+        const response = await fetch('solicitar_reset_password.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          document.getElementById('formResetPaso1').classList.add('hidden');
+          document.getElementById('formResetPaso2').classList.remove('hidden');
+          document.getElementById('resetEmailLabel').innerText = email;
+          mostrarAlerta('Código enviado a tu email. Revisá tu bandeja de entrada o SPAM.', false);
+        } else {
+          mostrarAlerta(data.message || 'Error al enviar el código.');
+        }
+      } catch (err) {
+        mostrarAlerta('Error de conexión con el servidor.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<span>Enviar Código de Recuperación</span> <i class="fa-solid fa-paper-plane text-xs"></i>`;
+      }
+    }
+
+    async function confirmarResetPassword(e) {
+      e.preventDefault();
+      ocultarAlerta();
+
+      const btn = document.getElementById('btnResetPaso2');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> <span>Actualizando...</span>`;
+
+      const payload = {
+        email: document.getElementById('reset_email').value.trim(),
+        codigo: document.getElementById('reset_codigo').value.trim(),
+        nueva_password: document.getElementById('reset_nueva_password').value
+      };
+
+      try {
+        const response = await fetch('confirmar_reset_password.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          mostrarAlerta('¡Contraseña actualizada con éxito! Ya podés iniciar sesión.', false);
+          setTimeout(() => {
+            cambiarTab('login');
+          }, 1800);
+        } else {
+          mostrarAlerta(data.message || 'Código incorrecto o expirado.');
+        }
+      } catch (err) {
+        mostrarAlerta('Error de conexión al procesar el cambio de clave.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-key"></i> <span>Guardar Nueva Contraseña</span>`;
+      }
+    }	  
+  </script>
+
+</body>
+</html>

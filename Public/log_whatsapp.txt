@@ -1,0 +1,2 @@
+[2026-10-11 01:24:40] Respuesta API Plantilla WhatsApp para 5493513256711: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjNCNzQ2NDhCMzM4OTYyQzE5MgA=","message_status":"accepted"}]}
+[2026-10-11 01:24:41] Respuesta API Plantilla WhatsApp para 5493513256711: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjFEQjQ5RTU1RUE0NEIxM0U4RQA=","message_status":"accepted"}]}

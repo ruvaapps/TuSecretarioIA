@@ -1,0 +1,176 @@
+[2026-10-08 14:11:18] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 14:11:18] RAW BODY: {"action":"payment.created","api_version":"v1","data":{"id":"999928299"},"date_created":"2026-10-08T14:11:18-03:00","type":"payment"}
+[2026-10-08 14:11:18] Notificación procesada: Type = payment | Payment ID = 999928299
+[2026-10-08 14:11:18] Por cargar conexion.php
+[2026-10-08 14:11:18] Por cargar acciones_panel.php
+[2026-10-08 15:38:07] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 15:38:07] RAW BODY: {"action":"payment.created","api_version":"v1","data":{"id":"999563125"},"date_created":"2026-10-08T15:38:07-03:00","type":"payment"}
+[2026-10-08 15:38:07] Notificación procesada: Type = payment | Payment ID = 999563125
+[2026-10-08 15:38:07] Por cargar conexion.php
+[2026-10-08 15:38:07] Por cargar funciones_whatsapp.php
+[2026-10-08 15:38:07] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 15:38:07] Terminó de cargar dependencias externas.
+[2026-10-08 15:38:07] Por procesar la notificacion tipo: payment
+[2026-10-08 15:38:07] Payment ID: 999563125
+[2026-10-08 15:38:07] 🧪 MODO TEST DETECTADO: Simulando pago aprobado para Payment ID 999563125
+[2026-10-08 15:38:07] Pago APROBADO para el Turno ID: 122
+[2026-10-08 15:38:07] Respuesta de envio WhatsApp: {"error":true,"message":"Credenciales de WhatsApp no configuradas."}
+[2026-10-08 15:41:25] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 15:41:25] RAW BODY: {"action":"payment.created","api_version":"v1","data":{"id":"999888111"},"date_created":"2026-10-08T15:41:25-03:00","type":"payment"}
+[2026-10-08 15:41:25] Notificación procesada: Type = payment | Payment ID = 999888111
+[2026-10-08 15:41:25] Por cargar conexion.php
+[2026-10-08 15:41:25] Por cargar funciones_whatsapp.php
+[2026-10-08 15:41:25] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 15:41:25] Terminó de cargar dependencias externas.
+[2026-10-08 15:41:25] Por procesar la notificacion tipo: payment
+[2026-10-08 15:41:25] Payment ID: 999888111
+[2026-10-08 15:41:25] 🧪 MODO TEST DETECTADO: Simulando pago aprobado para Payment ID 999888111
+[2026-10-08 15:41:25] Pago APROBADO para el Turno ID: 122
+[2026-10-08 15:41:25] Respuesta de envio WhatsApp: {"error":{"message":"(#132001) Template name does not exist in the translation","code":132001,"type":"OAuthException","error_data":{"messaging_product":"whatsapp","details":"template name (confirmacion_turno) does not exist in es"},"fbtrace_id":"A8OKr6fVr-l4dYA1LAj3Azx"}}
+[2026-10-08 15:50:22] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 15:50:22] RAW BODY: {"action":"payment.created","api_version":"v1","data":{"id":"999700751"},"date_created":"2026-10-08T15:50:22-03:00","type":"payment"}
+[2026-10-08 15:50:22] Notificación procesada: Type = payment | Payment ID = 999700751
+[2026-10-08 15:50:22] Por cargar conexion.php
+[2026-10-08 15:50:22] Por cargar funciones_whatsapp.php
+[2026-10-08 15:50:22] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 15:50:22] Terminó de cargar dependencias externas.
+[2026-10-08 15:50:22] Por procesar la notificacion tipo: payment
+[2026-10-08 15:50:22] Payment ID: 999700751
+[2026-10-08 15:50:22] 🧪 MODO TEST DETECTADO: Simulando pago aprobado para Payment ID 999700751
+[2026-10-08 15:50:22] Pago APROBADO para el Turno ID: 122
+[2026-10-08 15:50:23] Respuesta de envio WhatsApp: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjZCMUQyRjdBRkJFRTgzM0NCRQA=","message_status":"accepted"}]}
+[2026-10-08 19:15:24] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 19:15:24] RAW BODY: {"resource":"https://api.mercadolibre.com/merchant_orders/45125829404","topic":"merchant_order"}
+[2026-10-08 19:15:24] Notificación procesada: Type = merchant_order | Payment ID = 
+[2026-10-08 19:15:24] Por cargar conexion.php
+[2026-10-08 19:15:24] Por cargar funciones_whatsapp.php
+[2026-10-08 19:15:24] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 19:15:24] Terminó de cargar dependencias externas.
+[2026-10-08 19:15:24] Por procesar la notificacion tipo: merchant_order
+[2026-10-08 19:15:24] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 19:15:24] RAW BODY: {"action":"payment.created","api_version":"v1","data":{"id":"182144751219"},"date_created":"2026-10-08T22:15:23Z","id":40721867182500553,"live_mode":true,"type":"payment","user_id":"766576716"}
+[2026-10-08 19:15:24] Notificación procesada: Type = payment | Payment ID = 182144751219
+[2026-10-08 19:15:24] Por cargar conexion.php
+[2026-10-08 19:15:24] Por cargar funciones_whatsapp.php
+[2026-10-08 19:15:24] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 19:15:24] Terminó de cargar dependencias externas.
+[2026-10-08 19:15:24] Por procesar la notificacion tipo: payment
+[2026-10-08 19:15:24] Payment ID: 182144751219
+[2026-10-08 19:15:25] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 19:15:25] RAW BODY: {"resource":"182144751219","topic":"payment"}
+[2026-10-08 19:15:25] Notificación procesada: Type = payment | Payment ID = 
+[2026-10-08 19:15:25] Por cargar conexion.php
+[2026-10-08 19:15:25] Por cargar funciones_whatsapp.php
+[2026-10-08 19:15:25] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 19:15:25] Terminó de cargar dependencias externas.
+[2026-10-08 19:15:25] Por procesar la notificacion tipo: payment
+[2026-10-08 19:15:25] Pago APROBADO para el Turno ID: 125
+[2026-10-08 19:15:26] Respuesta de envio WhatsApp: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkM3QTg1MEU0M0IwMDE0MzJGRQA=","message_status":"accepted"}]}
+[2026-10-08 19:15:26] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 19:15:26] RAW BODY: {"resource":"https://api.mercadolibre.com/merchant_orders/45125829404","topic":"merchant_order"}
+[2026-10-08 19:15:26] Notificación procesada: Type = merchant_order | Payment ID = 
+[2026-10-08 19:15:26] Por cargar conexion.php
+[2026-10-08 19:15:26] Por cargar funciones_whatsapp.php
+[2026-10-08 19:15:26] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 19:15:26] Terminó de cargar dependencias externas.
+[2026-10-08 19:15:26] Por procesar la notificacion tipo: merchant_order
+[2026-10-08 19:30:42] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 19:30:42] RAW BODY: {"resource":"https://api.mercadolibre.com/merchant_orders/45095666089","topic":"merchant_order"}
+[2026-10-08 19:30:42] Notificación procesada: Type = merchant_order | Payment ID =  | Resource = https://api.mercadolibre.com/merchant_orders/45095666089
+[2026-10-08 19:30:42] Por cargar conexion.php
+[2026-10-08 19:30:42] Por cargar funciones_whatsapp.php
+[2026-10-08 19:30:42] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 19:30:42] Terminó de cargar dependencias externas.
+[2026-10-08 19:30:42] Por procesar la notificacion tipo: merchant_order
+[2026-10-08 19:30:42] Procesando Merchant Order ID: 45095666089
+[2026-10-08 19:30:43] Pago 182147987265 encontrado dentro de Merchant Order 45095666089
+[2026-10-08 19:30:43] Payment ID a consultar: 182147987265
+[2026-10-08 19:30:43] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 19:30:43] RAW BODY: {"action":"payment.created","api_version":"v1","data":{"id":"182147987265"},"date_created":"2026-10-08T22:30:42Z","id":40723408371074780,"live_mode":true,"type":"payment","user_id":"766576716"}
+[2026-10-08 19:30:43] Notificación procesada: Type = payment | Payment ID = 182147987265 | Resource = 
+[2026-10-08 19:30:43] Por cargar conexion.php
+[2026-10-08 19:30:43] Por cargar funciones_whatsapp.php
+[2026-10-08 19:30:43] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 19:30:43] Terminó de cargar dependencias externas.
+[2026-10-08 19:30:43] Por procesar la notificacion tipo: payment
+[2026-10-08 19:30:43] Payment ID a consultar: 182147987265
+[2026-10-08 19:30:43] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 19:30:43] RAW BODY: {"resource":"182147987265","topic":"payment"}
+[2026-10-08 19:30:43] Notificación procesada: Type = payment | Payment ID =  | Resource = 182147987265
+[2026-10-08 19:30:43] Por cargar conexion.php
+[2026-10-08 19:30:43] Por cargar funciones_whatsapp.php
+[2026-10-08 19:30:43] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 19:30:43] Terminó de cargar dependencias externas.
+[2026-10-08 19:30:43] Por procesar la notificacion tipo: payment
+[2026-10-08 19:30:43] Pago APROBADO para el Turno ID: 126
+[2026-10-08 19:30:43] Pago APROBADO para el Turno ID: 126
+[2026-10-08 19:30:44] Respuesta de envio WhatsApp: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkQyRTUxRTQwRUMyOENEQUIyMAA=","message_status":"accepted"}]}
+[2026-10-08 19:30:44] Respuesta de envio WhatsApp: {"messaging_product":"whatsapp","contacts":[{"input":"5493513256711","wa_id":"5493513256711"}],"messages":[{"id":"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEkY4NzY2RjJDMzcwMkQ3MEU3MAA=","message_status":"accepted"}]}
+[2026-10-08 19:31:45] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 19:31:45] RAW BODY: {"resource":"https://api.mercadolibre.com/merchant_orders/45095666089","topic":"merchant_order"}
+[2026-10-08 19:31:45] Notificación procesada: Type = merchant_order | Payment ID =  | Resource = https://api.mercadolibre.com/merchant_orders/45095666089
+[2026-10-08 19:31:45] Por cargar conexion.php
+[2026-10-08 19:31:45] Por cargar funciones_whatsapp.php
+[2026-10-08 19:31:45] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 19:31:45] Terminó de cargar dependencias externas.
+[2026-10-08 19:31:45] Por procesar la notificacion tipo: merchant_order
+[2026-10-08 19:31:45] Procesando Merchant Order ID: 45095666089
+[2026-10-08 22:52:00] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 22:52:00] RAW BODY: {"action":"payment.updated","api_version":"v1","data":{"id":"182147987265"},"date_created":"2026-10-08T22:30:42Z","id":40743669157893859,"live_mode":true,"type":"payment","user_id":"766576716"}
+[2026-10-08 22:52:00] Notificación procesada: Type = payment | Payment ID = 182147987265 | Resource = 
+[2026-10-08 22:52:00] Por cargar conexion.php
+[2026-10-08 22:52:00] Por cargar funciones_whatsapp.php
+[2026-10-08 22:52:00] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 22:52:00] Terminó de cargar dependencias externas.
+[2026-10-08 22:52:00] Por procesar la notificacion tipo: payment
+[2026-10-08 22:52:00] Payment ID a consultar: 182147987265
+[2026-10-08 22:52:00] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 22:52:00] RAW BODY: {"resource":"182147987265","topic":"payment"}
+[2026-10-08 22:52:00] Notificación procesada: Type = payment | Payment ID =  | Resource = 182147987265
+[2026-10-08 22:52:00] Por cargar conexion.php
+[2026-10-08 22:52:00] Por cargar funciones_whatsapp.php
+[2026-10-08 22:52:00] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 22:52:00] Terminó de cargar dependencias externas.
+[2026-10-08 22:52:00] Por procesar la notificacion tipo: payment
+[2026-10-08 22:52:00] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-08 22:52:00] RAW BODY: {"resource":"https://api.mercadolibre.com/merchant_orders/45095666089","topic":"merchant_order"}
+[2026-10-08 22:52:00] Notificación procesada: Type = merchant_order | Payment ID =  | Resource = https://api.mercadolibre.com/merchant_orders/45095666089
+[2026-10-08 22:52:00] Por cargar conexion.php
+[2026-10-08 22:52:00] Por cargar funciones_whatsapp.php
+[2026-10-08 22:52:00] funciones_whatsapp.php cargado exitosamente.
+[2026-10-08 22:52:00] Terminó de cargar dependencias externas.
+[2026-10-08 22:52:00] Por procesar la notificacion tipo: merchant_order
+[2026-10-08 22:52:00] Procesando Merchant Order ID: 45095666089
+[2026-10-08 22:52:00] Resultado de consulta API MP: {"message":"Payment not found","error":"not_found","status":404,"cause":[{"code":2000,"description":"Payment not found","data":"09-10-2026T01:52:00UTC;5c0b86ae-0d22-49de-a26e-e340d991dfdc"}]}
+[2026-10-11 01:24:38] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-11 01:24:38] RAW BODY: {"resource":"182144751219","topic":"payment"}
+[2026-10-11 01:24:38] Notificación procesada: Type = payment | Payment ID =  | Resource = 182144751219
+[2026-10-11 01:24:38] Por cargar conexion.php
+[2026-10-11 01:24:38] Por cargar funciones_whatsapp.php
+[2026-10-11 01:24:38] funciones_whatsapp.php cargado exitosamente.
+[2026-10-11 01:24:38] Terminó de cargar dependencias externas.
+[2026-10-11 01:24:38] Por procesar la notificacion tipo: payment
+[2026-10-11 01:24:38] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-11 01:24:38] RAW BODY: {"action":"payment.updated","api_version":"v1","data":{"id":"182144751219"},"date_created":"2026-10-08T22:15:23Z","id":41048944142205918,"live_mode":true,"type":"payment","user_id":"766576716"}
+[2026-10-11 01:24:38] Notificación procesada: Type = payment | Payment ID = 182144751219 | Resource = 
+[2026-10-11 01:24:38] Por cargar conexion.php
+[2026-10-11 01:24:38] Por cargar funciones_whatsapp.php
+[2026-10-11 01:24:38] funciones_whatsapp.php cargado exitosamente.
+[2026-10-11 01:24:38] Terminó de cargar dependencias externas.
+[2026-10-11 01:24:38] Por procesar la notificacion tipo: payment
+[2026-10-11 01:24:38] Payment ID a consultar: 182144751219
+[2026-10-11 01:24:39] Pago APROBADO para el Turno ID: 125
+[2026-10-11 01:24:39] --- INICIO DE PETICION WEBHOOK ---
+[2026-10-11 01:24:39] RAW BODY: {"resource":"https://api.mercadolibre.com/merchant_orders/45125829404","topic":"merchant_order"}
+[2026-10-11 01:24:39] Notificación procesada: Type = merchant_order | Payment ID =  | Resource = https://api.mercadolibre.com/merchant_orders/45125829404
+[2026-10-11 01:24:39] Por cargar conexion.php
+[2026-10-11 01:24:39] Por cargar funciones_whatsapp.php
+[2026-10-11 01:24:39] funciones_whatsapp.php cargado exitosamente.
+[2026-10-11 01:24:39] Terminó de cargar dependencias externas.
+[2026-10-11 01:24:39] Por procesar la notificacion tipo: merchant_order
+[2026-10-11 01:24:39] Procesando Merchant Order ID: 45125829404
+[2026-10-11 01:24:40] Pago 182144751219 encontrado dentro de Merchant Order 45125829404
+[2026-10-11 01:24:40] Payment ID a consultar: 182144751219
+[2026-10-11 01:24:40] Respuesta de envio WhatsApp: "{\"messaging_product\":\"whatsapp\",\"contacts\":[{\"input\":\"5493513256711\",\"wa_id\":\"5493513256711\"}],\"messages\":[{\"id\":\"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjNCNzQ2NDhCMzM4OTYyQzE5MgA=\",\"message_status\":\"accepted\"}]}"
+[2026-10-11 01:24:40] Pago APROBADO para el Turno ID: 125
+[2026-10-11 01:24:41] Respuesta de envio WhatsApp: "{\"messaging_product\":\"whatsapp\",\"contacts\":[{\"input\":\"5493513256711\",\"wa_id\":\"5493513256711\"}],\"messages\":[{\"id\":\"wamid.HBgNNTQ5MzUxMzI1NjcxMRUCABEYEjFEQjQ5RTU1RUE0NEIxM0U4RQA=\",\"message_status\":\"accepted\"}]}"
