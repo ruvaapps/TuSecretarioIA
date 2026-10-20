@@ -321,6 +321,103 @@ try {
         }
 
     // -------------------------------------------------------------------------
+    } elseif ($accion === 'enviar_lista_precios') {
+            $telefono_cliente = trim($_POST['cliente_telefono'] ?? '');
+            $nombre_cliente   = trim($_POST['cliente_nombre'] ?? 'Cliente');
+            $servicios_ids    = $_POST['servicios_ids'] ?? [];
+
+            if (is_string($servicios_ids)) {
+                $servicios_ids = json_decode($servicios_ids, true);
+            }
+
+            if (!$negocio_id || !$telefono_cliente || empty($servicios_ids)) {
+                echo json_encode(['status' => 'error', 'message' => 'Teléfono y al menos un servicio son requeridos.']);
+                exit;
+            }
+
+            try {
+                // 1. Consultar datos del negocio (nombre y slug)
+                $stmtNeg = $pdo->prepare("SELECT nombre, slug FROM saas_negocios WHERE id = ?");
+                $stmtNeg->execute([$negocio_id]);
+                $negocio = $stmtNeg->fetch(PDO::FETCH_ASSOC);
+
+                $negocio_nombre = $negocio['nombre'] ?? 'Nuestro Negocio';
+                $negocio_slug   = $negocio['slug'] ?? '';
+
+                // 2. Consultar servicios seleccionados
+                $in  = str_repeat('?,', count($servicios_ids) - 1) . '?';
+                $params = array_merge([$negocio_id], $servicios_ids);
+
+                $stmtServ = $pdo->prepare("SELECT nombre, precio FROM saas_servicios WHERE negocio_id = ? AND id IN ($in) AND estado = 'activo'");
+                $stmtServ->execute($params);
+                $servicios = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
+
+                if (empty($servicios)) {
+                    echo json_encode(['status' => 'error', 'message' => 'No se encontraron los servicios seleccionados.']);
+                    exit;
+                }
+
+                // 3. Formatear la lista separada por comas
+                $lineas_precios = [];
+                $monto_total = 0;
+                foreach ($servicios as $s) {
+                    $precio_fmt = number_format($s['precio'], 0, ',', '.');
+                    $lineas_precios[] = $s['nombre'] . " ($" . $precio_fmt . ")";
+                    $monto_total += (float)$s['precio'];
+                }
+
+                $detalle_precios = implode(", ", $lineas_precios);
+                $total_fmt = number_format($monto_total, 0, ',', '.');
+
+                $to = normalizarTelefonoMeta($telefono_cliente);
+                $phoneNumberId = WHATSAPP_PHONE_NUMBER_ID;
+
+                // 4. Enviar mediante Plantilla con Botón Dinámico de URL
+                $url = "https://graph.facebook.com/v20.0/{$phoneNumberId}/messages";
+
+                $payload = [
+                    'messaging_product' => 'whatsapp',
+                    'to' => $to,
+                    'type' => 'template',
+                    'template' => [
+                        'name' => 'envio_lista_precios',
+                        'language' => ['code' => 'es_AR'],
+                        'components' => [
+                            [
+                                'type' => 'body',
+                                'parameters' => [
+                                    ['type' => 'text', 'text' => $negocio_nombre],   // {{1}} del cuerpo
+                                    ['type' => 'text', 'text' => $nombre_cliente],  // {{2}} del cuerpo
+                                    ['type' => 'text', 'text' => $detalle_precios], // {{3}} del cuerpo
+                                    ['type' => 'text', 'text' => $total_fmt]        // {{4}} del cuerpo
+                                ]
+                            ],
+                            [
+                                'type' => 'button',
+                                'sub_type' => 'url',
+                                'index' => '0', // Representa el primer botón de la plantilla
+                                'parameters' => [
+                                    ['type' => 'text', 'text' => $negocio_slug]      // {{1}} de la URL del botón
+                                ]
+                            ]
+                        ]
+                    ]
+                ];
+
+                $response = ejecutarCurlWhatsApp($url, $payload, $to);
+
+                logAccionesPanel("Plantilla lista de precios con botón enviada a {$to} para Negocio ID: {$negocio_id}");
+
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => 'Lista de precios enviada correctamente por WhatsApp.'
+                ]);
+            } catch (Exception $e) {
+                logAccionesPanel("ERROR [enviar_lista_precios]: " . $e->getMessage());
+                echo json_encode(['status' => 'error', 'message' => 'Error al procesar el envío.']);
+            }
+            exit;
+    //
     } elseif ($accion === 'obtener_horarios_config') {
         try {
             $stmt = $pdo->prepare("SELECT * FROM saas_horarios_atencion WHERE negocio_id = ?");

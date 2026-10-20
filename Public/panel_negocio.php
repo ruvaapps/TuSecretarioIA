@@ -214,7 +214,11 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
             <button onclick="abrirModalMercadoPago(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
               <i class="fa-solid fa-credit-card text-sky-400 w-4"></i> Conectar Mercado Pago
             </button>
-			
+
+			<button onclick="abrirModalEnviarListaPrecios(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
+              <i class="fa-solid fa-file-invoice-dollar text-emerald-400 w-4"></i> Enviar Lista de Precios
+            </button>
+
             <button onclick="abrirModalDatosCobro(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
               <i class="fa-solid fa-building-columns text-emerald-400 w-4"></i> Configurar Cobros / Transferencia
             </button>
@@ -323,7 +327,71 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
       <div id="listaPendientesRevision" class="space-y-3"></div>
     </div>
   </div>
-	
+
+<!-- MODAL: ENVIAR LISTA DE PRECIOS -->
+  <div id="modalEnviarListaPrecios" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="font-bold text-white text-base flex items-center gap-2">
+          <i class="fa-solid fa-file-invoice-dollar text-emerald-400"></i> Enviar Presupuesto / Precios
+        </h3>
+        <button onclick="cerrarModal('modalEnviarListaPrecios')" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <form id="formEnviarListaPrecios" onsubmit="enviarListaPrecios(event)" class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1 font-semibold">Nombre del Cliente (Opcional)</label>
+          <input type="text" id="lpNombreCliente" placeholder="Ej: María Pérez" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-semibold">Teléfono Celular (WhatsApp)</label>
+          <div class="flex gap-2">
+            <select id="lpCodPais" onchange="validarTelListaPrecios()" class="bg-slate-950 border border-slate-800 rounded-xl px-2 py-2 text-white text-xs focus:outline-none focus:border-emerald-500 w-28 shrink-0">
+              <option value="54" selected>🇦🇷 +54</option>
+              <option value="55">🇧🇷 +55</option>
+              <option value="56">🇨🇱 +56</option>
+              <option value="598">🇺🇾 +598</option>
+              <option value="595">🇵🇾 +595</option>
+              <option value="591">🇧🇴 +591</option>
+              <option value="51">🇵🇪 +51</option>
+              <option value="52">🇲🇽 +52</option>
+              <option value="34">🇪🇸 +34</option>
+              <option value="1">🇺🇸 +1</option>
+            </select>
+            <input type="tel" id="lpTelCliente" oninput="validarTelListaPrecios()" required placeholder="Ej: 3511234567" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div id="msjValidacionTelLP" class="mt-1 text-[11px] min-h-[18px]"></div>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-slate-400 font-semibold">Seleccionar Servicios a Incluir</label>
+            <button type="button" onclick="seleccionarTodosServiciosLP(true)" class="text-[11px] text-emerald-400 hover:underline">Seleccionar Todos</button>
+          </div>
+          <div id="contenedorServiciosCheckboxes" class="space-y-2 bg-slate-950 p-3 rounded-xl border border-slate-800 max-h-48 overflow-y-auto">
+            <p class="text-slate-400 text-center py-2">Cargando servicios...</p>
+          </div>
+        </div>
+
+        <!-- TOTAL CALCULADO DINÁMICAMENTE -->
+        <div class="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-emerald-500/30">
+          <span class="font-bold text-slate-300">Estimado Total:</span>
+          <span class="text-base font-extrabold text-emerald-400" id="totalCalculadoLP">$0</span>
+        </div>
+
+        <div class="flex gap-2 pt-2 border-t border-slate-800">
+          <button type="button" onclick="cerrarModal('modalEnviarListaPrecios')" class="flex-1 bg-slate-800 text-slate-300 font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-700 transition">
+            Cancelar
+          </button>
+          <button type="submit" class="flex-1 bg-emerald-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs hover:bg-emerald-400 transition flex items-center justify-center gap-2">
+            <i class="fa-brands fa-whatsapp text-sm"></i> Enviar por WhatsApp
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL: CONFIGURAR DATOS DE COBRO / TRANSFERENCIA -->
   <div id="modalDatosCobro" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -2073,6 +2141,135 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         })
         .catch(err => console.error("Error al eliminar servicio:", err));
     }
+
+   function abrirModalEnviarListaPrecios() {
+         document.getElementById('modalEnviarListaPrecios').classList.remove('hidden');
+         document.getElementById('formEnviarListaPrecios').reset();
+         document.getElementById('totalCalculadoLP').innerText = '$0';
+         document.getElementById('msjValidacionTelLP').innerHTML = '';
+         cargarServiciosParaListaPrecios();
+       }
+
+       function cargarServiciosParaListaPrecios() {
+         const cont = document.getElementById('contenedorServiciosCheckboxes');
+         cont.innerHTML = '<p class="text-slate-400 text-center py-2">Cargando servicios...</p>';
+
+         fetch('acciones_panel.php?accion=obtener_servicios')
+           .then(res => res.json())
+           .then(res => {
+             cont.innerHTML = '';
+             if (res.status === 'success' && res.data.length > 0) {
+               res.data.forEach(s => {
+                 cont.innerHTML += `
+                   <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 cursor-pointer">
+                     <div class="flex items-center gap-2">
+                       <input type="checkbox" name="servicios_lp[]" value="${s.id}" data-precio="${s.precio}" onchange="recalcularTotalLP()" class="chk-servicio-lp w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+                       <span class="text-white font-medium">${s.nombre}</span>
+                     </div>
+                     <span class="font-bold text-emerald-400">$${s.precio}</span>
+                   </label>
+                 `;
+               });
+             } else {
+               cont.innerHTML = '<p class="text-slate-400 text-center py-2">No hay servicios registrados.</p>';
+             }
+           })
+           .catch(err => console.error("Error al obtener servicios:", err));
+       }
+
+       function recalcularTotalLP() {
+         const checkboxes = document.querySelectorAll('.chk-servicio-lp:checked');
+         let total = 0;
+         checkboxes.forEach(chk => {
+           total += parseFloat(chk.dataset.precio || 0);
+         });
+         document.getElementById('totalCalculadoLP').innerText = '$' + total.toLocaleString('es-AR');
+       }
+
+       function seleccionarTodosServiciosLP(estado) {
+         const checkboxes = document.querySelectorAll('.chk-servicio-lp');
+         checkboxes.forEach(chk => chk.checked = estado);
+         recalcularTotalLP();
+       }
+
+       function validarTelListaPrecios() {
+         const codPais = document.getElementById('lpCodPais').value;
+         let rawTel = document.getElementById('lpTelCliente').value.replace(/[^0-9]/g, '');
+         const msjBox = document.getElementById('msjValidacionTelLP');
+
+         if (!rawTel) {
+           msjBox.innerHTML = '';
+           return { esCelular: false, numeroCompleto: '' };
+         }
+
+         let esCelular = false;
+         let numeroLimpio = rawTel;
+
+         if (codPais === '54') {
+           if (numeroLimpio.startsWith('0')) numeroLimpio = numeroLimpio.substring(1);
+           if (numeroLimpio.startsWith('15')) numeroLimpio = numeroLimpio.substring(2);
+
+           if (numeroLimpio.length === 10) {
+             esCelular = true;
+             numeroLimpio = '549' + numeroLimpio;
+           } else {
+             numeroLimpio = '54' + numeroLimpio;
+           }
+         } else {
+           if (numeroLimpio.length >= 8 && numeroLimpio.length <= 13) esCelular = true;
+           numeroLimpio = codPais + numeroLimpio;
+         }
+
+         if (esCelular) {
+           msjBox.innerHTML = `<span class="text-emerald-400 font-semibold"><i class="fa-brands fa-whatsapp"></i> Número válido</span>`;
+         } else {
+           msjBox.innerHTML = `<span class="text-amber-400 font-semibold"><i class="fa-solid fa-circle-exclamation"></i> Formato incorrecto. Ej: 3511234567</span>`;
+         }
+
+         return { esCelular, numeroCompleto: numeroLimpio };
+       }
+
+       function enviarListaPrecios(e) {
+         e.preventDefault();
+
+         const validTel = validarTelListaPrecios();
+         if (!validTel.numeroCompleto) {
+           alert('Por favor, ingrese un número de celular válido.');
+           return;
+         }
+
+         const selectedServicios = Array.from(document.querySelectorAll('.chk-servicio-lp:checked')).map(cb => cb.value);
+
+         if (selectedServicios.length === 0) {
+           alert('Por favor, seleccione al menos un servicio.');
+           return;
+         }
+
+         const formData = new FormData();
+         formData.append('accion', 'enviar_lista_precios');
+         formData.append('cliente_nombre', document.getElementById('lpNombreCliente').value);
+         formData.append('cliente_telefono', validTel.numeroCompleto);
+
+         selectedServicios.forEach(id => {
+           formData.append('servicios_ids[]', id);
+         });
+
+         fetch('acciones_panel.php', { method: 'POST', body: formData })
+           .then(res => res.json())
+           .then(res => {
+             if (res.status === 'success') {
+               alert('¡Lista de precios enviada correctamente!');
+               cerrarModal('modalEnviarListaPrecios');
+             } else {
+               if (res.link_wa && confirm('Error al enviar vía Meta API. ¿Querés abrir WhatsApp directamente para enviarlo?')) {
+                 window.open(res.link_wa, '_blank');
+               } else {
+                 alert('Error: ' + res.message);
+               }
+             }
+           })
+           .catch(err => console.error("Error al enviar lista de precios:", err));
+       }
   </script>
 
   <!-- SCRIPT PARA INSTALACIÓN PWA Y SERVICE WORKER -->
