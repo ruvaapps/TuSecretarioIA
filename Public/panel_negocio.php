@@ -2229,47 +2229,68 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
          return { esCelular, numeroCompleto: numeroLimpio };
        }
 
-       function enviarListaPrecios(e) {
-         e.preventDefault();
+function enviarListaPrecios(e) {
+      e.preventDefault();
 
-         const validTel = validarTelListaPrecios();
-         if (!validTel.numeroCompleto) {
-           alert('Por favor, ingrese un número de celular válido.');
-           return;
-         }
+      // 1. Validar Nombre del Cliente (si está vacío, poner un valor por defecto para que Meta no rebote)
+      let nombreCliente = document.getElementById('lpNombreCliente').value.trim();
+      if (!nombreCliente) {
+        nombreCliente = "Cliente";
+        alert('Por favor, ingrese El nombre del cliente.');
+        return;
+      }
 
-         const selectedServicios = Array.from(document.querySelectorAll('.chk-servicio-lp:checked')).map(cb => cb.value);
+      // 2. Validar Celular (WhatsApp)
+      const validTel = validarTelListaPrecios();
+      if (!validTel.esCelular || !validTel.numeroCompleto) {
+        alert('Por favor, ingrese un número de celular válido (ej: 3511234567).');
+        return;
+      }
 
-         if (selectedServicios.length === 0) {
-           alert('Por favor, seleccione al menos un servicio.');
-           return;
-         }
+      // 3. Validar Selección de Servicios
+      const selectedServicios = Array.from(document.querySelectorAll('.chk-servicio-lp:checked')).map(cb => cb.value);
 
-         const formData = new FormData();
-         formData.append('accion', 'enviar_lista_precios');
-         formData.append('cliente_nombre', document.getElementById('lpNombreCliente').value);
-         formData.append('cliente_telefono', validTel.numeroCompleto);
+      if (selectedServicios.length === 0) {
+        alert('Por favor, seleccione al menos un servicio de la lista.');
+        return;
+      }
 
-         selectedServicios.forEach(id => {
-           formData.append('servicios_ids[]', id);
-         });
+      // 4. Armar el FormData
+      const formData = new FormData();
+      formData.append('accion', 'enviar_lista_precios');
+      formData.append('cliente_nombre', nombreCliente);
+      formData.append('cliente_telefono', validTel.numeroCompleto);
 
-         fetch('acciones_panel.php', { method: 'POST', body: formData })
-           .then(res => res.json())
-           .then(res => {
-             if (res.status === 'success') {
-               alert('¡Lista de precios enviada correctamente!');
-               cerrarModal('modalEnviarListaPrecios');
-             } else {
-               if (res.link_wa && confirm('Error al enviar vía Meta API. ¿Querés abrir WhatsApp directamente para enviarlo?')) {
-                 window.open(res.link_wa, '_blank');
-               } else {
-                 alert('Error: ' + res.message);
-               }
-             }
-           })
-           .catch(err => console.error("Error al enviar lista de precios:", err));
-       }
+      selectedServicios.forEach(id => {
+        formData.append('servicios_ids[]', id);
+      });
+
+      // Deshabilitar botón temporalmente para evitar doble clic
+      const btnSubmit = e.target.querySelector('button[type="submit"]');
+      const textOriginal = btnSubmit.innerHTML;
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-sm"></i> Enviando...`;
+
+      fetch('acciones_panel.php', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(res => {
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = textOriginal;
+
+          if (res.status === 'success') {
+            alert('¡Lista de precios enviada correctamente!');
+            cerrarModal('modalEnviarListaPrecios');
+          } else {
+            alert('Error: ' + res.message);
+          }
+        })
+        .catch(err => {
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = textOriginal;
+          console.error("Error al enviar lista de precios:", err);
+          alert('Ocurrió un error al procesar la solicitud.');
+        });
+    }
   </script>
 
   <!-- SCRIPT PARA INSTALACIÓN PWA Y SERVICE WORKER -->

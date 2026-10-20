@@ -372,6 +372,13 @@ try {
                 $to = normalizarTelefonoMeta($telefono_cliente);
                 $phoneNumberId = WHATSAPP_PHONE_NUMBER_ID;
 
+                // Control de seguridad para evitar el error #131008
+                if (empty($nombre_cliente) || empty($negocio_nombre) || empty($detalle_precios) || empty($total_fmt) || empty($negocio_slug)) {
+                    logAccionesPanel("ERROR: Alguna variable para la plantilla de WhatsApp está vacía.");
+                    echo json_encode(['status' => 'error', 'message' => 'Faltan datos obligatorios para generar la plantilla.']);
+                    exit;
+                }
+
                 // 4. Enviar mediante Plantilla con Botón Dinámico de URL
                 $url = "https://graph.facebook.com/v20.0/{$phoneNumberId}/messages";
 
@@ -403,6 +410,8 @@ try {
                         ]
                     ]
                 ];
+
+                logAccionesPanel("Pauload enviado: " . $payload);
 
                 $response = ejecutarCurlWhatsApp($url, $payload, $to);
 
