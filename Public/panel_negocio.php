@@ -12,7 +12,7 @@ $negocio_id     = $_SESSION['negocio_id'];
 $negocio_nombre = $_SESSION['negocio_nombre'] ?? 'Mi Negocio';
 
 // Configuración Mercado Pago
-$client_id_mp = '3805741532914585'; // Reemplazar por tu Client ID
+$client_id_mp = '3805741532914585';
 $redirect_uri_mp = urlencode('https://tusecretarioia.lovar.com.ar/mercadoPago/mp_callback.php');
 $auth_url_mp = "https://auth.mercadopago.com.ar/authorization?client_id={$client_id_mp}&response_type=code&platform_id=mp&state={$negocio_id}&redirect_uri={$redirect_uri_mp}";
 
@@ -41,10 +41,10 @@ $slug = $datos_negocio['slug'] ?? '';
 
 // 3. Cargar los rangos de horario dinámicos
 $stmt_horarios = $pdo->prepare("
-    SELECT 
-        MIN(hora_apertura) AS hora_min, 
-        MAX(hora_cierre) AS hora_max 
-    FROM saas_horarios_atencion 
+    SELECT
+        MIN(hora_apertura) AS hora_min,
+        MAX(hora_cierre) AS hora_max
+    FROM saas_horarios_atencion
     WHERE negocio_id = ? AND esta_activo = 1
 ");
 $stmt_horarios->execute([$negocio_id]);
@@ -73,13 +73,13 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Panel de Turnos - <?php echo htmlspecialchars($negocio_nombre); ?></title>
-  
+
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0f172a">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-  
+
   <!-- CDN para Generación de Códigos QR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
@@ -88,7 +88,6 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
-    /* Estilos para el diseño oscuro de FullCalendar */
     .fc {
       --fc-border-color: #334155 !important;
       --fc-page-bg-color: transparent !important;
@@ -178,25 +177,21 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
       </div>
 
       <div class="flex items-center gap-2 sm:gap-3">
-        <!-- ACCESO RÁPIDO: Clientes & Promociones -->
         <a href="clientes/index.php" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2" title="Clientes y Promociones">
           <i class="fa-solid fa-users-gear text-emerald-400 font-bold"></i>
           <span class="hidden sm:inline">Clientes & Promos</span>
         </a>
 
-        <!-- Botón para Notificaciones Push -->
         <button id="btnNotificacionesPush" onclick="toggleSuscripcionPush()" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-2" title="Gestionar Notificaciones Push">
           <i class="fa-solid fa-bell font-bold"></i>
           <span class="hidden sm:inline" id="txtBtnPush">Activar Notificaciones</span>
         </button>
 
-        <!-- Botón de Instalación PWA -->
         <button id="btnInstalarApp" onclick="instalarPWA()" class="hidden items-center gap-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
           <i class="fa-solid fa-download"></i>
           <span class="hidden sm:inline">Instalar App</span>
         </button>
 
-        <!-- Menú Desplegable de Configuración -->
         <div class="relative">
           <button onclick="toggleMenu()" id="btnMenu" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 w-10 h-10 rounded-xl flex items-center justify-center text-base transition">
             <i class="fa-solid fa-bars"></i>
@@ -215,14 +210,14 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
               <i class="fa-solid fa-credit-card text-sky-400 w-4"></i> Conectar Mercado Pago
             </button>
 
-			<button onclick="abrirModalEnviarListaPrecios(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
+            <button onclick="abrirModalEnviarListaPrecios(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
               <i class="fa-solid fa-file-invoice-dollar text-emerald-400 w-4"></i> Enviar Lista de Precios
             </button>
 
             <button onclick="abrirModalDatosCobro(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
               <i class="fa-solid fa-building-columns text-emerald-400 w-4"></i> Configurar Cobros / Transferencia
             </button>
-			
+
             <button onclick="abrirModalRevisionPagos(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-amber-300 hover:bg-slate-800 flex items-center gap-2.5 transition font-semibold">
               <i class="fa-solid fa-receipt text-amber-400 w-4"></i> Revisar Comprobantes
             </button>
@@ -234,7 +229,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
             <button onclick="abrirModalHorarios(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
               <i class="fa-solid fa-clock text-emerald-400 w-4"></i> Configurar Horarios
             </button>
-            
+
             <button onclick="abrirModalServicios(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
               <i class="fa-solid fa-list-check text-emerald-400 w-4"></i> Configurar Servicios
             </button>
@@ -254,7 +249,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
             <button onclick="abrirModalAlerta(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
               <i class="fa-solid fa-bell text-emerald-400 w-4"></i> Alerta Resumen Diario
             </button>
-            
+
             <button onclick="abrirModalQR(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
               <i class="fa-solid fa-qrcode text-emerald-400 w-4"></i> Mis Enlaces y QR
             </button>
@@ -271,7 +266,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
   </header>
 
   <main class="max-w-7xl mx-auto px-2 sm:px-4 py-4 space-y-4">
-	
+
 	<!-- Referencias de Colores -->
 	<div class="flex items-center justify-around text-[11px] bg-slate-950 p-2.5 rounded-xl border border-slate-800">
 	  <div class="flex items-center gap-1.5">
@@ -328,7 +323,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
     </div>
   </div>
 
-<!-- MODAL: ENVIAR LISTA DE PRECIOS -->
+  <!-- MODAL: ENVIAR LISTA DE PRECIOS -->
   <div id="modalEnviarListaPrecios" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -374,7 +369,6 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
           </div>
         </div>
 
-        <!-- TOTAL CALCULADO DINÁMICAMENTE -->
         <div class="flex justify-between items-center bg-slate-950 p-3 rounded-xl border border-emerald-500/30">
           <span class="font-bold text-slate-300">Estimado Total:</span>
           <span class="text-base font-extrabold text-emerald-400" id="totalCalculadoLP">$0</span>
@@ -401,11 +395,11 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         </h3>
         <button onclick="cerrarModal('modalDatosCobro')" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
-      
+
       <form id="formDatosCobro" onsubmit="guardarDatosCobro(event)" class="space-y-4 text-xs">
         <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
           <h4 class="font-bold text-slate-200 text-xs mb-1">Método de Cobro Activo</h4>
-          
+
           <div class="flex items-center justify-between">
             <label for="permiteMP" class="text-slate-300 font-medium cursor-pointer">Mercado Pago (Link automático)</label>
             <input type="radio" id="permiteMP" name="metodo_pago_activo" value="mercadopago" class="w-4 h-4 accent-emerald-500 cursor-pointer">
@@ -464,7 +458,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         </div>
       </form>
     </div>
-  </div>	
+  </div>
 
   <!-- MODAL: MERCADO PAGO -->
   <div id="modalMercadoPago" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
@@ -545,7 +539,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         </h3>
         <button onclick="cerrarModal('modalAlerta')" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
-      
+
       <form id="formAlerta" onsubmit="guardarConfigAlerta(event)" class="space-y-4 text-xs">
         <p class="text-slate-400">
           Configura si deseas recibir un mensaje automático cada mañana por WhatsApp con la cantidad de turnos programados para el día.
@@ -582,7 +576,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         </h3>
         <button onclick="cerrarModal('modalInstagram')" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
-      
+
       <form id="formInstagram" onsubmit="guardarInstagram(event)" class="space-y-4 text-xs">
         <p class="text-slate-400">
           Ingresa el usuario de Instagram del negocio (puedes incluirlo con o sin @).
@@ -617,7 +611,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         </h3>
         <button onclick="cerrarModal('modalDomicilio')" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
-      
+
       <form id="formDomicilio" onsubmit="guardarDomicilio(event)" class="space-y-3 text-xs">
         <input type="hidden" id="domLatitud" name="latitud" value="<?php echo htmlspecialchars($latitud_negocio); ?>">
         <input type="hidden" id="domLongitud" name="longitud" value="<?php echo htmlspecialchars($longitud_negocio); ?>">
@@ -664,7 +658,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         <p><strong class="text-slate-100">Teléfono:</strong> <span id="detTelefono"></span></p>
         <p><strong class="text-slate-100">Horario:</strong> <span id="detHorario"></span></p>
         <p><strong class="text-slate-100">Estado:</strong> <span id="detEstado" class="font-bold"></span></p>
-        
+
         <div id="detComprobanteBox" class="hidden bg-slate-950 p-3 rounded-xl border border-amber-500/30 space-y-1 mt-2">
           <p class="font-bold text-amber-400 text-xs flex items-center gap-1.5">
             <i class="fa-solid fa-receipt"></i> Datos del Comprobante
@@ -676,13 +670,18 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         </div>
       </div>
 
-      <div id="detAccionesStandard" class="flex gap-2 pt-2 border-t border-slate-800">
-        <button onclick="cambiarEstadoTurno('completado')" class="flex-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 py-2 rounded-xl text-xs font-bold hover:bg-emerald-600 hover:text-white transition">
-          <i class="fa-solid fa-check"></i> Completar
+      <div id="detAccionesStandard" class="flex flex-col gap-2 pt-2 border-t border-slate-800">
+        <button onclick="abrirCobroDesdeDetalleTurno()" class="w-full bg-sky-500/20 text-sky-400 border border-sky-500/30 py-2 rounded-xl text-xs font-bold hover:bg-sky-500 hover:text-slate-950 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-qrcode"></i> Cobrar este Turno (QR)
         </button>
-        <button onclick="cambiarEstadoTurno('cancelado')" class="flex-1 bg-red-600/20 text-red-400 border border-red-500/30 py-2 rounded-xl text-xs font-bold hover:bg-red-600 hover:text-white transition">
-          <i class="fa-solid fa-ban"></i> Cancelar Turno
-        </button>
+        <div class="flex gap-2">
+          <button onclick="cambiarEstadoTurno('completado')" class="flex-1 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 py-2 rounded-xl text-xs font-bold hover:bg-emerald-600 hover:text-white transition">
+            <i class="fa-solid fa-check"></i> Completar
+          </button>
+          <button onclick="cambiarEstadoTurno('cancelado')" class="flex-1 bg-red-600/20 text-red-400 border border-red-500/30 py-2 rounded-xl text-xs font-bold hover:bg-red-600 hover:text-white transition">
+            <i class="fa-solid fa-ban"></i> Cancelar
+          </button>
+        </div>
       </div>
 
       <div id="detAccionesRevision" class="hidden flex gap-2 pt-2 border-t border-slate-800">
@@ -696,14 +695,14 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
     </div>
   </div>
 
-  <!-- MODAL: NUEVO TURNO (INCLUYE SELECCIÓN DE RECURSO) -->
+  <!-- MODAL: NUEVO TURNO -->
   <div id="modalNuevoTurno" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <h3 class="font-bold text-white text-base">Agendar Turno Manual</h3>
         <button onclick="cerrarModal('modalNuevoTurno')" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
-      
+
       <form id="formNuevoTurno" onsubmit="guardarTurno(event)" class="space-y-3 text-xs">
         <div>
           <label class="block text-slate-400 mb-1">Nombre del Cliente</label>
@@ -726,11 +725,11 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
               <option value="1">🇺🇸 +1</option>
             </select>
 
-            <input 
-              type="tel" 
-              id="inputTelefono" 
-              oninput="validarTelefonoWhatsApp()" 
-              placeholder="Ej: 3511234567" 
+            <input
+              type="tel"
+              id="inputTelefono"
+              oninput="validarTelefonoWhatsApp()"
+              placeholder="Ej: 3511234567"
               class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
             >
           </div>
@@ -742,7 +741,6 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
           <select id="selectServicio" onchange="cargarHorariosDisponibles()" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"></select>
         </div>
 
-        <!-- RECURSO / CANCHA / CONSULTORIO -->
         <div id="contenedorSelectRecurso" class="hidden">
           <label class="block text-slate-400 mb-1">Recurso / Espacio (Opcional)</label>
           <select id="selectRecursoTurno" onchange="cargarHorariosDisponibles()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500">
@@ -770,6 +768,53 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
     </div>
   </div>
 
+ <!-- MODAL: COBRO DE TURNO HÍBRIDO (MP o DATOS BANCARIOS) -->
+   <div id="modalCobroTurnoQR" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-[70] flex items-center justify-center p-4">
+     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+         <h3 class="font-bold text-white text-base flex items-center gap-2">
+           <i class="fa-solid fa-cash-register text-emerald-400"></i> Cobrar Turno
+         </h3>
+         <button onclick="cerrarModal('modalCobroTurnoQR')" class="text-slate-400 hover:text-white text-lg">&times;</button>
+       </div>
+
+       <div class="space-y-3 text-xs">
+         <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2">
+           <p class="text-slate-300">👤 <strong>Cliente:</strong> <span id="cobroCliNombre" class="text-white font-semibold"></span></p>
+           <p class="text-slate-300">💈 <strong>Servicio:</strong> <span id="cobroServNombre" class="text-white font-semibold"></span></p>
+
+           <!-- MONTO EDITABLE -->
+           <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+             <span class="text-slate-300 font-bold">Monto Total a Cobrar ($):</span>
+             <input type="number" step="0.01" id="inputMontoCobroEditable" oninput="actualizarMontoCobro()" class="w-32 bg-slate-900 border border-emerald-500/50 rounded-lg px-2.5 py-1.5 text-emerald-400 font-extrabold text-sm text-right focus:outline-none focus:border-emerald-500">
+           </div>
+         </div>
+
+         <div>
+           <label class="block text-slate-400 mb-1 font-semibold">Seleccionar Método de Pago</label>
+           <select id="selectTipoMetodoCobro" onchange="renderizarVistaCobroSeleccionado()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-semibold">
+             <option value="mercadopago">💙 QR / Link Automático de Mercado Pago</option>
+             <option value="transferencia">🏦 Datos para Transferencia Bancaria (CBU / Alias)</option>
+           </select>
+         </div>
+
+         <!-- CONTENEDOR DINÁMICO SEGÚN MÉTODO -->
+         <div id="contenedorVistaCobro" class="flex flex-col items-center justify-center bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+           <!-- Se inyecta dinámicamente QR de MP o Tarjeta de CBU/Alias -->
+         </div>
+
+         <div class="flex gap-2 pt-2 border-t border-slate-800">
+           <button type="button" onclick="cerrarModal('modalCobroTurnoQR')" class="flex-1 bg-slate-800 text-slate-300 font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-700 transition">
+             Cerrar
+           </button>
+           <button type="button" onclick="marcarTurnoComoCobradoYCompletado()" class="flex-1 bg-emerald-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs hover:bg-emerald-400 transition flex items-center justify-center gap-1.5">
+             <i class="fa-solid fa-check"></i> Cobro Realizado
+           </button>
+         </div>
+       </div>
+     </div>
+   </div>
+
   <!-- MODAL: CONFIGURAR HORARIOS DE ATENCIÓN -->
   <div id="modalHorarios" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -779,7 +824,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         </h3>
         <button onclick="cerrarModal('modalHorarios')" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
-      
+
       <form id="formHorarios" onsubmit="guardarHorarios(event)" class="space-y-3 text-xs">
         <div id="listaHorarios" class="space-y-3">
           <p class="text-slate-400 text-center py-4">Cargando horarios...</p>
@@ -909,10 +954,9 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         <button onclick="cerrarModal('modalRecursos')" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
 
-      <!-- Formulario Nuevo Recurso -->
       <form id="formNuevoRecurso" onsubmit="guardarNuevoRecurso(event)" class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-2 text-xs">
         <h4 class="font-bold text-emerald-400 mb-1">Agregar Nuevo Recurso</h4>
-        
+
         <div>
           <input type="text" id="recNombre" placeholder="Nombre (ej: Cancha 1, Camilla A, Silla 2)" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white focus:outline-none focus:border-emerald-500">
         </div>
@@ -937,7 +981,6 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         </button>
       </form>
 
-      <!-- Lista de Recursos Existentes -->
       <div class="space-y-2">
         <h4 class="font-bold text-slate-300 text-xs">Recursos Existentes</h4>
         <div id="listaRecursosGestion" class="space-y-2 text-xs">
@@ -961,7 +1004,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
     document.addEventListener('DOMContentLoaded', function() {
       var urlReserva = document.getElementById("linkInstagram").value;
       var qrElemento = document.getElementById("qrcode");
-      
+
       new QRCode(qrElemento, {
         text: urlReserva,
         width: 140,
@@ -1386,7 +1429,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
     function guardarTurno(e) {
       e.preventDefault();
       var hora = document.getElementById('selectHora').value;
-      
+
       if (!hora) {
         alert('Por favor elegí un horario disponible.');
         return;
@@ -1419,7 +1462,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
 
     function cambiarEstadoTurno(nuevoEstado) {
       if (!turnoSeleccionadoId) return;
-      
+
       var formData = new FormData();
       formData.append('accion', 'cambiar_estado');
       formData.append('turno_id', turnoSeleccionadoId);
@@ -1437,7 +1480,6 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         });
     }
 
-    /* --- LÓGICA DE GESTIÓN DE RECURSOS / CANCHAS --- */
     function abrirModalRecursos() {
       document.getElementById('modalRecursos').classList.remove('hidden');
       cargarListaGestionRecursos();
@@ -1548,7 +1590,6 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         });
     }
 
-    /* --- OTRAS FUNCIONES EXISTENTES --- */
     function abrirModalAlerta() {
       document.getElementById('modalAlerta').classList.remove('hidden');
       fetch('acciones_panel.php?accion=obtener_config_alerta')
@@ -1666,7 +1707,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
           if (mapaDomicilio) {
             mapaDomicilio.setView([lat, lng], 15);
             marcadorDomicilio.setLatLng([lat, lng]);
-            
+
             setTimeout(() => {
               mapaDomicilio.invalidateSize();
             }, 250);
@@ -2142,112 +2183,109 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         .catch(err => console.error("Error al eliminar servicio:", err));
     }
 
-   function abrirModalEnviarListaPrecios() {
-         document.getElementById('modalEnviarListaPrecios').classList.remove('hidden');
-         document.getElementById('formEnviarListaPrecios').reset();
-         document.getElementById('totalCalculadoLP').innerText = '$0';
-         document.getElementById('msjValidacionTelLP').innerHTML = '';
-         cargarServiciosParaListaPrecios();
-       }
+    function abrirModalEnviarListaPrecios() {
+      document.getElementById('modalEnviarListaPrecios').classList.remove('hidden');
+      document.getElementById('formEnviarListaPrecios').reset();
+      document.getElementById('totalCalculadoLP').innerText = '$0';
+      document.getElementById('msjValidacionTelLP').innerHTML = '';
+      cargarServiciosParaListaPrecios();
+    }
 
-       function cargarServiciosParaListaPrecios() {
-         const cont = document.getElementById('contenedorServiciosCheckboxes');
-         cont.innerHTML = '<p class="text-slate-400 text-center py-2">Cargando servicios...</p>';
+    function cargarServiciosParaListaPrecios() {
+      const cont = document.getElementById('contenedorServiciosCheckboxes');
+      cont.innerHTML = '<p class="text-slate-400 text-center py-2">Cargando servicios...</p>';
 
-         fetch('acciones_panel.php?accion=obtener_servicios')
-           .then(res => res.json())
-           .then(res => {
-             cont.innerHTML = '';
-             if (res.status === 'success' && res.data.length > 0) {
-               res.data.forEach(s => {
-                 cont.innerHTML += `
-                   <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 cursor-pointer">
-                     <div class="flex items-center gap-2">
-                       <input type="checkbox" name="servicios_lp[]" value="${s.id}" data-precio="${s.precio}" onchange="recalcularTotalLP()" class="chk-servicio-lp w-4 h-4 accent-emerald-500 rounded cursor-pointer">
-                       <span class="text-white font-medium">${s.nombre}</span>
-                     </div>
-                     <span class="font-bold text-emerald-400">$${s.precio}</span>
-                   </label>
-                 `;
-               });
-             } else {
-               cont.innerHTML = '<p class="text-slate-400 text-center py-2">No hay servicios registrados.</p>';
-             }
-           })
-           .catch(err => console.error("Error al obtener servicios:", err));
-       }
+      fetch('acciones_panel.php?accion=obtener_servicios')
+        .then(res => res.json())
+        .then(res => {
+          cont.innerHTML = '';
+          if (res.status === 'success' && res.data.length > 0) {
+            res.data.forEach(s => {
+              cont.innerHTML += `
+                <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 cursor-pointer">
+                  <div class="flex items-center gap-2">
+                    <input type="checkbox" name="servicios_lp[]" value="${s.id}" data-precio="${s.precio}" onchange="recalcularTotalLP()" class="chk-servicio-lp w-4 h-4 accent-emerald-500 rounded cursor-pointer">
+                    <span class="text-white font-medium">${s.nombre}</span>
+                  </div>
+                  <span class="font-bold text-emerald-400">$${s.precio}</span>
+                </label>
+              `;
+            });
+          } else {
+            cont.innerHTML = '<p class="text-slate-400 text-center py-2">No hay servicios registrados.</p>';
+          }
+        })
+        .catch(err => console.error("Error al obtener servicios:", err));
+    }
 
-       function recalcularTotalLP() {
-         const checkboxes = document.querySelectorAll('.chk-servicio-lp:checked');
-         let total = 0;
-         checkboxes.forEach(chk => {
-           total += parseFloat(chk.dataset.precio || 0);
-         });
-         document.getElementById('totalCalculadoLP').innerText = '$' + total.toLocaleString('es-AR');
-       }
+    function recalcularTotalLP() {
+      const checkboxes = document.querySelectorAll('.chk-servicio-lp:checked');
+      let total = 0;
+      checkboxes.forEach(chk => {
+        total += parseFloat(chk.dataset.precio || 0);
+      });
+      document.getElementById('totalCalculadoLP').innerText = '$' + total.toLocaleString('es-AR');
+    }
 
-       function seleccionarTodosServiciosLP(estado) {
-         const checkboxes = document.querySelectorAll('.chk-servicio-lp');
-         checkboxes.forEach(chk => chk.checked = estado);
-         recalcularTotalLP();
-       }
+    function seleccionarTodosServiciosLP(estado) {
+      const checkboxes = document.querySelectorAll('.chk-servicio-lp');
+      checkboxes.forEach(chk => chk.checked = estado);
+      recalcularTotalLP();
+    }
 
-       function validarTelListaPrecios() {
-         const codPais = document.getElementById('lpCodPais').value;
-         let rawTel = document.getElementById('lpTelCliente').value.replace(/[^0-9]/g, '');
-         const msjBox = document.getElementById('msjValidacionTelLP');
+    function validarTelListaPrecios() {
+      const codPais = document.getElementById('lpCodPais').value;
+      let rawTel = document.getElementById('lpTelCliente').value.replace(/[^0-9]/g, '');
+      const msjBox = document.getElementById('msjValidacionTelLP');
 
-         if (!rawTel) {
-           msjBox.innerHTML = '';
-           return { esCelular: false, numeroCompleto: '' };
-         }
+      if (!rawTel) {
+        msjBox.innerHTML = '';
+        return { esCelular: false, numeroCompleto: '' };
+      }
 
-         let esCelular = false;
-         let numeroLimpio = rawTel;
+      let esCelular = false;
+      let numeroLimpio = rawTel;
 
-         if (codPais === '54') {
-           if (numeroLimpio.startsWith('0')) numeroLimpio = numeroLimpio.substring(1);
-           if (numeroLimpio.startsWith('15')) numeroLimpio = numeroLimpio.substring(2);
+      if (codPais === '54') {
+        if (numeroLimpio.startsWith('0')) numeroLimpio = numeroLimpio.substring(1);
+        if (numeroLimpio.startsWith('15')) numeroLimpio = numeroLimpio.substring(2);
 
-           if (numeroLimpio.length === 10) {
-             esCelular = true;
-             numeroLimpio = '549' + numeroLimpio;
-           } else {
-             numeroLimpio = '54' + numeroLimpio;
-           }
-         } else {
-           if (numeroLimpio.length >= 8 && numeroLimpio.length <= 13) esCelular = true;
-           numeroLimpio = codPais + numeroLimpio;
-         }
+        if (numeroLimpio.length === 10) {
+          esCelular = true;
+          numeroLimpio = '549' + numeroLimpio;
+        } else {
+          numeroLimpio = '54' + numeroLimpio;
+        }
+      } else {
+        if (numeroLimpio.length >= 8 && numeroLimpio.length <= 13) esCelular = true;
+        numeroLimpio = codPais + numeroLimpio;
+      }
 
-         if (esCelular) {
-           msjBox.innerHTML = `<span class="text-emerald-400 font-semibold"><i class="fa-brands fa-whatsapp"></i> Número válido</span>`;
-         } else {
-           msjBox.innerHTML = `<span class="text-amber-400 font-semibold"><i class="fa-solid fa-circle-exclamation"></i> Formato incorrecto. Ej: 3511234567</span>`;
-         }
+      if (esCelular) {
+        msjBox.innerHTML = `<span class="text-emerald-400 font-semibold"><i class="fa-brands fa-whatsapp"></i> Número válido</span>`;
+      } else {
+        msjBox.innerHTML = `<span class="text-amber-400 font-semibold"><i class="fa-solid fa-circle-exclamation"></i> Formato incorrecto. Ej: 3511234567</span>`;
+      }
 
-         return { esCelular, numeroCompleto: numeroLimpio };
-       }
+      return { esCelular, numeroCompleto: numeroLimpio };
+    }
 
-function enviarListaPrecios(e) {
+    function enviarListaPrecios(e) {
       e.preventDefault();
 
-      // 1. Validar Nombre del Cliente (si está vacío, poner un valor por defecto para que Meta no rebote)
       let nombreCliente = document.getElementById('lpNombreCliente').value.trim();
       if (!nombreCliente) {
         nombreCliente = "Cliente";
-        alert('Por favor, ingrese El nombre del cliente.');
+        alert('Por favor, ingrese el nombre del cliente.');
         return;
       }
 
-      // 2. Validar Celular (WhatsApp)
       const validTel = validarTelListaPrecios();
       if (!validTel.esCelular || !validTel.numeroCompleto) {
         alert('Por favor, ingrese un número de celular válido (ej: 3511234567).');
         return;
       }
 
-      // 3. Validar Selección de Servicios
       const selectedServicios = Array.from(document.querySelectorAll('.chk-servicio-lp:checked')).map(cb => cb.value);
 
       if (selectedServicios.length === 0) {
@@ -2255,7 +2293,6 @@ function enviarListaPrecios(e) {
         return;
       }
 
-      // 4. Armar el FormData
       const formData = new FormData();
       formData.append('accion', 'enviar_lista_precios');
       formData.append('cliente_nombre', nombreCliente);
@@ -2265,7 +2302,6 @@ function enviarListaPrecios(e) {
         formData.append('servicios_ids[]', id);
       });
 
-      // Deshabilitar botón temporalmente para evitar doble clic
       const btnSubmit = e.target.querySelector('button[type="submit"]');
       const textOriginal = btnSubmit.innerHTML;
       btnSubmit.disabled = true;
@@ -2291,9 +2327,301 @@ function enviarListaPrecios(e) {
           alert('Ocurrió un error al procesar la solicitud.');
         });
     }
+// Función para calcular CRC16 (requerido por el estándar EMVCo / BCRA)
+function calcularCRC16(str) {
+  let crc = 0xFFFF;
+  for (let c = 0; c < str.length; c++) {
+    crc ^= str.charCodeAt(c) << 8;
+    for (let i = 0; i < 8; i++) {
+      if ((crc & 0x8000) !== 0) {
+        crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+      } else {
+        crc = (crc << 1) & 0xFFFF;
+      }
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+// Generador de trama EMVCo válida para Argentina (Transferencias 3.0)
+function construirTramaEMVCoValida(cbu, monto, concepto = 'Turno') {
+  if (!cbu || cbu.length !== 22) return '';
+
+  let montoFmt = parseFloat(monto).toFixed(2);
+
+  // Trama base estandarizada por el BCRA
+  let gui = "0011ar.gob.bcra";
+  let cbuData = "01" + cbu.length.toString().padStart(2, '0') + cbu;
+  let merchantInfo = "43" + (gui.length + cbuData.length).toString().padStart(2, '0') + gui + cbuData;
+
+  let payloadSinCRC =
+    "000201" +                          // Payload Format Indicator
+    "010212" +                          // Dynamic QR (12)
+    merchantInfo +                      // Merchant Account Info (BCRA CBU)
+    "52040000" +                        // Merchant Category Code
+    "5303032" +                         // Currency (032 = ARS)
+    "54" + montoFmt.length.toString().padStart(2, '0') + montoFmt + // Amount
+    "5802AR" +                          // Country Code
+    "5910SERVICIOS" +                   // Merchant Name
+    "6007CORDOBA" +                     // Merchant City
+    "62" + (7 + concepto.length).toString().padStart(2, '0') + "05" + concepto.length.toString().padStart(2, '0') + concepto + // Reference
+    "6304";                             // Checksum ID
+
+  let crc = calcularCRC16(payloadSinCRC);
+  return payloadSinCRC + crc;
+}
+
+    function construirTramaEMVCo(cbu, cuit, monto, concepto) {
+      if (!cbu) return '';
+      let montoFmt = parseFloat(monto).toFixed(2);
+      return `00020101021243140011ar.gob.bcra111000100${cbu}520400005303032540${montoFmt.length}${montoFmt}5802AR5912COMERCIO6007CORDOBA62150511${concepto}6304`;
+    }
+
+let turnoCobroActualData = null;
+
+    function abrirCobroDesdeDetalleTurno() {
+      if (!turnoSeleccionadoId) return;
+
+      cerrarModal('modalDetalle');
+      document.getElementById('modalCobroTurnoQR').classList.remove('hidden');
+      document.getElementById('cobroCliNombre').innerText = 'Cargando...';
+      document.getElementById('cobroServNombre').innerText = 'Cargando...';
+      document.getElementById('inputMontoCobroEditable').value = '';
+      document.getElementById('contenedorVistaCobro').innerHTML = '<p class="text-slate-400 py-4">Cargando información...</p>';
+
+      fetch(`acciones_panel.php?accion=obtener_datos_cobro_turno&turno_id=${turnoSeleccionadoId}`)
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'success') {
+            turnoCobroActualData = res.data;
+            document.getElementById('cobroCliNombre').innerText = turnoCobroActualData.cliente_nombre;
+            document.getElementById('cobroServNombre').innerText = turnoCobroActualData.servicio_nombre;
+
+            const montoInicial = parseFloat(turnoCobroActualData.servicio_precio || turnoCobroActualData.monto_sena || 0);
+            document.getElementById('inputMontoCobroEditable').value = montoInicial;
+
+            renderizarVistaCobroSeleccionado();
+          } else {
+            alert('Error: ' + res.message);
+          }
+        })
+        .catch(err => console.error("Error al obtener datos de cobro del turno:", err));
+    }
+
+    let temporizadorMontoCobro = null;
+
+    function actualizarMontoCobro() {
+      const tipoMetodo = document.getElementById('selectTipoMetodoCobro').value;
+
+      // Cancelamos la ejecución previa si el usuario sigue tipeando
+      if (temporizadorMontoCobro) {
+        clearTimeout(temporizadorMontoCobro);
+      }
+
+      // Esperamos 600 milisegundos tras la última tecla presionada
+      temporizadorMontoCobro = setTimeout(() => {
+        if (tipoMetodo === 'mercadopago') {
+          // Regenera el QR de Mercado Pago con el nuevo importe
+          renderizarVistaCobroSeleccionado();
+        } else if (tipoMetodo === 'transferencia') {
+          // Actualiza el monto visible en la tarjeta bancaria
+          const montoActual = parseFloat(document.getElementById('inputMontoCobroEditable').value) || 0;
+          const badgeMonto = document.querySelector('#contenedorVistaCobro .font-extrabold');
+          if (badgeMonto) {
+            badgeMonto.innerText = 'Monto: $' + montoActual.toLocaleString('es-AR');
+          }
+        }
+      }, 600);
+    }
+
+    function renderizarVistaCobroSeleccionado() {
+      if (!turnoCobroActualData) return;
+
+      const contenedor = document.getElementById('contenedorVistaCobro');
+      const tipoMetodo = document.getElementById('selectTipoMetodoCobro').value;
+      const montoActual = parseFloat(document.getElementById('inputMontoCobroEditable').value) || 0;
+
+      contenedor.innerHTML = '';
+
+      if (tipoMetodo === 'transferencia') {
+        const banco = turnoCobroActualData.banco_nombre || 'Banco / Billetera';
+        const titular = turnoCobroActualData.banco_titular || 'No especificado';
+        const cuit = turnoCobroActualData.banco_cuit_cuil || 'No especificado';
+        const alias = turnoCobroActualData.banco_alias || 'No especificado';
+        const cbu = turnoCobroActualData.banco_cbu_cvu || 'No especificado';
+
+        contenedor.innerHTML = `
+          <div class="w-full space-y-2 text-left bg-slate-900 p-3 rounded-xl border border-slate-800">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-1.5">
+              <span class="font-bold text-emerald-400"><i class="fa-solid fa-building-columns"></i> ${banco}</span>
+              <span class="text-xs font-extrabold text-white">Monto: $${montoActual.toLocaleString('es-AR')}</span>
+            </div>
+            <p class="text-[11px] text-slate-300">👤 <strong>Titular:</strong> ${titular}</p>
+            <p class="text-[11px] text-slate-300">📄 <strong>CUIT:</strong> ${cuit}</p>
+
+            <div class="bg-slate-950 p-2 rounded-lg border border-slate-800 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] text-slate-400 block">Alias de la cuenta:</span>
+                <span id="txtAliasCobro" class="text-xs text-white font-mono font-bold select-all">${alias}</span>
+              </div>
+              <button type="button" onclick="copiarTextoElemento('txtAliasCobro', 'btnCopiarAliasCobro')" id="btnCopiarAliasCobro" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[10px] font-bold px-2 py-1 rounded transition">
+                Copiar
+              </button>
+            </div>
+
+            <div class="bg-slate-950 p-2 rounded-lg border border-slate-800 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] text-slate-400 block">CBU / CVU:</span>
+                <span id="txtCbuCobro" class="text-xs text-white font-mono font-bold select-all">${cbu}</span>
+              </div>
+              <button type="button" onclick="copiarTextoElemento('txtCbuCobro', 'btnCopiarCbuCobro')" id="btnCopiarCbuCobro" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[10px] font-bold px-2 py-1 rounded transition">
+                Copiar
+              </button>
+            </div>
+          </div>
+          <p class="text-center text-[11px] text-slate-400">El cliente transfiere desde su app bancaria o Naranja X y vos aprobás el comprobante.</p>
+        `;
+
+      } else if (tipoMetodo === 'mercadopago') {
+        contenedor.innerHTML = `
+          <div class="bg-white p-3 rounded-xl shadow-inner">
+            <div id="qrcodeTurnoDinamico"></div>
+          </div>
+          <p id="txtInfoMpCobro" class="text-center text-[11px] text-slate-400">Generando link de pago por <strong>$${montoActual.toLocaleString('es-AR')}</strong>...</p>
+        `;
+
+        const formData = new FormData();
+        formData.append('accion', 'generar_link_mp');
+        formData.append('turno_id', turnoCobroActualData.turno_id);
+        formData.append('monto_personalizado', montoActual); // Opcional si querés usarlo en backend
+
+        fetch('acciones_panel.php', { method: 'POST', body: formData })
+          .then(res => res.json())
+          .then(res => {
+            const txtInfo = document.getElementById('txtInfoMpCobro');
+            const qrCont = document.getElementById('qrcodeTurnoDinamico');
+            if (qrCont) qrCont.innerHTML = '';
+
+            if (res.status === 'success' && res.init_point) {
+              if (txtInfo) txtInfo.innerHTML = `💙 Escaneá con la app de <strong>Mercado Pago</strong> por <strong>$${montoActual.toLocaleString('es-AR')}</strong>`;
+              new QRCode(qrCont, {
+                text: res.init_point,
+                width: 170,
+                height: 170,
+                colorDark: "#0f172a",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+              });
+            } else {
+              if (txtInfo) txtInfo.innerHTML = `<span class="text-amber-400">⚠️ ${res.message || 'No se pudo generar el QR de Mercado Pago.'}</span>`;
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            const txtInfo = document.getElementById('txtInfoMpCobro');
+            if (txtInfo) txtInfo.innerHTML = '<span class="text-red-400">Error al conectar con Mercado Pago.</span>';
+          });
+      }
+    }
+
+    function copiarTextoElemento(elementId, btnId) {
+      const texto = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(texto).then(() => {
+        const btn = document.getElementById(btnId);
+        const originalText = btn.innerText;
+        btn.innerText = '¡Copiado!';
+        btn.classList.replace('bg-emerald-500', 'bg-teal-400');
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.classList.replace('bg-teal-400', 'bg-emerald-500');
+        }, 2000);
+      });
+    }
+function renderizarQrTurnoSeleccionado() {
+  if (!turnoCobroActualData) return;
+
+  const contenedor = document.getElementById('qrcodeTurnoDinamico');
+  const txtInfo = document.getElementById('txtInfoMetodoCobro');
+  const tipoQr = document.getElementById('selectTipoQrCobro').value;
+  const monto = parseFloat(turnoCobroActualData.servicio_precio || turnoCobroActualData.monto_sena || 0);
+
+  contenedor.innerHTML = '';
+
+  if (tipoQr === 'transferencia') {
+    const cbu = turnoCobroActualData.banco_cbu_cvu || '';
+    const alias = turnoCobroActualData.banco_alias || '';
+
+    if (!cbu || cbu.length !== 22) {
+      txtInfo.innerHTML = '<span class="text-amber-400">⚠️ Se requiere un CBU/CVU válido de 22 dígitos para generar el QR.</span>';
+      return;
+    }
+
+    const tramaQR = construirTramaEMVCoValida(cbu, monto, 'Turno');
+
+    txtInfo.innerHTML = `🏦 Escaneá con <strong>MODO, Naranja X o App Bancaria</strong>.<br>Alias: <strong>${alias}</strong> | CBU: <strong>${cbu}</strong>`;
+
+    new QRCode(contenedor, {
+      text: tramaQR,
+      width: 170,
+      height: 170,
+      colorDark: "#0f172a",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+  } else if (tipoQr === 'mercadopago') {
+    txtInfo.innerHTML = '<i>Generando preferencia de Mercado Pago...</i>';
+
+    const formData = new FormData();
+    formData.append('accion', 'generar_link_mp');
+    formData.append('turno_id', turnoCobroActualData.turno_id);
+
+    fetch('acciones_panel.php', { method: 'POST', body: formData })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'success' && res.init_point) {
+          txtInfo.innerHTML = `💙 Escaneá con la app de <strong>Mercado Pago</strong> para abonar <strong>$${monto.toLocaleString('es-AR')}</strong>`;
+          new QRCode(contenedor, {
+            text: res.init_point,
+            width: 170,
+            height: 170,
+            colorDark: "#0f172a",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+          });
+        } else {
+          txtInfo.innerHTML = `<span class="text-amber-400">⚠️ ${res.message || 'No se pudo generar el QR de Mercado Pago.'}</span>`;
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        txtInfo.innerHTML = '<span class="text-red-400">Error al conectar con Mercado Pago.</span>';
+      });
+  }
+}
+    function marcarTurnoComoCobradoYCompletado() {
+      if (!turnoSeleccionadoId) return;
+      if (!confirm('¿Confirma que el pago ha sido recibido y desea dar por completado el turno?')) return;
+
+      var formData = new FormData();
+      formData.append('accion', 'cambiar_estado');
+      formData.append('turno_id', turnoSeleccionadoId);
+      formData.append('estado', 'completado');
+
+      fetch('acciones_panel.php', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === 'success') {
+            cerrarModal('modalCobroTurnoQR');
+            calendar.refetchEvents();
+            alert('¡Turno cobrado y marcado como completado con éxito!');
+          } else {
+            alert('Error: ' + res.message);
+          }
+        });
+    }
   </script>
 
-  <!-- SCRIPT PARA INSTALACIÓN PWA Y SERVICE WORKER -->
   <script>
     let deferredPrompt;
 

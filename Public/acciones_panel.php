@@ -427,6 +427,111 @@ try {
             }
             exit;
     //
+    } elseif ($accion === 'obtener_datos_cobro_turno') {
+            $turno_id = (int)($_REQUEST['turno_id'] ?? 0);
+
+            if (!$turno_id) {
+                echo json_encode(['status' => 'error', 'message' => 'ID de turno no válido']);
+                exit;
+            }
+
+            try {
+                $stmt = $pdo->prepare("
+                    SELECT
+                        t.id AS turno_id,
+                        t.monto_sena,
+                        s.precio AS servicio_precio,
+                        s.nombre AS servicio_nombre,
+                        c.nombre AS cliente_nombre,
+                        n.nombre AS negocio_nombre,
+                        n.permite_mercadopago,
+                        n.permite_transferencia,
+                        n.banco_nombre,
+                        n.banco_titular,
+                        n.banco_cuit_cuil,
+                        n.banco_cbu_cvu,
+                        n.banco_alias,
+                        n.mp_access_token
+                    FROM saas_turnos t
+                    JOIN saas_servicios s ON t.servicio_id = s.id
+                    JOIN saas_clientes c ON t.cliente_id = c.id
+                    JOIN saas_negocios n ON t.negocio_id = n.id
+                    WHERE t.id = ? AND t.negocio_id = ?
+                ");
+                $stmt->execute([$turno_id, $negocio_id]);
+                $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                if (!$data) {
+                    echo json_encode(['status' => 'error', 'message' => 'Turno no encontrado']);
+                    exit;
+                }
+
+                echo json_encode(['status' => 'success', 'data' => $data]);
+            } catch (PDOException $e) {
+                logAccionesPanel("ERROR BD [obtener_datos_cobro_turno]: " . $e->getMessage());
+                echo json_encode(['status' => 'error', 'message' => 'Error al consultar datos de cobro del turno']);
+            }
+            exit;
+    //
+} elseif ($accion === 'generar_link_mp') {
+        $turno_id = $_POST['turno_id'] ?? 0;
+        $monto_personalizado = isset($_POST['monto_personalizado']) ? floatval($_POST['monto_personalizado']) : 0;
+
+        // Obtener datos del turno, negocio y token de MP
+        $stmt = $pdo->prepare("
+            SELECT t.*, s.nombre AS servicio_nombre, s.precio AS servicio_precio, n.mp_access_token
+            FROM saas_turnos t
+            INNER JOIN saas_servicios s ON t.servicio_id = s.id
+            INNER JOIN saas_negocios n ON t.negocio_id = n.id
+            WHERE t.id = ? AND t.negocio_id = ?
+        ");
+        $stmt->execute([$turno_id, $negocio_id]);
+        $turno = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$turno || empty($turno['mp_access_token'])) {
+            echo json_encode(['status' => 'error', 'message' => 'No se encontró el turno o el negocio no tiene conectado Mercado Pago.']);
+            exit;
+        }
+
+        // Si se envió un monto personalizado desde el input editable, se usa ese; sino el del servicio
+        $precio = ($monto_personalizado > 0) ? $monto_personalizado : floatval($turno['servicio_precio']);
+
+        // Crear la preferencia usando cURL a la API de Mercado Pago
+        $preferenceData = [
+            "items" => [
+                [
+                    "title" => "Turno: " . $turno['servicio_nombre'],
+                    "quantity" => 1,
+                    "currency_id" => "ARS",
+                    "unit_price" => $precio
+                ]
+            ],
+            "external_reference" => "TURNO_" . $turno['id']
+        ];
+
+        $ch = curl_init("https://api.mercadopago.com/checkout/preferences");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($preferenceData));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer " . $turno['mp_access_token'],
+            "Content-Type: application/json"
+        ]);
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+        $resData = json_decode($response, true);
+
+        if (isset($resData['init_point'])) {
+            echo json_encode([
+                'status' => 'success',
+                'init_point' => $resData['init_point']
+            ]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Error al crear preferencia en Mercado Pago.']);
+        }
+        exit;
+ //
     } elseif ($accion === 'obtener_horarios_config') {
         try {
             $stmt = $pdo->prepare("SELECT * FROM saas_horarios_atencion WHERE negocio_id = ?");
