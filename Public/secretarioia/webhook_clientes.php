@@ -27,6 +27,10 @@ if (file_exists(__DIR__ . '/../turnos_helper.php')) {
 }
 
 
+if (file_exists(__DIR__ . '/../funciones_whatsapp.php')) {
+require_once __DIR__ . '/../funciones_whatsapp.php';
+}
+
 
 if (isset($pdo)) {
     $pdo->exec("SET time_zone = '-03:00';");
@@ -144,27 +148,9 @@ function notificarNuevoTurnoWebPush($pdo, $negocio_id, $nombreCliente, $nombreSe
     }
 }
 
-function enviarWhatsAppGeneral($to, $payload, $phoneNumberId) {
-    $token = META_ACCESS_TOKEN;
-    
-    $ch = curl_init("https://graph.facebook.com/v20.0/{$phoneNumberId}/messages");
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer " . trim($token),
-        "Content-Type: application/json"
-    ]);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $res = curl_exec($ch);
-    
-    if (curl_errno($ch)) {
-        logClientes("Error cURL Meta WhatsApp: " . curl_error($ch));
-    } else {
-        logClientes("Respuesta Meta API: " . $res);
-    }
-    
-    curl_close($ch);
-    return $res;
+function enviarWhatsAppGeneral($pdo, $negocio_id, $to, $payload) {
+    $tipoMensaje = $payload['type'] ?? 'text';
+    return ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $to, $tipoMensaje);
 }
 
 // -----------------------------------------------------------------------------
@@ -329,7 +315,7 @@ function enviarSolicitudUbicacion($numero_cliente, $phoneNumberId, $mensajeTexto
             ]
         ]
     ];
-    return enviarWhatsAppGeneral($numero_cliente, $payload, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
 }
 
 // -----------------------------------------------------------------------------
@@ -402,7 +388,7 @@ if (($messageData['type'] ?? '') === 'image' || ($messageData['type'] ?? '') ===
             'type' => 'text',
             'text' => ['body' => "Recibimos tu archivo, pero no registramos ningún turno pendiente de pago por transferencia a tu nombre."]
         ];
-        enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+        enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
         echo json_encode(['status' => 'success', 'reason' => 'sin_turno_pendiente']);
         exit;
     }
@@ -603,7 +589,7 @@ if (($messageData['type'] ?? '') === 'image' || ($messageData['type'] ?? '') ===
                         'type' => 'text',
                         'text' => ['body' => $msjCliente]
                     ];
-                    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+                    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
 
                     // D) Notificar Push al dueño del negocio
                     $fechaStr = date('Y-m-d', strtotime($turnoPend['fecha_hora_inicio']));
@@ -629,7 +615,7 @@ if (($messageData['type'] ?? '') === 'image' || ($messageData['type'] ?? '') ===
                         'type' => 'text',
                         'text' => ['body' => "⚠️ El archivo enviado no parece ser un comprobante de transferencia válido. Por favor, volvé a enviar una imagen o PDF claro del comprobante de pago."]
                     ];
-                    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+                    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
                     echo json_encode(['status' => 'success', 'reason' => 'comprobante_no_valido']);
                     exit;
                 }
@@ -711,7 +697,7 @@ elseif (($messageData['type'] ?? '') === 'interactive') {
                 'type' => 'text',
                 'text' => ['body' => "👍 ¡Excelente! Tu turno ha sido confirmado. Te esperamos."]
             ];
-            enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+            enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
             echo json_encode(['status' => 'success']);
             exit;
         }
@@ -739,7 +725,7 @@ elseif (($messageData['type'] ?? '') === 'interactive') {
                 'type' => 'text',
                 'text' => ['body' => "❌ Tu turno ha sido cancelado con éxito. El horario ha quedado liberado."]
             ];
-            enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+            enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
             echo json_encode(['status' => 'success']);
             exit;
         } 
@@ -792,7 +778,7 @@ if ($esInicio){
     ];
 
     logClientes("Enviando invitación de ubicación/categorías a WhatsApp");
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success']);
     exit;
 }	
@@ -862,7 +848,7 @@ if ($esPedidoDeCategorias) {
         ];
     }
 
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success', 'reason' => 'reset_rubros_intercepted']);
     exit; // Corta la ejecución aquí para evitar que vuelva a evaluarse más abajo
 }
@@ -914,7 +900,7 @@ if (preg_match('/^(ayuda|como funciona|cómo funciona|como hago|cómo hago|coman
         'text' => ['body' => $respuestaAyuda]
     ];
 
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success', 'reason' => 'help_handled']);
     exit;
 }
@@ -1018,7 +1004,7 @@ if ($id_negocio_elegido) {
         ];
     }
 
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success']);
     exit;
 }
@@ -1030,7 +1016,7 @@ if ($id_servicio_elegido && $negocio_id_activo) {
     $payloadWa = obtenerTurnosDisponiblesPayload($pdo, $negocio_id_activo, $servicio_id_activo, $numero_cliente);
 
     if ($payloadWa) {
-        enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+        enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
         echo json_encode(['status' => 'success']);
         exit;
     }
@@ -1073,7 +1059,7 @@ if ($turno_elegido_str && $servicio_id_activo && $negocio_id_activo) {
                 'type' => 'text',
                 'text' => ['body' => $confirmacion]
             ];
-            enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+            enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
         }
     } else {
         $payloadWa = [
@@ -1082,7 +1068,7 @@ if ($turno_elegido_str && $servicio_id_activo && $negocio_id_activo) {
             'type' => 'text',
             'text' => ['body' => "⚠️ " . $resTurno['message']]
         ];
-        enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+        enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     }
 
     echo json_encode(['status' => 'success']);
@@ -1261,7 +1247,7 @@ if ($accion === 'PREGUNTAR_UBICACION_O_RUBRO') {
     ];
 
     logClientes("Enviando invitación de ubicación/categorías a WhatsApp");
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success']);
     exit;
 }
@@ -1324,7 +1310,7 @@ if ($accion === 'LISTAR_RUBROS') {
     }
 
     logClientes("Enviando lista de rubros a WhatsApp");
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success']);
     exit;
 }
@@ -1419,7 +1405,7 @@ if ($accion === 'LISTAR_NEGOCIOS') {
     }
 
     logClientes("Enviando lista de negocios a WhatsApp");
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success']);
     exit;
 }
@@ -1435,7 +1421,7 @@ if ($accion === 'MOSTRAR_TURNOS_FECHA') {
         $payloadWa = obtenerTurnosDisponiblesPayload($pdo, $negocio_id_activo, $servicio_id_activo, $numero_cliente, $fechaSolicitada, $franjaSolicitada);
 
         if ($payloadWa) {
-            enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+            enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
             echo json_encode(['status' => 'success']);
             exit;
         } else {
@@ -1457,7 +1443,7 @@ if ($accion === 'MOSTRAR_TURNOS_FECHA') {
         'text' => ['body' => $respuestaTexto]
     ];
 
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success']);
     exit;
 }
@@ -1517,7 +1503,7 @@ if ($accion === 'RESERVAR_TURNO') {
     ];
 
     logClientes("Respuesta de reserva enviada a WhatsApp");
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success']);
     exit;
 }
@@ -1616,7 +1602,7 @@ if ($accion === 'CREAR_RECORDATORIO') {
         'text' => ['body' => $mensajeFinal]
     ];
 
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success']);
     exit;
 }
@@ -1697,7 +1683,7 @@ if ($accion === 'CONSULTAR_AGENDA') {
     ];
 
     logClientes("Respuesta de consulta de agenda enviada a WhatsApp");
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success']);
     exit;
 }
@@ -1810,7 +1796,7 @@ if ($accion === 'SELECCIONAR_TURNO_A_CANCELAR') {
         'text' => ['body' => $mensajeFinal]
     ];
 
-    enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+    enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
     echo json_encode(['status' => 'success']);
     exit;
 }
@@ -1949,7 +1935,7 @@ if ($accion === 'CANCELAR_TURNO' || $accion === 'CANCELAR_RECORDATORIO') {
                 'text' => ['body' => $mensajeFinal]
             ];
 
-            enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+            enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
             echo json_encode(['status' => 'success']);
             exit;
         }
@@ -1981,5 +1967,5 @@ $payloadWa = [
 ];
 
 logClientes("Respuesta genérica final enviada a WhatsApp: " . $respuestaTexto);
-enviarWhatsAppGeneral($numero_cliente, $payloadWa, $phoneNumberId);
+enviarWhatsAppGeneral($pdo, $negocio_id_activo,$numero_cliente, $payloadWa);
 echo json_encode(['status' => 'success']);

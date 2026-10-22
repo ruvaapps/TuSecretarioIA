@@ -206,6 +206,10 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
               <i class="fa-solid fa-users-gear text-emerald-400 w-4"></i> Clientes & Promociones
             </a>
 
+            <button onclick="abrirModalWhatsAppNegocio(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-emerald-400 font-semibold hover:bg-slate-800 flex items-center gap-2.5 transition">
+              <i class="fa-brands fa-whatsapp text-emerald-400 w-4"></i> Conectar Mi WhatsApp Business
+            </button>
+
             <button onclick="abrirModalMercadoPago(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
               <i class="fa-solid fa-credit-card text-sky-400 w-4"></i> Conectar Mercado Pago
             </button>
@@ -943,6 +947,58 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
       </form>
     </div>
   </div>
+
+<!-- MODAL: CONFIGURAR WHATSAPP BUSINESS PROPIO -->
+<div id="modalWhatsAppNegocio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+      <h3 class="font-bold text-white text-base flex items-center gap-2">
+        <i class="fa-brands fa-whatsapp text-emerald-400"></i> Canal de WhatsApp Business
+      </h3>
+      <button onclick="cerrarModal('modalWhatsAppNegocio')" class="text-slate-400 hover:text-white text-lg">&times;</button>
+    </div>
+
+    <form id="formWhatsAppNegocio" onsubmit="guardarConfigWhatsApp(event)" class="space-y-4 text-xs">
+      <p class="text-slate-400">
+        Puedes utilizar el canal compartido de la plataforma o configurar los datos de tu propia app en Meta for Developers.
+      </p>
+
+      <div>
+        <label class="block text-slate-400 mb-1 font-semibold">Modo de WhatsApp</label>
+        <select id="waWhatsappMode" name="whatsapp_mode" onchange="toggleCamposWhatsApp()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-semibold">
+          <option value="shared">Canal Compartido (Plataforma)</option>
+          <option value="own">Canal Propio (Own)</option>
+        </select>
+      </div>
+
+      <div id="camposWhatsAppPropio" class="space-y-3 hidden">
+        <div>
+          <label class="block text-slate-400 mb-1 font-semibold">Phone Number ID</label>
+          <input type="text" id="waPhoneNumberId" name="wa_phone_number_id" placeholder="Ej: 1297893416744537" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono">
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-semibold">WABA ID (WhatsApp Business Account ID)</label>
+          <input type="text" id="waWabaId" name="wa_waba_id" placeholder="Ej: 10892341674..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono">
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-semibold">Access Token Permanente</label>
+          <textarea id="waAccessToken" name="wa_access_token" rows="3" placeholder="EAAUJIfJBzp0BS..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono resize-none"></textarea>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-2 border-t border-slate-800">
+        <button type="button" onclick="cerrarModal('modalWhatsAppNegocio')" class="flex-1 bg-slate-800 text-slate-300 font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-700 transition">
+          Cancelar
+        </button>
+        <button type="submit" class="flex-1 bg-emerald-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs hover:bg-emerald-400 transition">
+          Guardar Credenciales
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
   <!-- MODAL: CONFIGURAR RECURSOS / CANCHAS / CONSULTORIOS -->
   <div id="modalRecursos" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
@@ -2620,6 +2676,51 @@ function renderizarQrTurnoSeleccionado() {
           }
         });
     }
+
+  function abrirModalWhatsAppNegocio() {
+    document.getElementById('modalWhatsAppNegocio').classList.remove('hidden');
+    fetch('acciones_panel.php?accion=obtener_config_whatsapp')
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'success' && res.data) {
+          document.getElementById('waWhatsappMode').value = res.data.whatsapp_mode || 'shared';
+          document.getElementById('waPhoneNumberId').value = res.data.wa_phone_number_id || '';
+          document.getElementById('waWabaId').value = res.data.wa_waba_id || '';
+          document.getElementById('waAccessToken').value = res.data.wa_access_token || '';
+          toggleCamposWhatsApp();
+        }
+      })
+      .catch(err => console.error("Error al obtener config de WhatsApp:", err));
+  }
+
+  function toggleCamposWhatsApp() {
+    const modo = document.getElementById('waWhatsappMode').value;
+    const camposPropio = document.getElementById('camposWhatsAppPropio');
+    if (modo === 'own') {
+      camposPropio.classList.remove('hidden');
+    } else {
+      camposPropio.classList.add('hidden');
+    }
+  }
+
+  function guardarConfigWhatsApp(e) {
+    e.preventDefault();
+    const form = document.getElementById('formWhatsAppNegocio');
+    const formData = new FormData(form);
+    formData.append('accion', 'guardar_config_whatsapp');
+
+    fetch('acciones_panel.php', { method: 'POST', body: formData })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'success') {
+          alert('Configuración de WhatsApp guardada con éxito.');
+          cerrarModal('modalWhatsAppNegocio');
+        } else {
+          alert('Error: ' + res.message);
+        }
+      })
+      .catch(err => console.error("Error al guardar WhatsApp:", err));
+  }
   </script>
 
   <script>

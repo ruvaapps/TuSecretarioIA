@@ -532,6 +532,47 @@ try {
         }
         exit;
  //
+ } elseif ($accion === 'obtener_config_whatsapp') {
+     try {
+         $stmt = $pdo->prepare("SELECT whatsapp_mode, wa_phone_number_id, wa_waba_id, wa_access_token FROM saas_negocios WHERE id = ?");
+         $stmt->execute([$negocio_id]);
+         $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+         echo json_encode(['status' => 'success', 'data' => $data]);
+     } catch (PDOException $e) {
+         logAccionesPanel("ERROR BD [obtener_config_whatsapp]: " . $e->getMessage());
+         echo json_encode(['status' => 'error', 'message' => 'Error al obtener la configuración de WhatsApp']);
+     }
+     exit;
+
+ } elseif ($accion === 'guardar_config_whatsapp') {
+     $whatsapp_mode = trim($_POST['whatsapp_mode'] ?? 'shared');
+     $phone_id      = trim($_POST['wa_phone_number_id'] ?? '');
+     $waba_id       = trim($_POST['wa_waba_id'] ?? '');
+     $access_token  = trim($_POST['wa_access_token'] ?? '');
+
+     try {
+         $stmt = $pdo->prepare("
+             UPDATE saas_negocios
+             SET whatsapp_mode = ?, wa_phone_number_id = ?, wa_waba_id = ?, wa_access_token = ?
+             WHERE id = ?
+         ");
+         $stmt->execute([
+             $whatsapp_mode,
+             ($phone_id !== '' ? $phone_id : null),
+             ($waba_id !== '' ? $waba_id : null),
+             ($access_token !== '' ? $access_token : null),
+             $negocio_id
+         ]);
+
+         logAccionesPanel("Configuración de WhatsApp actualizada para Negocio ID: {$negocio_id} (Modo: {$whatsapp_mode})");
+         echo json_encode(['status' => 'success', 'message' => 'Configuración de WhatsApp guardada correctamente']);
+     } catch (PDOException $e) {
+         logAccionesPanel("ERROR BD [guardar_config_whatsapp]: " . $e->getMessage());
+         echo json_encode(['status' => 'error', 'message' => 'Error al guardar la configuración de WhatsApp']);
+     }
+     exit;
+ //
     } elseif ($accion === 'obtener_horarios_config') {
         try {
             $stmt = $pdo->prepare("SELECT * FROM saas_horarios_atencion WHERE negocio_id = ?");
