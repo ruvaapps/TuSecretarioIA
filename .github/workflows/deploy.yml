@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy-desarrollo:
-    if: github.ref == 'refs/heads/desarrollo'
+    if: startsWith(github.ref, 'refs/heads/dev-')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del código
@@ -20,6 +20,8 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USER_DEV }}
           password: ${{ secrets.FTP_PASSWORD_DEV }}
+          local-dir: ./Public/         # Toma los archivos de la carpeta del repo
+          remote-dir: ./               # Si la cuenta FTP apunta a /Desarrollo, se vuelcan directo ahí
 
   deploy-produccion:
     if: github.ref == 'refs/heads/main'
@@ -34,3 +36,5 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USER_PROD }}
           password: ${{ secrets.FTP_PASSWORD_PROD }}
+          local-dir: ./Public/         # Toma los mismos archivos de la carpeta del repo
+          remote-dir: ./               # Si la cuenta FTP apunta a /public_html, se vuelcan directo ahí
