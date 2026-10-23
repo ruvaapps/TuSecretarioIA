@@ -35,13 +35,24 @@ try {
     // ------------------------------------------------------------------
     //$redirect_uri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
 
-    $redirect_uri = '';
-    $token_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/oauth/access_token?" . http_build_query([
-        'client_id'     => META_APP_ID,
-        'client_secret' => META_APP_SECRET,
-        'code'          => $code,
-        'redirect_uri'  => $redirect_uri
-    ]);
+    // ------------------------------------------------------------------
+        // PASO 1: Intercambiar 'code' por User Access Token
+        // ------------------------------------------------------------------
+
+        // Capturamos la URL exacta desde donde vino la petición del navegador
+        $referer = $_SERVER['HTTP_REFERER'] ?? '';
+        $redirect_uri = strtok($referer, '?'); // Limpiamos parámetros GET si tuviera
+
+        // REGISTRO DE LOG (Guarda los datos en un archivo de texto en el servidor)
+        $log_data = date('Y-m-d H:i:s') . " - Code recibido: " . $code . " | Redirect URI enviado: " . $redirect_uri . "\n";
+        file_put_contents(__DIR__ . '/oauth_debug.log', $log_data, FILE_APPEND);
+
+        $token_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/oauth/access_token?" . http_build_query([
+            'client_id'     => META_APP_ID,
+            'client_secret' => META_APP_SECRET,
+            'code'          => $code,
+            'redirect_uri'  => $redirect_uri
+        ]);
 
 
     $ch = curl_init($token_url);
