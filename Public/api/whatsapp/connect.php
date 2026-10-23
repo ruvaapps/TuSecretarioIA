@@ -25,7 +25,7 @@ if (!$code) {
 }
 
 // 3. Configuración de Meta App (Definí estas constantes en tu config.php)
-define('META_APP_ID', '1109388068284185');
+define('META_APP_ID', '1417416286523037');
 define('META_APP_SECRET', '3c23c1b8ca6001aa4cdf4f1677145372');
 define('GRAPH_API_VERSION', 'v20.0');
 
