@@ -38,13 +38,13 @@ if (!defined('VAPID_SUBJECT')) {
     define('VAPID_SUBJECT', 'Notificacion de turno');
 }
 
-// Definir credenciales globales de WhatsApp Cloud API (Meta)
-if (!defined('WHATSAPP_PHONE_NUMBER_ID')) {
-    define('WHATSAPP_PHONE_NUMBER_ID', '1297893416744537');
+// Credenciales POR DEFECTO / COMPARTIDAS de WhatsApp Cloud API (SaaS Platform)
+if (!defined('DEFAULT_WHATSAPP_PHONE_NUMBER_ID')) {
+    define('DEFAULT_WHATSAPP_PHONE_NUMBER_ID', '1297893416744537');
 }
 
-if (!defined('WHATSAPP_ACCESS_TOKEN')) {
-    define('WHATSAPP_ACCESS_TOKEN', 'EAAUJIfJBzp0BSdlljUGVo0bDbADhLC6I6ilZCVZBBtBqXmWMZBckitoaIfdlQKqXEZCIM7hRFESbifOTgFkF9CmiIwFB4rYxrTYhP2HTGpRZAuHbX8594DCgnE64PHjVxTEMYBGvsi8UvUtROzB1VioWurXTctZAeVg7xAxbDYLgdcoBSzFUCn5G4IZABNvtZAUZApQZDZD');
+if (!defined('DEFAULT_WHATSAPP_ACCESS_TOKEN')) {
+    define('DEFAULT_WHATSAPP_ACCESS_TOKEN', 'EAAUJIfJBzp0BSdlljUGVo0bDbADhLC6I6ilZCVZBBtBqXmWMZBckitoaIfdlQKqXEZCIM7hRFESbifOTgFkF9CmiIwFB4rYxrTYhP2HTGpRZAuHbX8594DCgnE64PHjVxTEMYBGvsi8UvUtROzB1VioWurXTctZAeVg7xAxbDYLgdcoBSzFUCn5G4IZABNvtZAUZApQZDZD');
 }
 
 $accion = $_REQUEST['accion'] ?? '';
@@ -64,9 +64,7 @@ if (!in_array($accion, $acciones_publicas) && !isset($_SESSION['negocio_id'])) {
     exit;
 }
 
-// DETERMINACIÓN INTELIGENTE DE NEGOCIO_ID:
-// 1. Si la petición trae un 'negocio_id' explícito (vía GET/POST/JSON), se usa ese ID (Prevalece para reservas públicas).
-// 2. Si no viene explícito, se utiliza el ID guardado en la sesión ($_SESSION['negocio_id']).
+// DETERMINACIÓN INTELIGENTE DE NEGOCIO_ID
 $negocio_id_peticion = isset($_REQUEST['negocio_id']) ? (int)$_REQUEST['negocio_id'] : (isset($inputJSON['negocio_id']) ? (int)$inputJSON['negocio_id'] : null);
 
 if ($negocio_id_peticion && $negocio_id_peticion > 0) {
@@ -84,7 +82,7 @@ logAccionesPanel("Ejecutando acción '{$accion}' para Negocio ID: {$negocio_id}"
 // -----------------------------------------------------------------------------
 try {
     if ($accion === 'guardar_suscripcion_push') {
-        try {    
+        try {
             $subscription = $inputJSON['subscription'] ?? ($_POST['subscription'] ?? null);
 
             if (is_string($subscription)) {
@@ -336,6 +334,9 @@ try {
             }
 
             try {
+                // Obtenemos las credenciales dinámicas de WhatsApp para este negocio
+                $waCreds = obtenerCredencialesWhatsApp($pdo, $negocio_id);
+
                 // 1. Consultar datos del negocio (nombre y slug)
                 $stmtNeg = $pdo->prepare("SELECT nombre, slug FROM saas_negocios WHERE id = ?");
                 $stmtNeg->execute([$negocio_id]);
@@ -370,9 +371,8 @@ try {
                 $total_fmt = number_format($monto_total, 0, ',', '.');
 
                 $to = normalizarTelefonoMeta($telefono_cliente);
-                $phoneNumberId = WHATSAPP_PHONE_NUMBER_ID;
+                $phoneNumberId = $waCreds['phone_number_id'];
 
-                // Control de seguridad para evitar el error #131008
                 if (empty($nombre_cliente) || empty($negocio_nombre) || empty($detalle_precios) || empty($total_fmt) || empty($negocio_slug)) {
                     logAccionesPanel("ERROR: Alguna variable para la plantilla de WhatsApp está vacía.");
                     echo json_encode(['status' => 'error', 'message' => 'Faltan datos obligatorios para generar la plantilla.']);
@@ -393,29 +393,27 @@ try {
                             [
                                 'type' => 'body',
                                 'parameters' => [
-                                    ['type' => 'text', 'text' => $negocio_nombre],   // {{1}} del cuerpo
-                                    ['type' => 'text', 'text' => $nombre_cliente],  // {{2}} del cuerpo
-                                    ['type' => 'text', 'text' => $detalle_precios], // {{3}} del cuerpo
-                                    ['type' => 'text', 'text' => $total_fmt]        // {{4}} del cuerpo
+                                    ['type' => 'text', 'text' => $negocio_nombre],
+                                    ['type' => 'text', 'text' => $nombre_cliente],
+                                    ['type' => 'text', 'text' => $detalle_precios],
+                                    ['type' => 'text', 'text' => $total_fmt]
                                 ]
                             ],
                             [
                                 'type' => 'button',
                                 'sub_type' => 'url',
-                                'index' => '0', // Representa el primer botón de la plantilla
+                                'index' => '0',
                                 'parameters' => [
-                                    ['type' => 'text', 'text' => $negocio_slug]      // {{1}} de la URL del botón
+                                    ['type' => 'text', 'text' => $negocio_slug]
                                 ]
                             ]
                         ]
                     ]
                 ];
 
-                logAccionesPanel("Pauload enviado: " . $payload);
+                $response = ejecutarCurlWhatsApp($url, $payload, $to, $waCreds['access_token']);
 
-                $response = ejecutarCurlWhatsApp($url, $payload, $to);
-
-                logAccionesPanel("Plantilla lista de precios con botón enviada a {$to} para Negocio ID: {$negocio_id}");
+                logAccionesPanel("Plantilla lista de precios enviada a {$to} para Negocio ID: {$negocio_id}");
 
                 echo json_encode([
                     'status' => 'success',
@@ -426,7 +424,7 @@ try {
                 echo json_encode(['status' => 'error', 'message' => 'Error al procesar el envío.']);
             }
             exit;
-    //
+
     } elseif ($accion === 'obtener_datos_cobro_turno') {
             $turno_id = (int)($_REQUEST['turno_id'] ?? 0);
 
@@ -472,12 +470,11 @@ try {
                 echo json_encode(['status' => 'error', 'message' => 'Error al consultar datos de cobro del turno']);
             }
             exit;
-    //
-} elseif ($accion === 'generar_link_mp') {
+
+    } elseif ($accion === 'generar_link_mp') {
         $turno_id = $_POST['turno_id'] ?? 0;
         $monto_personalizado = isset($_POST['monto_personalizado']) ? floatval($_POST['monto_personalizado']) : 0;
 
-        // Obtener datos del turno, negocio y token de MP
         $stmt = $pdo->prepare("
             SELECT t.*, s.nombre AS servicio_nombre, s.precio AS servicio_precio, n.mp_access_token
             FROM saas_turnos t
@@ -493,10 +490,8 @@ try {
             exit;
         }
 
-        // Si se envió un monto personalizado desde el input editable, se usa ese; sino el del servicio
         $precio = ($monto_personalizado > 0) ? $monto_personalizado : floatval($turno['servicio_precio']);
 
-        // Crear la preferencia usando cURL a la API de Mercado Pago
         $preferenceData = [
             "items" => [
                 [
@@ -531,8 +526,8 @@ try {
             echo json_encode(['status' => 'error', 'message' => 'Error al crear preferencia en Mercado Pago.']);
         }
         exit;
- //
- } elseif ($accion === 'obtener_config_whatsapp') {
+
+    } elseif ($accion === 'obtener_config_whatsapp') {
      try {
          $stmt = $pdo->prepare("SELECT whatsapp_mode, wa_phone_number_id, wa_waba_id, wa_access_token FROM saas_negocios WHERE id = ?");
          $stmt->execute([$negocio_id]);
@@ -545,7 +540,7 @@ try {
      }
      exit;
 
- } elseif ($accion === 'guardar_config_whatsapp') {
+    } elseif ($accion === 'guardar_config_whatsapp') {
      $whatsapp_mode = trim($_POST['whatsapp_mode'] ?? 'shared');
      $phone_id      = trim($_POST['wa_phone_number_id'] ?? '');
      $waba_id       = trim($_POST['wa_waba_id'] ?? '');
@@ -572,7 +567,7 @@ try {
          echo json_encode(['status' => 'error', 'message' => 'Error al guardar la configuración de WhatsApp']);
      }
      exit;
- //
+
     } elseif ($accion === 'obtener_horarios_config') {
         try {
             $stmt = $pdo->prepare("SELECT * FROM saas_horarios_atencion WHERE negocio_id = ?");
@@ -598,8 +593,8 @@ try {
             $stmtDel->execute([$negocio_id]);
 
             $stmtIns = $pdo->prepare("
-                INSERT INTO saas_horarios_atencion 
-                (negocio_id, dia_semana, hora_apertura, hora_cierre_manta, hora_apertura_tarde, hora_cierre, esta_activo) 
+                INSERT INTO saas_horarios_atencion
+                (negocio_id, dia_semana, hora_apertura, hora_cierre_manta, hora_apertura_tarde, hora_cierre, esta_activo)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             ");
 
@@ -646,10 +641,10 @@ try {
         try {
             $sql = "INSERT INTO saas_configuracion_agenda (negocio_id, alerta_resumen_activa, alerta_resumen_hora)
                     VALUES (:negocio_id, :activa, :hora)
-                    ON DUPLICATE KEY UPDATE 
+                    ON DUPLICATE KEY UPDATE
                         alerta_resumen_activa = VALUES(alerta_resumen_activa),
                         alerta_resumen_hora = VALUES(alerta_resumen_hora)";
-                        
+
             $stmt = $pdo->prepare($sql);
             $stmt->execute([
                 ':negocio_id' => $negocio_id,
@@ -753,10 +748,10 @@ try {
 
                 foreach ($recursosActivos as $idRec) {
                     $stmtChk = $pdo->prepare("
-                        SELECT COUNT(*) FROM saas_turnos 
-                        WHERE negocio_id = ? 
-                          AND recurso_id = ? 
-                          AND (estado IS NULL OR LOWER(estado) != 'cancelado') 
+                        SELECT COUNT(*) FROM saas_turnos
+                        WHERE negocio_id = ?
+                          AND recurso_id = ?
+                          AND (estado IS NULL OR LOWER(estado) != 'cancelado')
                           AND (? < fecha_hora_fin AND ? > fecha_hora_inicio)
                     ");
                     $stmtChk->execute([$negocio_id, $idRec, $inicio, $fin]);
@@ -782,7 +777,7 @@ try {
                 ]);
             } else {
                 echo json_encode([
-                    'status'  => 'success', 
+                    'status'  => 'success',
                     'message' => 'Turno agendado correctamente'
                 ]);
             }
@@ -793,16 +788,16 @@ try {
 	} elseif ($accion === 'obtener_datos_cobro') {
         try {
             $stmt = $pdo->prepare("
-                SELECT 
-                    permite_mercadopago, 
-                    permite_transferencia, 
-                    banco_nombre, 
-                    banco_titular, 
-                    banco_cuit_cuil, 
-                    banco_cbu_cvu, 
-                    banco_alias, 
-                    banco_instrucciones 
-                FROM saas_negocios 
+                SELECT
+                    permite_mercadopago,
+                    permite_transferencia,
+                    banco_nombre,
+                    banco_titular,
+                    banco_cuit_cuil,
+                    banco_cbu_cvu,
+                    banco_alias,
+                    banco_instrucciones
+                FROM saas_negocios
                 WHERE id = ?
             ");
             $stmt->execute([$negocio_id]);
@@ -818,7 +813,7 @@ try {
         $metodo_activo  = $_POST['metodo_pago_activo'] ?? 'mercadopago';
         $permite_mp     = ($metodo_activo === 'mercadopago') ? 1 : 0;
         $permite_transf = ($metodo_activo === 'transferencia') ? 1 : 0;
-        
+
         $banco_nombre   = trim($_POST['banco_nombre'] ?? '');
         $banco_titular  = trim($_POST['banco_titular'] ?? '');
         $banco_cuit     = trim($_POST['banco_cuit_cuil'] ?? '');
@@ -828,8 +823,8 @@ try {
 
         try {
             $stmt = $pdo->prepare("
-                UPDATE saas_negocios 
-                SET 
+                UPDATE saas_negocios
+                SET
                     permite_mercadopago = ?,
                     permite_transferencia = ?,
                     banco_nombre = ?,
@@ -861,7 +856,7 @@ try {
 
     } elseif ($accion === 'obtener_pendientes_revision') {
         $stmt = $pdo->prepare("
-            SELECT 
+            SELECT
                 t.id AS turno_id,
                 t.fecha_hora_inicio,
                 t.monto_sena,
@@ -913,16 +908,16 @@ try {
             $stmt->execute([$nuevo_estado, $turno_id, $negocio_id]);
 
             $stmtInfo = $pdo->prepare("
-                SELECT 
+                SELECT
                     c.nombre AS cliente_nombre,
                     c.telefono AS cliente_telefono,
                     s.nombre AS servicio_nombre,
                     t.fecha_hora_inicio,
                     n.nombre AS negocio_nombre,
                     n.instagram AS negocio_instagram
-                FROM saas_turnos t 
-                JOIN saas_clientes c ON t.cliente_id = c.id 
-                JOIN saas_servicios s ON t.servicio_id = s.id 
+                FROM saas_turnos t
+                JOIN saas_clientes c ON t.cliente_id = c.id
+                JOIN saas_servicios s ON t.servicio_id = s.id
                 JOIN saas_negocios n ON t.negocio_id = n.id
                 WHERE t.id = ? AND t.negocio_id = ?
             ");
@@ -930,10 +925,12 @@ try {
             $info = $stmtInfo->fetch(PDO::FETCH_ASSOC);
 
             if ($info && !empty($info['cliente_telefono'])) {
+                $waCreds       = obtenerCredencialesWhatsApp($pdo, $negocio_id);
                 $fechaHora     = strtotime($info['fecha_hora_inicio']);
                 $fechaFmt      = date('d/m/Y', $fechaHora);
                 $horaFmt       = date('H:i', $fechaHora);
-                $phoneNumberId = WHATSAPP_PHONE_NUMBER_ID;
+                $phoneNumberId = $waCreds['phone_number_id'];
+                $tokenAcceso   = $waCreds['access_token'];
                 $instagram_fmt = !empty($info['negocio_instagram']) ? '@' . ltrim($info['negocio_instagram'], '@') : '';
 
                 if ($nuevo_estado === 'confirmado') {
@@ -946,7 +943,8 @@ try {
                         $info['servicio_nombre'],
                         $fechaFmt,
                         $horaFmt,
-                        $phoneNumberId
+                        $phoneNumberId,
+                        $tokenAcceso
                     );
                 } elseif ($nuevo_estado === 'cancelado') {
                     logAccionesPanel("Comprobante RECHAZADO: Enviando plantilla de cancelación a {$info['cliente_telefono']}");
@@ -956,7 +954,8 @@ try {
                         $fechaFmt,
                         $horaFmt,
                         $info['negocio_nombre'],
-                        $phoneNumberId
+                        $phoneNumberId,
+                        $tokenAcceso
                     );
                 }
             }
@@ -969,10 +968,10 @@ try {
 
     } elseif ($accion === 'cambiar_estado') {
         logAccionesPanel("Entro a cambiar estado");
-                    
+
         require_once __DIR__ . '/turnos_helper.php';
         logAccionesPanel("Cargo turnos helper");
-        
+
         $turno_id_raw = $_POST['turno_id'] ?? '';
         $turno_id     = (int) preg_replace('/[^0-9]/', '', $turno_id_raw);
         $nuevo_estado = $_POST['estado'] ?? '';
@@ -983,10 +982,10 @@ try {
         }
 
         logAccionesPanel("el nuevo estado es: ".$nuevo_estado);
-        
+
         if ($nuevo_estado === 'cancelado') {
             logAccionesPanel("llama al cancelar del helper");
-        
+
             $res = cancelarTurnoCompleto($pdo, $turno_id, $negocio_id);
             echo json_encode($res);
         } else {
@@ -1018,8 +1017,8 @@ try {
             // 2. Horarios de atención para el día de la semana
             $diaSemana = (int)date('w', strtotime($fecha));
             $stmtCfg = $pdo->prepare("
-                SELECT hora_apertura, hora_cierre_manta, hora_apertura_tarde, hora_cierre 
-                FROM saas_horarios_atencion 
+                SELECT hora_apertura, hora_cierre_manta, hora_apertura_tarde, hora_cierre
+                FROM saas_horarios_atencion
                 WHERE negocio_id = ? AND dia_semana = ? AND esta_activo = 1
             ");
             $stmtCfg->execute([$negocio_id, $diaSemana]);
@@ -1042,10 +1041,10 @@ try {
 
             // 4. Obtener Turnos Ocupados del día
             $stmtTurnos = $pdo->prepare("
-                SELECT recurso_id, fecha_hora_inicio, fecha_hora_fin 
-                FROM saas_turnos 
-                WHERE negocio_id = ? 
-                  AND DATE(fecha_hora_inicio) = ? 
+                SELECT recurso_id, fecha_hora_inicio, fecha_hora_fin
+                FROM saas_turnos
+                WHERE negocio_id = ?
+                  AND DATE(fecha_hora_inicio) = ?
                   AND (estado IS NULL OR LOWER(estado) != 'cancelado')
             ");
             $stmtTurnos->execute([$negocio_id, $fecha]);
@@ -1053,9 +1052,9 @@ try {
 
             // 5. Obtener Bloqueos de Agenda del día
             $stmtBloqueos = $pdo->prepare("
-                SELECT fecha_hora_inicio, fecha_hora_fin 
-                FROM saas_bloqueos 
-                WHERE negocio_id = ? 
+                SELECT fecha_hora_inicio, fecha_hora_fin
+                FROM saas_bloqueos
+                WHERE negocio_id = ?
                   AND DATE(fecha_hora_inicio) = ?
             ");
             $stmtBloqueos->execute([$negocio_id, $fecha]);
@@ -1102,7 +1101,6 @@ try {
                             if (!empty($recursosEvaluar)) {
                                 $recursoLibreEncontrado = false;
 
-                                // Recorrer cada recurso para ver si al menos uno está disponible en este horario
                                 foreach ($recursosEvaluar as $idRec) {
                                     $recOcupado = false;
 
@@ -1110,7 +1108,6 @@ try {
                                         $tInicio = strtotime($t['fecha_hora_inicio']);
                                         $tFin    = strtotime($t['fecha_hora_fin']);
 
-                                        // Si el turno pertenece a este recurso o no tenía recurso asignado
                                         if (($t['recurso_id'] == $idRec || is_null($t['recurso_id'])) && ($inicioTs < $tFin && $finSlotTs > $tInicio)) {
                                             $recOcupado = true;
                                             break;
@@ -1119,7 +1116,7 @@ try {
 
                                     if (!$recOcupado) {
                                         $recursoLibreEncontrado = true;
-                                        break; // Encontramos al menos 1 recurso libre para esta hora
+                                        break;
                                     }
                                 }
 
@@ -1127,7 +1124,6 @@ try {
                                     $horariosDisponibles[] = date('H:i', $inicioTs);
                                 }
                             } else {
-                                // Si el negocio no tiene recursos creados, se evalúan turnos generales
                                 $ocupado = false;
                                 foreach ($turnosOcupados as $t) {
                                     $tInicio = strtotime($t['fecha_hora_inicio']);
@@ -1166,17 +1162,41 @@ try {
 }
 
 // -----------------------------------------------------------------------------
-// 3. FUNCIONES AUXILIARES
+// 3. FUNCIONES AUXILIARES DINÁMICAS
 // -----------------------------------------------------------------------------
+
+/**
+ * Obtiene las credenciales de WhatsApp según la configuración propia o compartida del negocio.
+ */
+function obtenerCredencialesWhatsApp($pdo, $negocio_id) {
+    if ($negocio_id) {
+        $stmt = $pdo->prepare("SELECT whatsapp_mode, wa_phone_number_id, wa_access_token FROM saas_negocios WHERE id = ?");
+        $stmt->execute([$negocio_id]);
+        $neg = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($neg && $neg['whatsapp_mode'] === 'own' && !empty($neg['wa_phone_number_id']) && !empty($neg['wa_access_token'])) {
+            return [
+                'phone_number_id' => $neg['wa_phone_number_id'],
+                'access_token'    => $neg['wa_access_token']
+            ];
+        }
+    }
+
+    // Retorna las credenciales por defecto/compartidas
+    return [
+        'phone_number_id' => DEFAULT_WHATSAPP_PHONE_NUMBER_ID,
+        'access_token'    => DEFAULT_WHATSAPP_ACCESS_TOKEN
+    ];
+}
 
 function normalizarTelefonoMeta($telefono) {
     return $telefono;
 }
 
-function enviarPlantillaConfirmacion($to, $nombreCliente, $nombreNegocio, $instagram, $nombreServicio, $fechaFmt, $horaFmt, $phoneNumberId) {
+function enviarPlantillaConfirmacion($to, $nombreCliente, $nombreNegocio, $instagram, $nombreServicio, $fechaFmt, $horaFmt, $phoneNumberId, $accessToken = null) {
     $to  = normalizarTelefonoMeta($to);
     $url = "https://graph.facebook.com/v20.0/{$phoneNumberId}/messages";
-    
+
     $payload = [
         'messaging_product' => 'whatsapp',
         'to' => $to,
@@ -1200,13 +1220,13 @@ function enviarPlantillaConfirmacion($to, $nombreCliente, $nombreNegocio, $insta
         ]
     ];
 
-    return ejecutarCurlWhatsApp($url, $payload, $to);
+    return ejecutarCurlWhatsApp($url, $payload, $to, $accessToken);
 }
 
-function enviarMensajeSenaWhatsApp($to, $nombreCliente, $nombreServicio, $nombreNegocio, $fechaFmt, $horaFmt, $montoSena, $linkPago, $phoneNumberId) {
+function enviarMensajeSenaWhatsApp($to, $nombreCliente, $nombreServicio, $nombreNegocio, $fechaFmt, $horaFmt, $montoSena, $linkPago, $phoneNumberId, $accessToken = null) {
     $to  = normalizarTelefonoMeta($to);
     $url = "https://graph.facebook.com/v20.0/{$phoneNumberId}/messages";
-    
+
     $payload = [
         'messaging_product' => 'whatsapp',
         'to' => $to,
@@ -1231,10 +1251,10 @@ function enviarMensajeSenaWhatsApp($to, $nombreCliente, $nombreServicio, $nombre
         ]
     ];
 
-    return ejecutarCurlWhatsApp($url, $payload, $to);
+    return ejecutarCurlWhatsApp($url, $payload, $to, $accessToken);
 }
 
-function enviarMensajeTransferenciaWhatsApp($to, $nombreCliente, $nombreServicio, $nombreNegocio, $fechaFmt, $horaFmt, $montoSena, $datosBanco, $phoneNumberId) {
+function enviarMensajeTransferenciaWhatsApp($to, $nombreCliente, $nombreServicio, $nombreNegocio, $fechaFmt, $horaFmt, $montoSena, $datosBanco, $phoneNumberId, $accessToken = null) {
     $to  = normalizarTelefonoMeta($to);
     $url = "https://graph.facebook.com/v20.0/{$phoneNumberId}/messages";
 
@@ -1270,13 +1290,13 @@ function enviarMensajeTransferenciaWhatsApp($to, $nombreCliente, $nombreServicio
         ]
     ];
 
-    return ejecutarCurlWhatsApp($url, $payload, $to);
+    return ejecutarCurlWhatsApp($url, $payload, $to, $accessToken);
 }
 
-function enviarPlantillaCancelacion($to, $nombreCliente, $fechaFmt, $horaFmt, $nombreNegocio, $phoneNumberId) {
+function enviarPlantillaCancelacion($to, $nombreCliente, $fechaFmt, $horaFmt, $nombreNegocio, $phoneNumberId, $accessToken = null) {
     $to  = normalizarTelefonoMeta($to);
     $url = "https://graph.facebook.com/v20.0/{$phoneNumberId}/messages";
-    
+
     $payload = [
         'messaging_product' => 'whatsapp',
         'to' => $to,
@@ -1298,13 +1318,15 @@ function enviarPlantillaCancelacion($to, $nombreCliente, $fechaFmt, $horaFmt, $n
         ]
     ];
 
-    return ejecutarCurlWhatsApp($url, $payload, $to);
+    return ejecutarCurlWhatsApp($url, $payload, $to, $accessToken);
 }
 
-function ejecutarCurlWhatsApp($url, $payload, $telefono) {
+function ejecutarCurlWhatsApp($url, $payload, $telefono, $accessToken = null) {
+    $token = !empty($accessToken) ? $accessToken : DEFAULT_WHATSAPP_ACCESS_TOKEN;
+
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer " . WHATSAPP_ACCESS_TOKEN,
+        "Authorization: Bearer " . $token,
         "Content-Type: application/json"
     ]);
     curl_setopt($ch, CURLOPT_POST, true);
