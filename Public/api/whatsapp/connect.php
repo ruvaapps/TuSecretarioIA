@@ -43,7 +43,7 @@ try {
         //$referer = $_SERVER['HTTP_REFERER'] ?? '';
         //$redirect_uri = strtok($referer, '?'); // Limpiamos parámetros GET si tuviera
 
-        $redirect_uri = '';
+        $redirect_uri = 'https://tusecretarioia.lovar.com.ar';
 
         // REGISTRO DE LOG (Guarda los datos en un archivo de texto en el servidor)
         $log_data = date('Y-m-d H:i:s') . " - Code recibido: " . $code . " | Redirect URI enviado: " . $redirect_uri . "\n";
