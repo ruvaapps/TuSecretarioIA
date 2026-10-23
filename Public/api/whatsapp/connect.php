@@ -36,7 +36,8 @@ try {
     $token_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/oauth/access_token?" . http_build_query([
         'client_id' => META_APP_ID,
         'client_secret' => META_APP_SECRET,
-        'code' => $code
+        'code' => $code,
+        'redirect_uri'  => '' // <--- AGREGAR ESTA LÍNEA (Vacío para logins del JS SDK)
     ]);
 
     $ch = curl_init($token_url);
