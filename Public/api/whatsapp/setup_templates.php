@@ -6,7 +6,7 @@ if (!defined('GRAPH_API_VERSION')) {
 
 // Credenciales fijas de la Cuenta Madre (SaaS Principal)
 if (!defined('WHATSAPP_MADRE_WABA_ID')) {
-    define('WHATSAPP_MADRE_WABA_ID', '1347930493803633'); // WABA ID de tu cuenta madre
+    define('WHATSAPP_MADRE_WABA_ID', '1508109778005493'); // WABA ID de tu cuenta madre
 }
 if (!defined('WHATSAPP_MADRE_ACCESS_TOKEN')) {
     define('WHATSAPP_MADRE_ACCESS_TOKEN', 'EAAUJIfJBzp0BS1BEa4YOEH522RtGuSdZAqXd8VrQnDoDlnTRa8R0XG4ZBmPWsHZATgtmI9hgdEmZAJEJgxyPIRUMJajgpfMyv9N8X2NTsnwv0ttmtTMLNJFG0kFEECxuSm2VI90PpGtatJFRKN6xni9CyUnnVVwcs00ZCixkqsZCtV2iQTE2algXnlqGiy9KcuQyikM8hDSvxScgEcEg3RZC3mWENNEvVGOR0fW1ITB7TuxOnTZBp8EQ6QGbidYnHwLkz5yICIwqUOiBLPDZBr5dYbI6wnHgDMSFwNWNvJDrORi231HdvUTB3HdZBUeEbYf5m7LNMPRTeRJmgZD'); // Token con permisos de tu cuenta madre
