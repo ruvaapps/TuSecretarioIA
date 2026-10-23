@@ -4,99 +4,91 @@ if (!defined('GRAPH_API_VERSION')) {
     define('GRAPH_API_VERSION', 'v20.0');
 }
 
+// Credenciales fijas de la Cuenta Madre (SaaS Principal)
+if (!defined('WHATSAPP_MADRE_WABA_ID')) {
+    define('WHATSAPP_MADRE_WABA_ID', '1347930493803633'); // Colocar aquí el WABA ID de tu cuenta madre
+}
+if (!defined('WHATSAPP_MADRE_ACCESS_TOKEN')) {
+    define('WHATSAPP_MADRE_ACCESS_TOKEN', 'EAAUJIfJBzp0BS...'); // Token con permisos de tu cuenta madre
+}
+
 /**
- * Registra automáticamente las plantillas estándar del sistema en la WABA del cliente.
+ * Obtiene todas las plantillas aprobadas de la WABA Madre y las replica en la WABA del cliente.
  *
- * @param string $waba_id ID de la cuenta de WhatsApp Business
- * @param string $access_token Token del cliente con permisos whatsapp_business_management
- * @return array Resumen de la creación de las plantillas
+ * @param string $waba_cliente_id ID de la WABA del cliente
+ * @param string $access_token_cliente Token del cliente
+ * @return array Resumen del proceso de sincronización
  */
-function crearPlantillasBaseMeta(string $waba_id, string $access_token): array {
-    $url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/{$waba_id}/message_templates";
+function crearPlantillasBaseMeta(string $waba_cliente_id, string $access_token_cliente): array {
 
-    // DEFINICIÓN DE PLANTILLAS DEL SISTEMA
-    $plantillas = [
-        // 1. Plantilla para Confirmación de Turno
-        [
-            'name' => 'secretario_ia_confirmacion_turno',
-            'category' => 'UTILITY',
-            'language' => 'es',
-            'components' => [
-                [
-                    'type' => 'BODY',
-                    'text' => "🎉 *¡Turno Agendado con Éxito!*\n\n🏢 *Lugar:* {{1}}\n💇 *Servicio:* {{2}}\n📅 *Fecha:* {{3}}\n⏰ *Hora:* {{4}}\n\n¡Te esperamos!",
-                    'example' => [
-                        'body_text' => [
-                            ['Peluquería Clau', 'Corte de Pelo', '25/10/2026', '16:00 hs']
-                        ]
-                    ]
-                ]
-            ]
-        ],
+    // -------------------------------------------------------------------------
+    // PASO 1: Obtener las plantillas aprobadas de la Cuenta Madre
+    // -------------------------------------------------------------------------
+    $url_get = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/" . WHATSAPP_MADRE_WABA_ID . "/message_templates?limit=100";
 
-        // 2. Plantilla para Recordatorio de Turno
-        [
-            'name' => 'secretario_ia_recordatorio_turno',
-            'category' => 'UTILITY',
-            'language' => 'es',
-            'components' => [
-                [
-                    'type' => 'BODY',
-                    'text' => "⏰ *Recordatorio de Turno*\n\nHola {{1}}, te recordamos que tenés un turno reservado para el día {{2}} a las {{3}} hs en *{{4}}*.\n\nPor favor, respondenos a este mensaje si necesitás reprogramar o cancelar.",
-                    'example' => [
-                        'body_text' => [
-                            ['Juan', '25/10/2026', '16:00', 'Peluquería Clau']
-                        ]
-                    ]
-                ]
-            ]
-        ],
+    $ch = curl_init($url_get);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . WHATSAPP_MADRE_ACCESS_TOKEN,
+        'Content-Type: application/json'
+    ]);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        // 3. Plantilla para Cancelación / Reprogramación
-        [
-            'name' => 'secretario_ia_cancelacion_turno',
-            'category' => 'UTILITY',
-            'language' => 'es',
-            'components' => [
-                [
-                    'type' => 'BODY',
-                    'text' => "❌ *Turno Cancelado*\n\nHola {{1}}, tu turno para el {{2}} a las {{3}} hs ha sido cancelado con éxito.\n\nSi querés agendar un nuevo horario, escribinos nuevamente.",
-                    'example' => [
-                        'body_text' => [
-                            ['Juan', '25/10/2026', '16:00']
-                        ]
-                    ]
-                ]
-            ]
-        ]
-    ];
+    $response_madre = curl_exec($ch);
+    $http_code_madre = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
 
+    $json_madre = json_decode($response_madre, true);
+
+    if ($http_code_madre !== 200 || empty($json_madre['data'])) {
+        return [
+            'status' => 'error',
+            'message' => 'No se pudieron consultar las plantillas de la cuenta madre.',
+            'raw' => $json_madre
+        ];
+    }
+
+    // -------------------------------------------------------------------------
+    // PASO 2: Replicar cada plantilla aprobada en la WABA del Cliente
+    // -------------------------------------------------------------------------
+    $url_post_cliente = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/{$waba_cliente_id}/message_templates";
     $resultados = [];
 
-    foreach ($plantillas as $template) {
-        $ch = curl_init($url);
+    foreach ($json_madre['data'] as $tpl_madre) {
+        // Solo replicamos las plantillas que estén aprobadas
+        if (isset($tpl_madre['status']) && $tpl_madre['status'] !== 'APPROVED') {
+            continue;
+        }
+
+        // Estructurar el payload exactamente como Meta requiere para el alta
+        $payload_cliente = [
+            'name'       => $tpl_madre['name'],
+            'category'   => $tpl_madre['category'],
+            'language'   => $tpl_madre['language'],
+            'components' => $tpl_madre['components'] ?? []
+        ];
+
+        // Enviar petición POST a la WABA del cliente
+        $ch = curl_init($url_post_cliente);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $access_token,
+            'Authorization: Bearer ' . $access_token_cliente,
             'Content-Type: application/json'
         ]);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($template));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload_cliente));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
-        $response = curl_exec($ch);
-        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $res_cliente = curl_exec($ch);
+        $http_code_cliente = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        $res_json = json_decode($response, true);
+        $res_json_cliente = json_decode($res_cliente, true);
 
-        // Si ya existía o se creó con éxito lo registramos como correcto
-        if ($http_code === 200 || $http_code === 201) {
-            $resultados[$template['name']] = ['status' => 'success', 'data' => $res_json];
-        } elseif (isset($res_json['error']['code']) && $res_json['error']['code'] == 100) {
-            // El error 100 en Meta suele indicar que el template con ese nombre ya existe
-            $resultados[$template['name']] = ['status' => 'exists', 'message' => 'La plantilla ya existe en Meta.'];
+        if ($http_code_cliente === 200 || $http_code_cliente === 201) {
+            $resultados[$tpl_madre['name']] = ['status' => 'creada_exitosamente'];
+        } elseif (isset($res_json_cliente['error']['code']) && ($res_json_cliente['error']['code'] == 100 || $res_json_cliente['error']['code'] == 2388080)) {
+            $resultados[$tpl_madre['name']] = ['status' => 'ya_existia'];
         } else {
-            $resultados[$template['name']] = ['status' => 'error', 'details' => $res_json];
+            $resultados[$tpl_madre['name']] = ['status' => 'error', 'details' => $res_json_cliente];
         }
     }
 
