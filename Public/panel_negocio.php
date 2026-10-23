@@ -2719,54 +2719,49 @@ function renderizarQrTurnoSeleccionado() {
     });
   };
 
-  // Lanzar el Embedded Signup de Meta (Popup)
-  function launchWhatsAppSignup() {
-    FB.login(function(response) {
-      if (response.authResponse) {
-        const code = response.authResponse.code;
+// Lanzar el Embedded Signup de Meta (Popup)
+function launchWhatsAppSignup() {
+  FB.login(function(response) {
+    if (response.authResponse) {
+      const code = response.authResponse.code;
 
-        // Mostrar indicador de carga
-        document.getElementById('contenedorBotonMeta').innerHTML = `
-          <div class="text-center py-2 text-emerald-400 font-semibold flex items-center justify-center gap-2">
-            <i class="fa-solid fa-spinner fa-spin"></i> Vinculando WhatsApp...
-          </div>
-        `;
+      // Mostrar indicador de carga
+      document.getElementById('contenedorBotonMeta').innerHTML = `
+        <div class="text-center py-2 text-emerald-400 font-semibold flex items-center justify-center gap-2">
+          <i class="fa-solid fa-spinner fa-spin"></i> Vinculando WhatsApp...
+        </div>
+      `;
 
-        // Enviar el code a nuestro backend connect.php
-        fetch('api/whatsapp/connect.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: code })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            alert('¡WhatsApp Business conectado y plantillas configuradas con éxito!');
-            location.reload();
-          } else {
-            alert('Error al conectar: ' + (data.error || 'Desconocido'));
-            location.reload();
-          }
-        })
-        .catch(err => {
-          console.error('Error:', err);
-          alert('Ocurrió un error de red al procesar la conexión.');
+      // Enviar el code a nuestro backend connect.php
+      fetch('api/whatsapp/connect.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('¡WhatsApp Business conectado y plantillas configuradas con éxito!');
           location.reload();
-        });
+        } else {
+          alert('Error al conectar: ' + (data.error || 'Desconocido'));
+          location.reload();
+        }
+      })
+      .catch(err => {
+        console.error('Error:', err);
+        alert('Ocurrió un error de red al procesar la conexión.');
+        location.reload();
+      });
 
-      } else {
-        console.log('El usuario canceló el flujo de inicio de sesión o no autorizó.');
-      }
-    }, {
-      scope: 'whatsapp_business_management, whatsapp_business_messaging',
-      //config_id: 'TU_CONFIG_ID_DE_META', // Opcional si usás Config ID en el portal de Meta
-      override_default_response_type: true,
-      extras: {
-        feature: 'whatsapp_embedded_signup',
-        version: 2
-      }
-    });
-  }
+    } else {
+      console.log('El usuario canceló el flujo de inicio de sesión o no autorizó.');
+    }
+  }, {
+    scope: 'whatsapp_business_management, whatsapp_business_messaging',
+    override_default_response_type: true
+  });
+}
 
   // Función para cambiar de modo (propio a compartido)
   function cambiarModoWhatsApp(modo) {
