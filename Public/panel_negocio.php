@@ -958,45 +958,32 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
       <button onclick="cerrarModal('modalWhatsAppNegocio')" class="text-slate-400 hover:text-white text-lg">&times;</button>
     </div>
 
-    <form id="formWhatsAppNegocio" onsubmit="guardarConfigWhatsApp(event)" class="space-y-4 text-xs">
+    <div class="space-y-4 text-xs">
       <p class="text-slate-400">
-        Puedes utilizar el canal compartido de la plataforma o configurar los datos de tu propia app en Meta for Developers.
+        Conecta tu propia cuenta de WhatsApp Business en pocos clics mediante el flujo oficial de Meta. Tus clientes te escribirán y recibirán las respuestas de la IA directamente desde tu número.
       </p>
 
-      <div>
-        <label class="block text-slate-400 mb-1 font-semibold">Modo de WhatsApp</label>
-        <select id="waWhatsappMode" name="whatsapp_mode" onchange="toggleCamposWhatsApp()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-semibold">
-          <option value="shared">Canal Compartido (Plataforma)</option>
-          <option value="own">Canal Propio (Own)</option>
-        </select>
+      <!-- Estado actual de la conexión -->
+      <div id="waEstadoConexion" class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+        <span class="text-slate-300 font-semibold">Estado:</span>
+        <span id="txtWaEstado" class="text-amber-400 font-bold">Verificando...</span>
       </div>
 
-      <div id="camposWhatsAppPropio" class="space-y-3 hidden">
-        <div>
-          <label class="block text-slate-400 mb-1 font-semibold">Phone Number ID</label>
-          <input type="text" id="waPhoneNumberId" name="wa_phone_number_id" placeholder="Ej: 1297893416744537" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono">
-        </div>
-
-        <div>
-          <label class="block text-slate-400 mb-1 font-semibold">WABA ID (WhatsApp Business Account ID)</label>
-          <input type="text" id="waWabaId" name="wa_waba_id" placeholder="Ej: 10892341674..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono">
-        </div>
-
-        <div>
-          <label class="block text-slate-400 mb-1 font-semibold">Access Token Permanente</label>
-          <textarea id="waAccessToken" name="wa_access_token" rows="3" placeholder="EAAUJIfJBzp0BS..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 font-mono resize-none"></textarea>
-        </div>
-      </div>
-
-      <div class="flex gap-2 pt-2 border-t border-slate-800">
-        <button type="button" onclick="cerrarModal('modalWhatsAppNegocio')" class="flex-1 bg-slate-800 text-slate-300 font-semibold py-2.5 rounded-xl text-xs hover:bg-slate-700 transition">
-          Cancelar
-        </button>
-        <button type="submit" class="flex-1 bg-emerald-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs hover:bg-emerald-400 transition">
-          Guardar Credenciales
+      <!-- BOTÓN OFICIAL DE CONEXIÓN EMBEDDED SIGNUP -->
+      <div id="contenedorBotonMeta" class="pt-2">
+        <button type="button" onclick="launchWhatsAppSignup()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+          <i class="fa-brands fa-whatsapp text-base"></i> Conectar con WhatsApp
         </button>
       </div>
-    </form>
+
+      <!-- Opción para volver a modo compartido si lo desea -->
+      <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
+        <span class="text-slate-400">¿Querés usar el canal general?</span>
+        <button type="button" onclick="cambiarModoWhatsApp('shared')" class="text-xs text-sky-400 hover:underline font-semibold">
+          Cambiar a Compartido
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2721,6 +2708,83 @@ function renderizarQrTurnoSeleccionado() {
       })
       .catch(err => console.error("Error al guardar WhatsApp:", err));
   }
+
+  // Inicializar Facebook SDK
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '1109388068284185', // Reemplazá con tu Meta App ID real
+      cookie     : true,
+      xfbml      : true,
+      version    : 'v20.0'
+    });
+  };
+
+  // Lanzar el Embedded Signup de Meta (Popup)
+  function launchWhatsAppSignup() {
+    FB.login(function(response) {
+      if (response.authResponse) {
+        const code = response.authResponse.code;
+
+        // Mostrar indicador de carga
+        document.getElementById('contenedorBotonMeta').innerHTML = `
+          <div class="text-center py-2 text-emerald-400 font-semibold flex items-center justify-center gap-2">
+            <i class="fa-solid fa-spinner fa-spin"></i> Vinculando WhatsApp...
+          </div>
+        `;
+
+        // Enviar el code a nuestro backend connect.php
+        fetch('api/whatsapp/connect.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert('¡WhatsApp Business conectado y plantillas configuradas con éxito!');
+            location.reload();
+          } else {
+            alert('Error al conectar: ' + (data.error || 'Desconocido'));
+            location.reload();
+          }
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          alert('Ocurrió un error de red al procesar la conexión.');
+          location.reload();
+        });
+
+      } else {
+        console.log('El usuario canceló el flujo de inicio de sesión o no autorizó.');
+      }
+    }, {
+      scope: 'whatsapp_business_management, whatsapp_business_messaging',
+      config_id: 'TU_CONFIG_ID_DE_META', // Opcional si usás Config ID en el portal de Meta
+      override_default_response_type: true,
+      extras: {
+        feature: 'whatsapp_embedded_signup',
+        version: 2
+      }
+    });
+  }
+
+  // Función para cambiar de modo (propio a compartido)
+  function cambiarModoWhatsApp(modo) {
+    var formData = new FormData();
+    formData.append('accion', 'guardar_config_whatsapp');
+    formData.append('whatsapp_mode', modo);
+
+    fetch('acciones_panel.php', { method: 'POST', body: formData })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'success') {
+          alert('Modo de WhatsApp actualizado.');
+          location.reload();
+        } else {
+          alert('Error: ' + res.message);
+        }
+      });
+  }
   </script>
 
   <script>
@@ -2775,5 +2839,7 @@ function renderizarQrTurnoSeleccionado() {
       deferredPrompt = null;
     });
   </script>
+  <!-- Meta SDK para WhatsApp Embedded Signup -->
+  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/es_LA/sdk.js"></script>
 </body>
 </html>
