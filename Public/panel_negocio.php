@@ -1527,7 +1527,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
 
         if (numeroLimpio.length === 10) {
           esCelular = true;
-          numeroLimpio = '549' + numeroLimpio;
+          numeroLimpio = '54' + numeroLimpio;
         } else {
           numeroLimpio = '54' + numeroLimpio;
         }
