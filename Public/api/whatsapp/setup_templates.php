@@ -6,10 +6,17 @@ if (!defined('GRAPH_API_VERSION')) {
 
 // Credenciales fijas de la Cuenta Madre (SaaS Principal)
 if (!defined('WHATSAPP_MADRE_WABA_ID')) {
-    define('WHATSAPP_MADRE_WABA_ID', '1347930493803633'); // Colocar aquí el WABA ID de tu cuenta madre
+    define('WHATSAPP_MADRE_WABA_ID', '1347930493803633'); // WABA ID de tu cuenta madre
 }
 if (!defined('WHATSAPP_MADRE_ACCESS_TOKEN')) {
-    define('WHATSAPP_MADRE_ACCESS_TOKEN', 'EAAUJIfJBzp0BS...'); // Token con permisos de tu cuenta madre
+    define('WHATSAPP_MADRE_ACCESS_TOKEN', 'EAAUJIfJBzp0BS1BEa4YOEH522RtGuSdZAqXd8VrQnDoDlnTRa8R0XG4ZBmPWsHZATgtmI9hgdEmZAJEJgxyPIRUMJajgpfMyv9N8X2NTsnwv0ttmtTMLNJFG0kFEECxuSm2VI90PpGtatJFRKN6xni9CyUnnVVwcs00ZCixkqsZCtV2iQTE2algXnlqGiy9KcuQyikM8hDSvxScgEcEg3RZC3mWENNEvVGOR0fW1ITB7TuxOnTZBp8EQ6QGbidYnHwLkz5yICIwqUOiBLPDZBr5dYbI6wnHgDMSFwNWNvJDrORi231HdvUTB3HdZBUeEbYf5m7LNMPRTeRJmgZD'); // Token con permisos de tu cuenta madre
+}
+
+/**
+ * Función de log específica para el proceso de plantillas
+ */
+function logSetupTemplates($msg) {
+    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [PLANTILLAS] " . $msg . "\n", FILE_APPEND);
 }
 
 /**
@@ -20,6 +27,8 @@ if (!defined('WHATSAPP_MADRE_ACCESS_TOKEN')) {
  * @return array Resumen del proceso de sincronización
  */
 function crearPlantillasBaseMeta(string $waba_cliente_id, string $access_token_cliente): array {
+    logSetupTemplates("=== INICIO CLONACIÓN DE PLANTILLAS ===");
+    logSetupTemplates("Target WABA Cliente: {$waba_cliente_id}");
 
     // -------------------------------------------------------------------------
     // PASO 1: Obtener las plantillas aprobadas de la Cuenta Madre
@@ -37,15 +46,21 @@ function crearPlantillasBaseMeta(string $waba_cliente_id, string $access_token_c
     $http_code_madre = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
+    logSetupTemplates("Consulta WABA Madre - HTTP Code: {$http_code_madre}");
+
     $json_madre = json_decode($response_madre, true);
 
     if ($http_code_madre !== 200 || empty($json_madre['data'])) {
+        logSetupTemplates("[ERROR] No se pudieron obtener las plantillas de la WABA madre. Respuesta: " . $response_madre);
         return [
             'status' => 'error',
             'message' => 'No se pudieron consultar las plantillas de la cuenta madre.',
             'raw' => $json_madre
         ];
     }
+
+    $total_plantillas = count($json_madre['data']);
+    logSetupTemplates("Se encontraron {$total_plantillas} plantillas en la cuenta madre.");
 
     // -------------------------------------------------------------------------
     // PASO 2: Replicar cada plantilla aprobada en la WABA del Cliente
@@ -54,8 +69,11 @@ function crearPlantillasBaseMeta(string $waba_cliente_id, string $access_token_c
     $resultados = [];
 
     foreach ($json_madre['data'] as $tpl_madre) {
+        $nombre_tpl = $tpl_madre['name'] ?? 'Sin nombre';
+
         // Solo replicamos las plantillas que estén aprobadas
         if (isset($tpl_madre['status']) && $tpl_madre['status'] !== 'APPROVED') {
+            logSetupTemplates("Omitiendo '{$nombre_tpl}' por estado: " . ($tpl_madre['status'] ?? 'DESCONOCIDO'));
             continue;
         }
 
@@ -84,13 +102,17 @@ function crearPlantillasBaseMeta(string $waba_cliente_id, string $access_token_c
         $res_json_cliente = json_decode($res_cliente, true);
 
         if ($http_code_cliente === 200 || $http_code_cliente === 201) {
-            $resultados[$tpl_madre['name']] = ['status' => 'creada_exitosamente'];
+            logSetupTemplates(" Plantilla '{$nombre_tpl}' creada exitosamente en la WABA cliente.");
+            $resultados[$nombre_tpl] = ['status' => 'creada_exitosamente'];
         } elseif (isset($res_json_cliente['error']['code']) && ($res_json_cliente['error']['code'] == 100 || $res_json_cliente['error']['code'] == 2388080)) {
-            $resultados[$tpl_madre['name']] = ['status' => 'ya_existia'];
+            logSetupTemplates("ℹ️ Plantilla '{$nombre_tpl}' ya existía previamente.");
+            $resultados[$nombre_tpl] = ['status' => 'ya_existia'];
         } else {
-            $resultados[$tpl_madre['name']] = ['status' => 'error', 'details' => $res_json_cliente];
+            logSetupTemplates("❌ Error creando '{$nombre_tpl}' (HTTP {$http_code_cliente}): " . $res_cliente);
+            $resultados[$nombre_tpl] = ['status' => 'error', 'details' => $res_json_cliente];
         }
     }
 
+    logSetupTemplates("=== FIN CLONACIÓN DE PLANTILLAS ===");
     return $resultados;
 }

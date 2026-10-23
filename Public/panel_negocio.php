@@ -102,10 +102,9 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
                 ]);
 
                 // Crear plantillas base
-                if (file_exists('api/whatsapp/setup_templates.php')) {
-                    require_once 'api/whatsapp/setup_templates.php';
+                if (file_exists(__DIR__ . 'api/whatsapp/setup_templates.php')) {
+                    require_once __DIR__ . 'api/whatsapp/setup_templates.php';
                     if (function_exists('crearPlantillasBaseMeta')) {
-                        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 5] Creando plantillas base de Meta...\n", FILE_APPEND);
                         crearPlantillasBaseMeta($waba_id, $access_token);
                     }
                 }
