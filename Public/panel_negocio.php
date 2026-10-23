@@ -1,6 +1,88 @@
 <?php
 session_start();
 
+// --- CAPTURA Y PROCESAMIENTO AUTOMÁTICO DEL CÓDIGO DE META ---
+if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
+    $code = $_GET['code'];
+    $negocio_id = (int)$_SESSION['negocio_id'];
+
+    define('META_APP_ID', '1417416286523037');
+    define('META_APP_SECRET', '3c23c1b8ca6001aa4cdf4f1677145372');
+    define('GRAPH_API_VERSION', 'v20.0');
+    $redirect_uri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
+
+    $token_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/oauth/access_token?" . http_build_query([
+        'client_id'     => META_APP_ID,
+        'client_secret' => META_APP_SECRET,
+        'code'          => $code,
+        'redirect_uri'  => $redirect_uri
+    ]);
+
+    $ch = curl_init($token_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n", FILE_APPEND);
+
+    $token_data = json_decode($response, true);
+
+    if (isset($token_data['access_token'])) {
+        $access_token = $token_data['access_token'];
+
+        // Obtener WABA ID y Phone Number ID
+        $me_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/me/whatsapp_business_accounts?access_token=" . $access_token;
+        $ch = curl_init($me_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $me_res = curl_exec($ch);
+        curl_close($ch);
+        $me_data = json_decode($me_res, true);
+
+        if (!empty($me_data['data'][0]['id'])) {
+            $waba_id = $me_data['data'][0]['id'];
+
+            $phones_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/{$waba_id}/phone_numbers?access_token=" . $access_token;
+            $ch = curl_init($phones_url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $phones_res = curl_exec($ch);
+            curl_close($ch);
+            $phones_data = json_decode($phones_res, true);
+            $phone_number_id = $phones_data['data'][0]['id'] ?? null;
+
+            if ($waba_id && $phone_number_id) {
+                // Guardar credenciales en la base de datos
+                $stmt = $pdo->prepare("
+                    UPDATE saas_negocios
+                    SET whatsapp_mode = 'own',
+                        wa_phone_number_id = :phone_number_id,
+                        wa_waba_id = :waba_id,
+                        wa_access_token = :access_token
+                    WHERE id = :negocio_id
+                ");
+                $stmt->execute([
+                    ':phone_number_id' => $phone_number_id,
+                    ':waba_id'         => $waba_id,
+                    ':access_token'    => $access_token,
+                    ':negocio_id'      => $negocio_id
+                ]);
+
+                // Crear plantillas base
+                if (file_exists('setup_templates.php')) {
+                    require_once 'setup_templates.php';
+                    if (function_exists('crearPlantillasBaseMeta')) {
+                        crearPlantillasBaseMeta($waba_id, $access_token);
+                    }
+                }
+
+                // Limpiar la URL redirigiendo de nuevo al panel limpio
+                header('Location: panel_negocio.php?whatsapp_conectado=1');
+                exit;
+            }
+        }
+    }
+}
+
 if (!isset($_SESSION['negocio_id'])) {
     header('Location: login_negocio.php?redirect=panel_negocio.php');
     exit;
@@ -2720,47 +2802,21 @@ function renderizarQrTurnoSeleccionado() {
   };
 
 function launchWhatsAppSignup() {
-  FB.login(function(response) {
-    if (response.authResponse) {
-      const code = response.authResponse.code;
+  const appId = '1417416286523037';
+  const redirectUri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
+  const scope = 'whatsapp_business_management,whatsapp_business_messaging';
 
-      // Mostrar indicador de carga
-      document.getElementById('contenedorBotonMeta').innerHTML = `
-        <div class="text-center py-2 text-emerald-400 font-semibold flex items-center justify-center gap-2">
-          <i class="fa-solid fa-spinner fa-spin"></i> Vinculando WhatsApp...
-        </div>
-      `;
+  // Mostramos indicador de carga visual
+  document.getElementById('contenedorBotonMeta').innerHTML = `
+    <div class="text-center py-2 text-emerald-400 font-semibold flex items-center justify-center gap-2">
+      <i class="fa-solid fa-spinner fa-spin"></i> Redirigiendo a Meta...
+    </div>
+  `;
 
-      // Enviar el code a nuestro backend connect.php
-      fetch('api/whatsapp/connect.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: code })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert('¡WhatsApp Business conectado y plantillas configuradas con éxito!');
-          location.reload();
-        } else {
-          alert('Error al conectar: ' + (data.error || 'Desconocido'));
-          location.reload();
-        }
-      })
-      .catch(err => {
-        console.error('Error:', err);
-        alert('Ocurrió un error de red al procesar la conexión.');
-        location.reload();
-      });
+  // Redirección directa por URL oficial de Meta (Versión v20.0)
+  const authUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code`;
 
-    } else {
-      console.log('El usuario canceló el flujo de inicio de sesión o no autorizó.');
-    }
-  }, {
-    scope: 'whatsapp_business_management, whatsapp_business_messaging',
-    override_default_response_type: true,
-    //config_id: 'TU_CONFIG_ID_DE_META' // <--- ¡AQUÍ DEBES COLOCAR TU CONFIG_ID DE WHATSAPP!
-  });
+  window.location.href = authUrl;
 }
 
   // Función para cambiar de modo (propio a compartido)
