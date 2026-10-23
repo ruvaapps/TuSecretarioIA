@@ -6,7 +6,7 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
     $code = $_GET['code'];
     $negocio_id = (int)$_SESSION['negocio_id'];
 
-    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " -  Code: {$code} . "\n", FILE_APPEND);
+    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " -  Code: {$code} " . "\n", FILE_APPEND);
 
     define('META_APP_ID', '1417416286523037');
     define('META_APP_SECRET', '3c23c1b8ca6001aa4cdf4f1677145372');
@@ -52,6 +52,7 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $phones_res = curl_exec($ch);
             curl_close($ch);
+
             file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " -3 HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n", FILE_APPEND);
 
             $phones_data = json_decode($phones_res, true);
