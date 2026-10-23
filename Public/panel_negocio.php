@@ -6,6 +6,8 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
     $code = $_GET['code'];
     $negocio_id = (int)$_SESSION['negocio_id'];
 
+    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " -  Code: {$code} . "\n", FILE_APPEND);
+
     define('META_APP_ID', '1417416286523037');
     define('META_APP_SECRET', '3c23c1b8ca6001aa4cdf4f1677145372');
     define('GRAPH_API_VERSION', 'v20.0');
@@ -24,7 +26,7 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n", FILE_APPEND);
+    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " -1 HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n", FILE_APPEND);
 
     $token_data = json_decode($response, true);
 
@@ -37,6 +39,9 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $me_res = curl_exec($ch);
         curl_close($ch);
+
+        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " -2 HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n", FILE_APPEND);
+
         $me_data = json_decode($me_res, true);
 
         if (!empty($me_data['data'][0]['id'])) {
@@ -47,6 +52,8 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $phones_res = curl_exec($ch);
             curl_close($ch);
+            file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " -3 HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n", FILE_APPEND);
+
             $phones_data = json_decode($phones_res, true);
             $phone_number_id = $phones_data['data'][0]['id'] ?? null;
 
