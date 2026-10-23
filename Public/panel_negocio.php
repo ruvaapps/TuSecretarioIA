@@ -2719,7 +2719,6 @@ function renderizarQrTurnoSeleccionado() {
     });
   };
 
-// Lanzar el Embedded Signup de Meta (Popup)
 function launchWhatsAppSignup() {
   FB.login(function(response) {
     if (response.authResponse) {
@@ -2759,7 +2758,8 @@ function launchWhatsAppSignup() {
     }
   }, {
     scope: 'whatsapp_business_management, whatsapp_business_messaging',
-    override_default_response_type: true
+    override_default_response_type: true,
+    //config_id: 'TU_CONFIG_ID_DE_META' // <--- ¡AQUÍ DEBES COLOCAR TU CONFIG_ID DE WHATSAPP!
   });
 }
 
