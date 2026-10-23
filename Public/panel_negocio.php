@@ -1,5 +1,7 @@
 <?php
 session_start();
+// 1. IMPORTANTE: Requerir la conexión a la base de datos PRIMERO ($pdo)
+require_once 'conexion.php';
 
 // --- CAPTURA Y PROCESAMIENTO AUTOMÁTICO DEL CÓDIGO DE META ---
 if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
