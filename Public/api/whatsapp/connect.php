@@ -56,6 +56,9 @@ try {
             'redirect_uri'  => $redirect_uri
         ]);
 
+       $log_data = date('Y-m-d H:i:s') . " - Token enviado: " . $token_url . "\n";
+        file_put_contents(__DIR__ . '/oauth_debug.log', $log_data, FILE_APPEND);
+
 
     $ch = curl_init($token_url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
