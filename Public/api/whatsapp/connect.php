@@ -40,9 +40,10 @@ try {
         // ------------------------------------------------------------------
 
         // Capturamos la URL exacta desde donde vino la petición del navegador
-        $referer = $_SERVER['HTTP_REFERER'] ?? '';
-        $redirect_uri = strtok($referer, '?'); // Limpiamos parámetros GET si tuviera
+        //$referer = $_SERVER['HTTP_REFERER'] ?? '';
+        //$redirect_uri = strtok($referer, '?'); // Limpiamos parámetros GET si tuviera
 
+        $redirect_uri = '';
         // REGISTRO DE LOG (Guarda los datos en un archivo de texto en el servidor)
         $log_data = date('Y-m-d H:i:s') . " - Code recibido: " . $code . " | Redirect URI enviado: " . $redirect_uri . "\n";
         file_put_contents(__DIR__ . '/oauth_debug.log', $log_data, FILE_APPEND);
