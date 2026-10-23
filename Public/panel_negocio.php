@@ -6,7 +6,7 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
     $code = $_GET['code'];
     $negocio_id = (int)$_SESSION['negocio_id'];
 
-    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " -  Code: {$code} " . "\n", FILE_APPEND);
+    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 0] Code recibido: {$code} | Negocio ID: {$negocio_id}\n", FILE_APPEND);
 
     define('META_APP_ID', '1417416286523037');
     define('META_APP_SECRET', '3c23c1b8ca6001aa4cdf4f1677145372');
@@ -26,39 +26,45 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " -1 HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n", FILE_APPEND);
+    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 1] Canje Token cURL - HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n", FILE_APPEND);
 
     $token_data = json_decode($response, true);
 
     if (isset($token_data['access_token'])) {
         $access_token = $token_data['access_token'];
+        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 1.1] Access Token obtenido correctamente.\n", FILE_APPEND);
 
         // Obtener WABA ID y Phone Number ID
         $me_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/me/whatsapp_business_accounts?access_token=" . $access_token;
         $ch = curl_init($me_url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $me_res = curl_exec($ch);
+        $me_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " -2 HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n", FILE_APPEND);
+        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 2] Consulta WABA - HTTP Code: {$me_http_code} | Respuesta: " . $me_res . "\n", FILE_APPEND);
 
         $me_data = json_decode($me_res, true);
 
         if (!empty($me_data['data'][0]['id'])) {
             $waba_id = $me_data['data'][0]['id'];
+            file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 2.1] WABA ID encontrado: {$waba_id}\n", FILE_APPEND);
 
             $phones_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/{$waba_id}/phone_numbers?access_token=" . $access_token;
             $ch = curl_init($phones_url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $phones_res = curl_exec($ch);
+            $phones_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
 
-            file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " -3 HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n", FILE_APPEND);
+            file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 3] Consulta Teléfonos - HTTP Code: {$phones_http_code} | Respuesta: " . $phones_res . "\n", FILE_APPEND);
 
             $phones_data = json_decode($phones_res, true);
             $phone_number_id = $phones_data['data'][0]['id'] ?? null;
 
             if ($waba_id && $phone_number_id) {
+                file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 4] Guardando en Base de Datos - Phone Number ID: {$phone_number_id}\n", FILE_APPEND);
+
                 // Guardar credenciales en la base de datos
                 $stmt = $pdo->prepare("
                     UPDATE saas_negocios
@@ -79,15 +85,24 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
                 if (file_exists('setup_templates.php')) {
                     require_once 'setup_templates.php';
                     if (function_exists('crearPlantillasBaseMeta')) {
+                        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 5] Creando plantillas base de Meta...\n", FILE_APPEND);
                         crearPlantillasBaseMeta($waba_id, $access_token);
                     }
                 }
 
+                file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 6] ¡Conexión completada con éxito! Redirigiendo...\n", FILE_APPEND);
+
                 // Limpiar la URL redirigiendo de nuevo al panel limpio
                 header('Location: panel_negocio.php?whatsapp_conectado=1');
                 exit;
+            } else {
+                file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [ERROR] No se pudo extraer el phone_number_id de la respuesta.\n", FILE_APPEND);
             }
+        } else {
+            file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [ERROR] La respuesta de WABA no contiene un ID válido.\n", FILE_APPEND);
         }
+    } else {
+        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [ERROR] El JSON de respuesta no devolvió un access_token.\n", FILE_APPEND);
     }
 }
 
