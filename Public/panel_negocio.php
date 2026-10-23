@@ -34,22 +34,40 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
         $access_token = $token_data['access_token'];
         file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 1.1] Access Token obtenido correctamente.\n", FILE_APPEND);
 
-        // Obtener WABA ID y Phone Number ID
-        $me_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/me/whatsapp_business_accounts?access_token=" . $access_token;
-        $ch = curl_init($me_url);
+        // ------------------------------------------------------------------
+        // PASO 2: Obtener WABA ID mediante debug_token (granular_scopes)
+        // ------------------------------------------------------------------
+        $debug_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/debug_token?" . http_build_query([
+            'input_token'  => $access_token,
+            'access_token' => META_APP_ID . '|' . META_APP_SECRET
+        ]);
+
+        $ch = curl_init($debug_url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $me_res = curl_exec($ch);
-        $me_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $debug_res = curl_exec($ch);
+        $debug_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 2] Consulta WABA - HTTP Code: {$me_http_code} | Respuesta: " . $me_res . "\n", FILE_APPEND);
+        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 2] Consulta debug_token - HTTP Code: {$debug_http_code} | Respuesta: " . $debug_res . "\n", FILE_APPEND);
 
-        $me_data = json_decode($me_res, true);
+        $debug_data = json_decode($debug_res, true);
+        $waba_id = null;
 
-        if (!empty($me_data['data'][0]['id'])) {
-            $waba_id = $me_data['data'][0]['id'];
+        if (!empty($debug_data['data']['granular_scopes'])) {
+            foreach ($debug_data['data']['granular_scopes'] as $scope) {
+                if ($scope['scope'] === 'whatsapp_business_management' && !empty($scope['target_ids'])) {
+                    $waba_id = $scope['target_ids'][0];
+                    break;
+                }
+            }
+        }
+
+        if ($waba_id) {
             file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 2.1] WABA ID encontrado: {$waba_id}\n", FILE_APPEND);
 
+            // ------------------------------------------------------------------
+            // PASO 3: Obtener Phone Number ID usando el WABA ID
+            // ------------------------------------------------------------------
             $phones_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/{$waba_id}/phone_numbers?access_token=" . $access_token;
             $ch = curl_init($phones_url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -99,7 +117,7 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
                 file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [ERROR] No se pudo extraer el phone_number_id de la respuesta.\n", FILE_APPEND);
             }
         } else {
-            file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [ERROR] La respuesta de WABA no contiene un ID válido.\n", FILE_APPEND);
+            file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [ERROR] No se encontró el WABA ID en los granular_scopes del token.\n", FILE_APPEND);
         }
     } else {
         file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [ERROR] El JSON de respuesta no devolvió un access_token.\n", FILE_APPEND);
