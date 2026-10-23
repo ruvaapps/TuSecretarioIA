@@ -33,12 +33,15 @@ try {
     // ------------------------------------------------------------------
     // PASO 1: Intercambiar 'code' por User Access Token
     // ------------------------------------------------------------------
+    $redirect_uri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
+
     $token_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/oauth/access_token?" . http_build_query([
-        'client_id' => META_APP_ID,
+        'client_id'     => META_APP_ID,
         'client_secret' => META_APP_SECRET,
-        'code' => $code,
-        'redirect_uri'  => '' // <--- AGREGAR ESTA LÍNEA (Vacío para logins del JS SDK)
+        'code'          => $code,
+        'redirect_uri'  => $redirect_uri
     ]);
+
 
     $ch = curl_init($token_url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
