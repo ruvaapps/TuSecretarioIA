@@ -43,7 +43,8 @@ try {
         //$referer = $_SERVER['HTTP_REFERER'] ?? '';
         //$redirect_uri = strtok($referer, '?'); // Limpiamos parámetros GET si tuviera
 
-        $redirect_uri = '';
+        $redirect_uri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
+
         // REGISTRO DE LOG (Guarda los datos en un archivo de texto en el servidor)
         $log_data = date('Y-m-d H:i:s') . " - Code recibido: " . $code . " | Redirect URI enviado: " . $redirect_uri . "\n";
         file_put_contents(__DIR__ . '/oauth_debug.log', $log_data, FILE_APPEND);
