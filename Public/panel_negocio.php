@@ -2712,7 +2712,7 @@ function renderizarQrTurnoSeleccionado() {
   // Inicializar Facebook SDK
   window.fbAsyncInit = function() {
     FB.init({
-      appId      : '1109388068284185', // Reemplazá con tu Meta App ID real
+      appId      : '1417416286523037', // Reemplazá con tu Meta App ID real
       cookie     : true,
       xfbml      : true,
       version    : 'v20.0'
@@ -2759,7 +2759,7 @@ function renderizarQrTurnoSeleccionado() {
       }
     }, {
       scope: 'whatsapp_business_management, whatsapp_business_messaging',
-      config_id: 'TU_CONFIG_ID_DE_META', // Opcional si usás Config ID en el portal de Meta
+      //config_id: 'TU_CONFIG_ID_DE_META', // Opcional si usás Config ID en el portal de Meta
       override_default_response_type: true,
       extras: {
         feature: 'whatsapp_embedded_signup',
