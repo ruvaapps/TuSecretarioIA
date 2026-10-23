@@ -104,9 +104,14 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
                 // Crear plantillas base
                 if (file_exists(__DIR__ . '/api/whatsapp/setup_templates.php')) {
                     require_once __DIR__ . '/api/whatsapp/setup_templates.php';
-                    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 5] ¡Cargando setup_templates...\n", FILE_APPEND);
+                    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 5] ¡Cargando Plantillas...\n", FILE_APPEND);
                     if (function_exists('crearPlantillasBaseMeta')) {
                         crearPlantillasBaseMeta($waba_id, $access_token);
+                    }
+                file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 5.1] ¡Cargando Webhook...\n", FILE_APPEND);
+
+                    if (function_exists('suscribirWebhookCliente')) {
+                        suscribirWebhookCliente($waba_id, $access_token);
                     }
                 }
 

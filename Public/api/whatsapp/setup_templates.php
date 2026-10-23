@@ -116,3 +116,35 @@ function crearPlantillasBaseMeta(string $waba_cliente_id, string $access_token_c
     logSetupTemplates("=== FIN CLONACIÓN DE PLANTILLAS ===");
     return $resultados;
 }
+
+/**
+ * Suscribe automáticamente la WABA del cliente al Webhook de tu plataforma
+ *
+ * @string $waba_id El ID de la cuenta de WhatsApp Business del cliente
+ * @string $access_token El token de acceso del cliente
+ */
+function suscribirWebhookCliente(string $waba_id, string $access_token) {
+    // URL de tu endpoint de webhook actual (el que ya usa tu sistema)
+    // Nota: Por lo general, Meta suscribe a nivel de WABA la URL configurada en tu App de Meta,
+    // pero se debe realizar el POST de suscripción de la aplicación a la WABA.
+
+    $url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/{$waba_id}/subscribed_apps";
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $access_token,
+        'Content-Type: application/json'
+    ]);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    // Para suscribir la app principal a la WABA del cliente se envía un body vacío o con parámetros según versión
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['subscribed_fields' => ['messages']]));
+
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [WEBHOOK] Suscripción WABA {$waba_id} - HTTP: {$http_code} | Resp: {$response}\n", FILE_APPEND);
+
+    return ($http_code === 200);
+}
