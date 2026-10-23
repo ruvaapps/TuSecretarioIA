@@ -62,6 +62,10 @@ try {
     $response = curl_exec($ch);
     curl_close($ch);
 
+    // REGISTRO DETALLADO EN EL LOG
+    $log_data = date('Y-m-d H:i:s') . " - HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n";
+    file_put_contents(__DIR__ . '/oauth_debug.log', $log_data, FILE_APPEND);
+
     $token_data = json_decode($response, true);
 
     if (isset($token_data['error'])) {
