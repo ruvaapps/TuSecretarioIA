@@ -2720,15 +2720,47 @@ function renderizarQrTurnoSeleccionado() {
   };
 
 function launchWhatsAppSignup() {
-  const appId = '1417416286523037'; // Tu ID de aplicación que vimos en las capturas
-  const redirectUri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
-  const scope = 'whatsapp_business_management,whatsapp_business_messaging';
+  FB.login(function(response) {
+    if (response.authResponse) {
+      const code = response.authResponse.code;
 
-  // Construimos la URL oficial de OAuth de Meta
-  const authUrl = `https://www.facebook.com/v21.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code`;
+      // Mostrar indicador de carga
+      document.getElementById('contenedorBotonMeta').innerHTML = `
+        <div class="text-center py-2 text-emerald-400 font-semibold flex items-center justify-center gap-2">
+          <i class="fa-solid fa-spinner fa-spin"></i> Vinculando WhatsApp...
+        </div>
+      `;
 
-  // Redirigimos al usuario directamente al flujo de Meta
-  window.location.href = authUrl;
+      // Enviar el code a nuestro backend connect.php
+      fetch('api/whatsapp/connect.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('¡WhatsApp Business conectado y plantillas configuradas con éxito!');
+          location.reload();
+        } else {
+          alert('Error al conectar: ' + (data.error || 'Desconocido'));
+          location.reload();
+        }
+      })
+      .catch(err => {
+        console.error('Error:', err);
+        alert('Ocurrió un error de red al procesar la conexión.');
+        location.reload();
+      });
+
+    } else {
+      console.log('El usuario canceló el flujo de inicio de sesión o no autorizó.');
+    }
+  }, {
+    scope: 'whatsapp_business_management, whatsapp_business_messaging',
+    override_default_response_type: true,
+    //config_id: 'TU_CONFIG_ID_DE_META' // <--- ¡AQUÍ DEBES COLOCAR TU CONFIG_ID DE WHATSAPP!
+  });
 }
 
   // Función para cambiar de modo (propio a compartido)
