@@ -2800,10 +2800,14 @@ function renderizarQrTurnoSeleccionado() {
       .then(res => res.json())
       .then(res => {
         if (res.status === 'success' && res.data) {
-          document.getElementById('waWhatsappMode').value = res.data.whatsapp_mode || 'shared';
+          document.getElementById('waWhatsappMode').value = 'shared';
+          document.getElementById('waWhatsappMode').disabled = true;
           document.getElementById('waPhoneNumberId').value = res.data.wa_phone_number_id || '';
           document.getElementById('waWabaId').value = res.data.wa_waba_id || '';
           document.getElementById('waAccessToken').value = res.data.wa_access_token || '';
+          document.getElementById('waPhoneNumberId').disabled = true;
+          document.getElementById('waWabaId').disabled = true;
+          document.getElementById('waAccessToken').disabled = true;
           toggleCamposWhatsApp();
         }
       })
@@ -2850,6 +2854,8 @@ function renderizarQrTurnoSeleccionado() {
   };
 
 function launchWhatsAppSignup() {
+  alert('La conexión de WhatsApp Business propio está temporalmente deshabilitada. Por ahora se utiliza el canal compartido de la app.');
+  return;
   const appId = '1417416286523037';
   const redirectUri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
   const scope = 'whatsapp_business_management,whatsapp_business_messaging';

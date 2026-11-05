@@ -46,7 +46,7 @@ function normalizarTelefonoMeta($telefono) {
 /**
  * Función auxiliar para enviar mensajes a través de la API Graph de Meta
  */
-function enviarMensajeWhatsApp($phone_number_id, $access_token, $payload) {
+function enviarMensajeWhatsApp($phone_number_id, $access_token, $payload, $conn = null, $negocioId = null, $clienteId = null) {
     $url = "https://graph.facebook.com/v20.0/{$phone_number_id}/messages";
 
     $ch = curl_init($url);
@@ -61,6 +61,30 @@ function enviarMensajeWhatsApp($phone_number_id, $access_token, $payload) {
     $response  = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+
+    if ($http_code >= 200 && $http_code < 300 && $conn && $negocioId) {
+        try {
+            $telefonoDestino = preg_replace('/[^0-9]/', '', (string)($payload['to'] ?? ''));
+            $tipoMensaje = $payload['type'] ?? 'text';
+
+            if ($clienteId === null && $telefonoDestino !== '') {
+                $stmtCli = $conn->prepare("SELECT id FROM saas_clientes WHERE negocio_id = ? AND telefono = ? LIMIT 1");
+                $stmtCli->bind_param("is", $negocioId, $telefonoDestino);
+                $stmtCli->execute();
+                $rsCli = $stmtCli->get_result();
+                $rowCli = $rsCli ? $rsCli->fetch_assoc() : null;
+                $clienteId = $rowCli['id'] ?? null;
+                $stmtCli->close();
+            }
+
+            $stmtLog = $conn->prepare("INSERT INTO saas_whatsapp_mensajes_log (negocio_id, cliente_id, telefono_destino, tipo_mensaje, origen, costo_unitario) VALUES (?, ?, ?, ?, 'app_shared', 0.00)");
+            $stmtLog->bind_param("iiss", $negocioId, $clienteId, $telefonoDestino, $tipoMensaje);
+            $stmtLog->execute();
+            $stmtLog->close();
+        } catch (Exception $e) {
+            guardarLog("Error registrando log WhatsApp app_shared: " . $e->getMessage());
+        }
+    }
 
     return ['http_code' => $http_code, 'response' => $response];
 }
@@ -157,6 +181,7 @@ $stmtRec->close();
 
 $sqlTurnos = "SELECT 
                 t.id AS turno_id,
+                t.negocio_id,
                 c.telefono AS cliente_telefono,
                 s.nombre AS servicio_nombre,
                 n.nombre AS negocio_nombre,
@@ -214,7 +239,7 @@ while ($row = $resultTurnos->fetch_assoc()) {
 		    ]
 		];
 
-    $resTurno = enviarMensajeWhatsApp($phone_number_id, $access_token, $payloadTurno);
+    $resTurno = enviarMensajeWhatsApp($phone_number_id, $access_token, $payloadTurno, $conn, (int)$row['negocio_id']);
 
     if ($resTurno['http_code'] == 200) {
         $update_turno = $conn->prepare("UPDATE saas_turnos SET recordatorio_enviado = 1 WHERE id = ?");

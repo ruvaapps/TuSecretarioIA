@@ -47,6 +47,10 @@ if (!defined('DEFAULT_WHATSAPP_ACCESS_TOKEN')) {
     define('DEFAULT_WHATSAPP_ACCESS_TOKEN', 'EAAUJIfJBzp0BSdlljUGVo0bDbADhLC6I6ilZCVZBBtBqXmWMZBckitoaIfdlQKqXEZCIM7hRFESbifOTgFkF9CmiIwFB4rYxrTYhP2HTGpRZAuHbX8594DCgnE64PHjVxTEMYBGvsi8UvUtROzB1VioWurXTctZAeVg7xAxbDYLgdcoBSzFUCn5G4IZABNvtZAUZApQZDZD');
 }
 
+if (!defined('WHATSAPP_OWN_MODE_ENABLED')) {
+    define('WHATSAPP_OWN_MODE_ENABLED', false);
+}
+
 $accion = $_REQUEST['accion'] ?? '';
 
 // Captura de body JSON para peticiones fetch
@@ -532,6 +536,15 @@ try {
          $stmt = $pdo->prepare("SELECT whatsapp_mode, wa_phone_number_id, wa_waba_id, wa_access_token FROM saas_negocios WHERE id = ?");
          $stmt->execute([$negocio_id]);
          $data = $stmt->fetch(PDO::FETCH_ASSOC);
+         if (!$data) {
+             $data = [];
+         }
+         if (!WHATSAPP_OWN_MODE_ENABLED) {
+             $data['whatsapp_mode'] = 'shared';
+             $data['wa_phone_number_id'] = null;
+             $data['wa_waba_id'] = null;
+             $data['wa_access_token'] = null;
+         }
 
          echo json_encode(['status' => 'success', 'data' => $data]);
      } catch (PDOException $e) {
@@ -545,6 +558,13 @@ try {
      $phone_id      = trim($_POST['wa_phone_number_id'] ?? '');
      $waba_id       = trim($_POST['wa_waba_id'] ?? '');
      $access_token  = trim($_POST['wa_access_token'] ?? '');
+
+     if (!WHATSAPP_OWN_MODE_ENABLED) {
+         $whatsapp_mode = 'shared';
+         $phone_id = '';
+         $waba_id = '';
+         $access_token = '';
+     }
 
      try {
          $stmt = $pdo->prepare("
@@ -561,7 +581,10 @@ try {
          ]);
 
          logAccionesPanel("Configuración de WhatsApp actualizada para Negocio ID: {$negocio_id} (Modo: {$whatsapp_mode})");
-         echo json_encode(['status' => 'success', 'message' => 'Configuración de WhatsApp guardada correctamente']);
+         $msg = WHATSAPP_OWN_MODE_ENABLED
+             ? 'Configuración de WhatsApp guardada correctamente'
+             : 'Configuración guardada. Temporalmente solo está activo el canal compartido de la app.';
+         echo json_encode(['status' => 'success', 'message' => $msg]);
      } catch (PDOException $e) {
          logAccionesPanel("ERROR BD [guardar_config_whatsapp]: " . $e->getMessage());
          echo json_encode(['status' => 'error', 'message' => 'Error al guardar la configuración de WhatsApp']);
@@ -1169,6 +1192,13 @@ try {
  * Obtiene las credenciales de WhatsApp según la configuración propia o compartida del negocio.
  */
 function obtenerCredencialesWhatsApp($pdo, $negocio_id) {
+    if (!WHATSAPP_OWN_MODE_ENABLED) {
+        return [
+            'phone_number_id' => DEFAULT_WHATSAPP_PHONE_NUMBER_ID,
+            'access_token'    => DEFAULT_WHATSAPP_ACCESS_TOKEN
+        ];
+    }
+
     if ($negocio_id) {
         $stmt = $pdo->prepare("SELECT whatsapp_mode, wa_phone_number_id, wa_access_token FROM saas_negocios WHERE id = ?");
         $stmt->execute([$negocio_id]);
@@ -1322,6 +1352,7 @@ function enviarPlantillaCancelacion($to, $nombreCliente, $fechaFmt, $horaFmt, $n
 }
 
 function ejecutarCurlWhatsApp($url, $payload, $telefono, $accessToken = null) {
+    global $pdo, $negocio_id;
     $token = !empty($accessToken) ? $accessToken : DEFAULT_WHATSAPP_ACCESS_TOKEN;
 
     $ch = curl_init($url);
@@ -1333,6 +1364,7 @@ function ejecutarCurlWhatsApp($url, $payload, $telefono, $accessToken = null) {
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $res = curl_exec($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err = curl_error($ch);
     curl_close($ch);
 
@@ -1340,6 +1372,23 @@ function ejecutarCurlWhatsApp($url, $payload, $telefono, $accessToken = null) {
         logAccionesPanel("ERROR cURL enviando Plantilla WhatsApp a {$telefono}: " . $err);
     } else {
         logAccionesPanel("Respuesta API Plantilla WhatsApp para {$telefono}: " . $res);
+
+        $isSharedToken = trim((string)$token) === trim((string)DEFAULT_WHATSAPP_ACCESS_TOKEN);
+        $isSharedPhone = strpos((string)$url, '/' . DEFAULT_WHATSAPP_PHONE_NUMBER_ID . '/messages') !== false;
+        if ($isSharedToken && $isSharedPhone && $httpCode >= 200 && $httpCode < 300 && $pdo && $negocio_id) {
+            try {
+                $telefonoNorm = preg_replace('/[^0-9]/', '', (string)$telefono);
+                $stmtCli = $pdo->prepare("SELECT id FROM saas_clientes WHERE negocio_id = ? AND telefono = ? LIMIT 1");
+                $stmtCli->execute([$negocio_id, $telefonoNorm]);
+                $clienteId = $stmtCli->fetchColumn() ?: null;
+
+                $tipoMensaje = $payload['type'] ?? 'text';
+                $stmtLog = $pdo->prepare("INSERT INTO saas_whatsapp_mensajes_log (negocio_id, cliente_id, telefono_destino, tipo_mensaje, origen, costo_unitario) VALUES (?, ?, ?, ?, 'app_shared', 0.00)");
+                $stmtLog->execute([$negocio_id, $clienteId, $telefonoNorm, $tipoMensaje]);
+            } catch (Exception $e) {
+                logAccionesPanel("Error registrando log WhatsApp app_shared: " . $e->getMessage());
+            }
+        }
     }
 
     return $res;

@@ -11,6 +11,14 @@ if (!isset($_SESSION['negocio_id'])) {
 
 $negocio_id = (int)$_SESSION['negocio_id'];
 
+// Temporal: se pospone la conexión de WhatsApp Business propio hasta nueva habilitación.
+http_response_code(423);
+echo json_encode([
+    'success' => false,
+    'error' => 'La conexión de WhatsApp Business propio está temporalmente deshabilitada. Por ahora se utiliza el canal compartido de la aplicación.'
+]);
+exit;
+
 // 2. Leer payload JSON enviado desde el frontend
 $input = json_decode(file_get_contents('php://input'), true) ?? $_POST;
 

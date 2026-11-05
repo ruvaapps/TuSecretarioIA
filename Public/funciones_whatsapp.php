@@ -10,6 +10,11 @@ if (!defined('WHATSAPP_ACCESS_TOKEN')) {
     define('WHATSAPP_ACCESS_TOKEN', 'EAAUJIfJBzp0BSdlljUGVo0bDbADhLC6I6ilZCVZBBtBqXmWMZBckitoaIfdlQKqXEZCIM7hRFESbifOTgFkF9CmiIwFB4rYxrTYhP2HTGpRZAuHbX8594DCgnE64PHjVxTEMYBGvsi8UvUtROzB1VioWurXTctZAeVg7xAxbDYLgdcoBSzFUCn5G4IZABNvtZAUZApQZDZD');
 }
 
+if (!defined('WHATSAPP_OWN_MODE_ENABLED')) {
+    // Temporal: se fuerza el uso del canal compartido hasta reactivar la conexion own.
+    define('WHATSAPP_OWN_MODE_ENABLED', false);
+}
+
 /**
  * Normaliza números de teléfono para la API de Meta
  */
@@ -31,17 +36,43 @@ if (!function_exists('logWhatsApp')) {
 }
 
 /**
+ * Registra consumo facturable de WhatsApp para el canal compartido de la app.
+ */
+if (!function_exists('registrarLogWhatsAppFacturable')) {
+    function registrarLogWhatsAppFacturable($pdo, $negocio_id, $telefono, $tipo_mensaje, $origen = 'app_shared') {
+        if (!$pdo || !$negocio_id) {
+            return;
+        }
+
+        try {
+            $telefonoNorm = normalizarTelefonoMeta($telefono);
+            $stmtCli = $pdo->prepare("SELECT id FROM saas_clientes WHERE negocio_id = ? AND telefono = ? LIMIT 1");
+            $stmtCli->execute([$negocio_id, $telefonoNorm]);
+            $clienteId = $stmtCli->fetchColumn() ?: null;
+
+            $stmtLog = $pdo->prepare("
+                INSERT INTO saas_whatsapp_mensajes_log
+                (negocio_id, cliente_id, telefono_destino, tipo_mensaje, origen, costo_unitario)
+                VALUES (?, ?, ?, ?, ?, 0.00)
+            ");
+            $stmtLog->execute([$negocio_id, $clienteId, $telefonoNorm, $tipo_mensaje, $origen]);
+        } catch (Exception $e) {
+            logWhatsApp("Error registrando log de mensaje en saas_whatsapp_mensajes_log: " . $e->getMessage());
+        }
+    }
+}
+
+/**
  * FUNCIÓN CENTRALIZADA INTELIGENTE: Decide qué credenciales usar y registra el log si es compartido.
  */
 function ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $telefono, $tipo_mensaje = 'text') {
     $telefono      = normalizarTelefonoMeta($telefono);
-    $modo          = 'shared';
     $accessToken   = WHATSAPP_ACCESS_TOKEN;
     $phoneNumberId = WHATSAPP_PHONE_NUMBER_ID;
     $origenLog     = 'app_shared';
 
-    // 1. Consultar si el negocio tiene configurado su propio canal de WhatsApp ('own')
-    if ($pdo && $negocio_id) {
+    // 1. Temporalmente se deshabilita el modo own para operar 100% por canal compartido.
+    if (WHATSAPP_OWN_MODE_ENABLED && $pdo && $negocio_id) {
         try {
             $stmt = $pdo->prepare("SELECT whatsapp_mode, wa_phone_number_id, wa_access_token FROM saas_negocios WHERE id = ?");
             $stmt->execute([$negocio_id]);
@@ -73,6 +104,7 @@ function ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $telefono,
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $res = curl_exec($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err = curl_error($ch);
     curl_close($ch);
 
@@ -86,22 +118,9 @@ function ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $telefono,
         logWhatsApp($msgLog);
     }
 
-    // 3. Si se usó el canal compartido de la App, registrar automáticamente el consumo para facturación
-    if ($origenLog === 'app_shared' && $pdo && $negocio_id) {
-        try {
-            $stmtCli = $pdo->prepare("SELECT id FROM saas_clientes WHERE negocio_id = ? AND telefono = ? LIMIT 1");
-            $stmtCli->execute([$negocio_id, $telefono]);
-            $clienteId = $stmtCli->fetchColumn() ?: null;
-
-            $stmtLog = $pdo->prepare("
-                INSERT INTO saas_whatsapp_mensajes_log
-                (negocio_id, cliente_id, telefono_destino, tipo_mensaje, origen, costo_unitario)
-                VALUES (?, ?, ?, ?, 'app_shared', 0.00)
-            ");
-            $stmtLog->execute([$negocio_id, $clienteId, $telefono, $tipo_mensaje]);
-        } catch (Exception $e) {
-            logWhatsApp("Error registrando log de mensaje en saas_whatsapp_mensajes_log: " . $e->getMessage());
-        }
+    // 3. Solo facturamos mensajes realmente aceptados por Meta (2xx y sin error cURL).
+    if ($origenLog === 'app_shared' && !$err && $httpCode >= 200 && $httpCode < 300) {
+        registrarLogWhatsAppFacturable($pdo, $negocio_id, $telefono, $tipo_mensaje, 'app_shared');
     }
 
     return $res;
