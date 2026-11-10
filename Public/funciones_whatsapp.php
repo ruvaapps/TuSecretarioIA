@@ -11,8 +11,8 @@ if (!defined('WHATSAPP_ACCESS_TOKEN')) {
 }
 
 if (!defined('WHATSAPP_OWN_MODE_ENABLED')) {
-    // Temporal: se fuerza el uso del canal compartido hasta reactivar la conexion own.
-    define('WHATSAPP_OWN_MODE_ENABLED', false);
+    // Reactivado: Meta aprobó los permisos, los negocios pueden usar su propio canal.
+    define('WHATSAPP_OWN_MODE_ENABLED', true);
 }
 
 /**

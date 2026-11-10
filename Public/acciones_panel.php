@@ -48,7 +48,8 @@ if (!defined('DEFAULT_WHATSAPP_ACCESS_TOKEN')) {
 }
 
 if (!defined('WHATSAPP_OWN_MODE_ENABLED')) {
-    define('WHATSAPP_OWN_MODE_ENABLED', false);
+    // Reactivado: Meta aprobó los permisos, los negocios pueden usar su propio canal.
+    define('WHATSAPP_OWN_MODE_ENABLED', true);
 }
 
 $accion = $_REQUEST['accion'] ?? '';
