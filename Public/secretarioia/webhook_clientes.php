@@ -64,6 +64,109 @@ function normalizarTelefono($numero) {
     return $numero;
 }
 
+function normalizarTextoMatch($texto) {
+    $texto = strtolower(trim((string)$texto));
+    $texto = strtr($texto, [
+        'á' => 'a', 'à' => 'a', 'ä' => 'a', 'â' => 'a',
+        'é' => 'e', 'è' => 'e', 'ë' => 'e', 'ê' => 'e',
+        'í' => 'i', 'ì' => 'i', 'ï' => 'i', 'î' => 'i',
+        'ó' => 'o', 'ò' => 'o', 'ö' => 'o', 'ô' => 'o',
+        'ú' => 'u', 'ù' => 'u', 'ü' => 'u', 'û' => 'u',
+        'ñ' => 'n'
+    ]);
+    $texto = preg_replace('/\s+/', ' ', $texto);
+    return $texto;
+}
+
+function normalizarAlnumMatch($texto) {
+    return preg_replace('/[^a-z0-9]/', '', normalizarTextoMatch($texto));
+}
+
+function calcularScoreCoincidenciaTurno(array $turno, array $dataVision, $indiceRecencia = 0) {
+    $scoreMonto = 0;
+    $scoreDestino = 0;
+    $scoreRecencia = 0;
+
+    $montoDetectado = (float)($dataVision['monto'] ?? 0);
+    $montoSena = (float)($turno['monto_sena'] ?? 0);
+
+    if ($montoDetectado > 0 && $montoSena > 0) {
+        $diff = abs($montoDetectado - $montoSena);
+        $ratio = $diff / max(1, $montoSena);
+
+        if ($ratio <= 0.01) {
+            $scoreMonto = 60;
+        } elseif ($ratio <= 0.05) {
+            $scoreMonto = 48;
+        } elseif ($ratio <= 0.10) {
+            $scoreMonto = 35;
+        } elseif ($ratio <= 0.20) {
+            $scoreMonto = 20;
+        }
+    }
+
+    $destinatarioDetectado = normalizarTextoMatch($dataVision['destinatario_transferencia'] ?? '');
+    $aliasDetectado = normalizarAlnumMatch($dataVision['alias_destino'] ?? '');
+    $cbuDetectado = preg_replace('/\D/', '', (string)($dataVision['cbu_destino'] ?? ''));
+
+    $titularTurno = normalizarTextoMatch($turno['banco_titular'] ?? '');
+    $aliasTurno = normalizarAlnumMatch($turno['banco_alias'] ?? '');
+    $cbuTurno = preg_replace('/\D/', '', (string)($turno['banco_cbu_cvu'] ?? ''));
+
+    if ($cbuDetectado !== '' && $cbuTurno !== '' && $cbuDetectado === $cbuTurno) {
+        $scoreDestino = max($scoreDestino, 35);
+    }
+
+    if ($aliasDetectado !== '' && $aliasTurno !== '') {
+        if ($aliasDetectado === $aliasTurno) {
+            $scoreDestino = max($scoreDestino, 30);
+        } elseif (strpos($aliasTurno, $aliasDetectado) !== false || strpos($aliasDetectado, $aliasTurno) !== false) {
+            $scoreDestino = max($scoreDestino, 20);
+        }
+    }
+
+    if ($destinatarioDetectado !== '' && $titularTurno !== '') {
+        if ($destinatarioDetectado === $titularTurno) {
+            $scoreDestino = max($scoreDestino, 28);
+        } elseif (strpos($titularTurno, $destinatarioDetectado) !== false || strpos($destinatarioDetectado, $titularTurno) !== false) {
+            $scoreDestino = max($scoreDestino, 18);
+        }
+    }
+
+    if ($indiceRecencia === 0) {
+        $scoreRecencia = 5;
+    } elseif ($indiceRecencia === 1) {
+        $scoreRecencia = 3;
+    } elseif ($indiceRecencia === 2) {
+        $scoreRecencia = 1;
+    }
+
+    return [
+        'total' => $scoreMonto + $scoreDestino + $scoreRecencia,
+        'score_monto' => $scoreMonto,
+        'score_destino' => $scoreDestino,
+        'score_recencia' => $scoreRecencia,
+    ];
+}
+
+function seleccionarTurnoPorComprobante(array $candidatos, array $dataVision) {
+    $mejor = null;
+
+    foreach ($candidatos as $idx => $cand) {
+        $score = calcularScoreCoincidenciaTurno($cand, $dataVision, $idx);
+        $cand['_score_match'] = $score['total'];
+        $cand['_score_monto'] = $score['score_monto'];
+        $cand['_score_destino'] = $score['score_destino'];
+        $cand['_score_recencia'] = $score['score_recencia'];
+
+        if ($mejor === null || $cand['_score_match'] > $mejor['_score_match']) {
+            $mejor = $cand;
+        }
+    }
+
+    return $mejor;
+}
+
 function obtenerOCrearClienteId($pdo, $negocio_id, $telefono, $nombre) {
     $stmtSelect = $pdo->prepare("SELECT id FROM saas_clientes WHERE negocio_id = ? AND telefono = ? LIMIT 1");
     $stmtSelect->execute([$negocio_id, $telefono]);
@@ -359,15 +462,19 @@ if (($messageData['type'] ?? '') === 'image' || ($messageData['type'] ?? '') ===
     $tipoMedia = $messageData['type'];
     logClientes("Archivo/Comprobante ({$tipoMedia}) recibido de {$numero_cliente}");
 
-    // Buscar si el cliente tiene un turno pendiente de pago/revisión por transferencia
+    // Buscar turnos candidatos de pago por transferencia para matchear por monto/destino.
     $stmtTurnoPendiente = $pdo->prepare("
-        SELECT 
+        SELECT
             t.id AS turno_id,
             t.negocio_id,
             t.monto_sena,
+            t.creado_el,
             t.fecha_hora_inicio,
             s.nombre AS servicio_nombre,
-            n.nombre AS negocio_nombre
+            n.nombre AS negocio_nombre,
+            n.banco_titular,
+            n.banco_alias,
+            n.banco_cbu_cvu
         FROM saas_turnos t
         INNER JOIN saas_clientes c ON t.cliente_id = c.id
         INNER JOIN saas_servicios s ON t.servicio_id = s.id
@@ -376,12 +483,12 @@ if (($messageData['type'] ?? '') === 'image' || ($messageData['type'] ?? '') ===
           AND t.metodo_pago = 'transferencia' 
           AND t.estado IN ('pendiente_pago', 'pendiente_revision')
         ORDER BY t.creado_el DESC
-        LIMIT 1
+        LIMIT 8
     ");
     $stmtTurnoPendiente->execute([$numero_cliente]);
-    $turnoPend = $stmtTurnoPendiente->fetch(PDO::FETCH_ASSOC);
+    $turnosPend = $stmtTurnoPendiente->fetchAll(PDO::FETCH_ASSOC);
 
-    if (!$turnoPend) {
+    if (empty($turnosPend)) {
         $payloadWa = [
             'messaging_product' => 'whatsapp',
             'to' => $numero_cliente,
@@ -432,7 +539,7 @@ if (($messageData['type'] ?? '') === 'image' || ($messageData['type'] ?? '') ===
 								            'content' => [
 								                [
 								                    'type' => 'text', 
-								                    'text' => "Analizá la siguiente imagen. ¿Corresponde a un comprobante de transferencia bancaria, pago o transferencia de billetera virtual? Responde en JSON estricto: {\"es_comprobante\": true|false, \"monto\": number, \"numero_operacion\": \"string\", \"nombre_origen\": \"string|null\", \"banco_origen\": \"string|null\"}"
+                                                       'text' => "Analizá la siguiente imagen. ¿Corresponde a un comprobante de transferencia bancaria, pago o transferencia de billetera virtual? Responde en JSON estricto: {\"es_comprobante\": true|false, \"monto\": number, \"numero_operacion\": \"string|null\", \"nombre_origen\": \"string|null\", \"banco_origen\": \"string|null\", \"destinatario_transferencia\": \"string|null\", \"alias_destino\": \"string|null\", \"cbu_destino\": \"string|null\"}"
 								                ],
 								                [
 								                    'type' => 'image_url', 
@@ -501,7 +608,7 @@ if (($messageData['type'] ?? '') === 'image' || ($messageData['type'] ?? '') ===
 						            'content' => [
 						                [
 						                    'type' => 'text',
-						                    'text' => "Analizá el archivo PDF adjunto. ¿Corresponde a un comprobante de transferencia bancaria, pago o transferencia de billetera virtual? Responde en JSON estricto: {\"es_comprobante\": true|false, \"monto\": number, \"numero_operacion\": \"string\", \"nombre_origen\": \"string|null\", \"banco_origen\": \"string|null\"}"
+                                            'text' => "Analizá el archivo PDF adjunto. ¿Corresponde a un comprobante de transferencia bancaria, pago o transferencia de billetera virtual? Responde en JSON estricto: {\"es_comprobante\": true|false, \"monto\": number, \"numero_operacion\": \"string|null\", \"nombre_origen\": \"string|null\", \"banco_origen\": \"string|null\", \"destinatario_transferencia\": \"string|null\", \"alias_destino\": \"string|null\", \"cbu_destino\": \"string|null\"}"
 						                ],
 						                [
 						                    'type' => 'file',
@@ -552,19 +659,30 @@ if (($messageData['type'] ?? '') === 'image' || ($messageData['type'] ?? '') ===
 }
 				
                 if ($esComprobante) {
+                    $turnoPend = seleccionarTurnoPorComprobante($turnosPend, $dataVision);
+                    if (!$turnoPend) {
+                        $turnoPend = $turnosPend[0];
+                    }
+
+                    logClientes("Match comprobante -> turno {$turnoPend['turno_id']} (score={$turnoPend['_score_match']} monto={$turnoPend['_score_monto']} destino={$turnoPend['_score_destino']} recencia={$turnoPend['_score_recencia']})");
+
                     // A) Actualizar estado del turno a 'pendiente_revision'
                     $stmtUpdTurno = $pdo->prepare("UPDATE saas_turnos SET estado = 'pendiente_revision' WHERE id = ?");
                     $stmtUpdTurno->execute([$turnoPend['turno_id']]);
 
                     // B) REGISTRAR EN LA TABLA saas_comprobantes_pago
                     $nombreOrigen = $dataVision['nombre_origen'] ?? null;
-					$bancoOrigen  = $dataVision['banco_origen'] ?? null;
-					
+          $bancoOrigen  = $dataVision['banco_origen'] ?? null;
+                    $destinatarioTransferencia = $dataVision['destinatario_transferencia'] ?? null;
+                    $aliasDestino = $dataVision['alias_destino'] ?? null;
+                    $cbuDestino = $dataVision['cbu_destino'] ?? null;
+                    $scoreMatch = isset($turnoPend['_score_match']) ? (int)$turnoPend['_score_match'] : null;
+
 					// REGISTRAR EN LA TABLA saas_comprobantes_pago
 					$stmtInsComp = $pdo->prepare("
 					    INSERT INTO saas_comprobantes_pago 
-					    (turno_id, negocio_id, cliente_telefono, url_comprobante, whatsapp_media_id, monto_detectado, numero_operacion, nombre_origen, banco_origen, estado, validado_por)
-					    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', 'ia_openai')
+              (turno_id, negocio_id, cliente_telefono, url_comprobante, whatsapp_media_id, monto_detectado, numero_operacion, nombre_origen, banco_origen, destinatario_transferencia, alias_destino, cbu_destino, score_match, estado, validado_por)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente', 'ia_openai')
 					");
 					$stmtInsComp->execute([
 					    $turnoPend['turno_id'],
@@ -575,7 +693,11 @@ if (($messageData['type'] ?? '') === 'image' || ($messageData['type'] ?? '') ===
 					    $montoDetectado,
 					    $numOperacion,
 					    $nombreOrigen,
-					    $bancoOrigen
+              $bancoOrigen,
+                        $destinatarioTransferencia,
+                        $aliasDestino,
+                        $cbuDestino,
+                        $scoreMatch
 					]);
 
                     // C) Responder al cliente

@@ -2854,8 +2854,8 @@ function renderizarQrTurnoSeleccionado() {
   };
 
 function launchWhatsAppSignup() {
-  alert('La conexión de WhatsApp Business propio está temporalmente deshabilitada. Por ahora se utiliza el canal compartido de la app.');
-  return;
+  //alert('La conexión de WhatsApp Business propio está temporalmente deshabilitada. Por ahora se utiliza el canal compartido de la app.');
+  //return;
   const appId = '1417416286523037';
   const redirectUri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
   const scope = 'whatsapp_business_management,whatsapp_business_messaging';
