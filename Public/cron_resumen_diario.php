@@ -75,7 +75,7 @@ try {
         $cantTurnos = $stmtTurnos->fetchColumn();
 
         // 5. Enviar plantilla de WhatsApp
-        enviarPlantillaResumenDiario($telefonoDestino, $nombreComercio, $fechaFormateada, $cantTurnos);
+        enviarPlantillaResumenDiario($pdo, $negocioId, $telefonoDestino, $nombreComercio, $fechaFormateada, $cantTurnos);
     }
 } catch (PDOException $e) {
     error_log("Error en ejecucion de CRON Resumen Diario: " . $e->getMessage());
@@ -84,7 +84,7 @@ try {
 /**
  * Función para enviar la plantilla 'resumen_diario_agenda' por WhatsApp Cloud API
  */
-function enviarPlantillaResumenDiario($to, $nombreComercio, $fecha, $cantTurnos) {
+function enviarPlantillaResumenDiario($pdo, $negocioId, $to, $nombreComercio, $fecha, $cantTurnos) {
     $url = "https://graph.facebook.com/v20.0/" . WHATSAPP_PHONE_NUMBER_ID . "/messages";
 
     $payload = [
@@ -116,7 +116,22 @@ function enviarPlantillaResumenDiario($to, $nombreComercio, $fecha, $cantTurnos)
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     $result = curl_exec($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+
+    if ($httpCode >= 200 && $httpCode < 300) {
+        try {
+            $telefonoNorm = preg_replace('/[^0-9]/', '', (string)$to);
+            $stmtCli = $pdo->prepare("SELECT id FROM saas_clientes WHERE negocio_id = ? AND telefono = ? LIMIT 1");
+            $stmtCli->execute([$negocioId, $telefonoNorm]);
+            $clienteId = $stmtCli->fetchColumn() ?: null;
+
+            $stmtLog = $pdo->prepare("INSERT INTO saas_whatsapp_mensajes_log (negocio_id, cliente_id, telefono_destino, tipo_mensaje, origen, costo_unitario) VALUES (?, ?, ?, ?, 'app_shared', 0.00)");
+            $stmtLog->execute([$negocioId, $clienteId, $telefonoNorm, 'template']);
+        } catch (Exception $e) {
+            error_log("Error registrando log WhatsApp resumen diario: " . $e->getMessage());
+        }
+    }
 
     return $result;
 }

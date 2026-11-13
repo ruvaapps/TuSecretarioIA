@@ -14,6 +14,8 @@ if (file_exists(__DIR__ . '/conexion.php')) {
     require_once __DIR__ . '/db.php';
 }
 
+require_once __DIR__ . '/../funciones_whatsapp.php';
+
 if (isset($pdo)) {
     $pdo->exec("SET time_zone = '-03:00';");
 }
@@ -30,26 +32,14 @@ function logNegocios($msg) {
     file_put_contents(__DIR__ . '/log.txt', "[" . date('Y-m-d H:i:s') . "] [NEGOCIOS] " . $msg . "\n", FILE_APPEND);
 }
 
-function enviarWhatsAppNegocios($to, $texto, $phoneNumberId) {
+function enviarWhatsAppNegocios($pdo, $negocioId, $to, $texto) {
     $payloadWa = [
         'messaging_product' => 'whatsapp',
-        'to' => $to,
         'type' => 'text',
         'text' => ['body' => $texto]
     ];
 
-    $ch = curl_init("https://graph.facebook.com/v20.0/{$phoneNumberId}/messages");
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer " . META_ACCESS_TOKEN, 
-        "Content-Type: application/json"
-    ]);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadWa));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $responseWa = curl_exec($ch);
-    curl_close($ch);
-
-    logNegocios("Respuesta enviada a WhatsApp: " . $responseWa);
+    return ejecutarCurlWhatsAppInteligente($pdo, $negocioId, $payloadWa, $to, 'text');
 }
 
 // -----------------------------------------------------------------------------
@@ -126,7 +116,7 @@ if (preg_match('/(ayuda|como funciona|cómo funciona|como hago|cómo hago|comand
     }
 
     if ($phoneNumberId) {
-        enviarWhatsAppNegocios($numero_emisor, $respuestaAyuda, $phoneNumberId);
+        enviarWhatsAppNegocios($pdo, $$negocio['id'],$numero_emisor, $respuestaAyuda);
     }
     echo json_encode(['status' => 'success', 'reason' => 'help_handled']);
     exit;
@@ -466,7 +456,7 @@ try {
 // 5. RESPONDER AL COMERCIANTE VÍA WHATSAPP
 // -----------------------------------------------------------------------------
 if ($phoneNumberId) {
-    enviarWhatsAppNegocios($numero_emisor, $confirmacion, $phoneNumberId);
+    enviarWhatsAppNegocios($pdo, $$negocio['id'],$numero_emisor, $confirmacion);
 }
 
 echo json_encode(['status' => 'success']);

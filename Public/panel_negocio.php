@@ -1,5 +1,135 @@
 <?php
 session_start();
+// 1. IMPORTANTE: Requerir la conexión a la base de datos PRIMERO ($pdo)
+require_once 'conexion.php';
+
+// --- CAPTURA Y PROCESAMIENTO AUTOMÁTICO DEL CÓDIGO DE META ---
+if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
+    $code = $_GET['code'];
+    $negocio_id = (int)$_SESSION['negocio_id'];
+
+    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 0] Code recibido: {$code} | Negocio ID: {$negocio_id}\n", FILE_APPEND);
+
+    define('META_APP_ID', '1417416286523037');
+    define('META_APP_SECRET', '3c23c1b8ca6001aa4cdf4f1677145372');
+    define('GRAPH_API_VERSION', 'v20.0');
+    $redirect_uri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
+
+    $token_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/oauth/access_token?" . http_build_query([
+        'client_id'     => META_APP_ID,
+        'client_secret' => META_APP_SECRET,
+        'code'          => $code,
+        'redirect_uri'  => $redirect_uri
+    ]);
+
+    $ch = curl_init($token_url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 1] Canje Token cURL - HTTP Code: {$http_code} | Respuesta Meta: " . $response . "\n", FILE_APPEND);
+
+    $token_data = json_decode($response, true);
+
+    if (isset($token_data['access_token'])) {
+        $access_token = $token_data['access_token'];
+        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 1.1] Access Token obtenido correctamente.\n", FILE_APPEND);
+
+        // ------------------------------------------------------------------
+        // PASO 2: Obtener WABA ID mediante debug_token (granular_scopes)
+        // ------------------------------------------------------------------
+        $debug_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/debug_token?" . http_build_query([
+            'input_token'  => $access_token,
+            'access_token' => META_APP_ID . '|' . META_APP_SECRET
+        ]);
+
+        $ch = curl_init($debug_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $debug_res = curl_exec($ch);
+        $debug_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 2] Consulta debug_token - HTTP Code: {$debug_http_code} | Respuesta: " . $debug_res . "\n", FILE_APPEND);
+
+        $debug_data = json_decode($debug_res, true);
+        $waba_id = null;
+
+        if (!empty($debug_data['data']['granular_scopes'])) {
+            foreach ($debug_data['data']['granular_scopes'] as $scope) {
+                if ($scope['scope'] === 'whatsapp_business_management' && !empty($scope['target_ids'])) {
+                    $waba_id = $scope['target_ids'][0];
+                    break;
+                }
+            }
+        }
+
+        if ($waba_id) {
+            file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 2.1] WABA ID encontrado: {$waba_id}\n", FILE_APPEND);
+
+            // ------------------------------------------------------------------
+            // PASO 3: Obtener Phone Number ID usando el WABA ID
+            // ------------------------------------------------------------------
+            $phones_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/{$waba_id}/phone_numbers?access_token=" . $access_token;
+            $ch = curl_init($phones_url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            $phones_res = curl_exec($ch);
+            $phones_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 3] Consulta Teléfonos - HTTP Code: {$phones_http_code} | Respuesta: " . $phones_res . "\n", FILE_APPEND);
+
+            $phones_data = json_decode($phones_res, true);
+            $phone_number_id = $phones_data['data'][0]['id'] ?? null;
+
+            if ($waba_id && $phone_number_id) {
+                file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 4] Guardando en Base de Datos - Phone Number ID: {$phone_number_id}\n", FILE_APPEND);
+
+                // Guardar credenciales en la base de datos
+                $stmt = $pdo->prepare("
+                    UPDATE saas_negocios
+                    SET whatsapp_mode = 'own',
+                        wa_phone_number_id = :phone_number_id,
+                        wa_waba_id = :waba_id,
+                        wa_access_token = :access_token
+                    WHERE id = :negocio_id
+                ");
+                $stmt->execute([
+                    ':phone_number_id' => $phone_number_id,
+                    ':waba_id'         => $waba_id,
+                    ':access_token'    => $access_token,
+                    ':negocio_id'      => $negocio_id
+                ]);
+
+                // Crear plantillas base
+                if (file_exists(__DIR__ . '/api/whatsapp/setup_templates.php')) {
+                    require_once __DIR__ . '/api/whatsapp/setup_templates.php';
+                    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 5] ¡Cargando Plantillas...\n", FILE_APPEND);
+                    if (function_exists('crearPlantillasBaseMeta')) {
+                        crearPlantillasBaseMeta($waba_id, $access_token);
+                    }
+                file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 5.1] ¡Cargando Webhook...\n", FILE_APPEND);
+
+                    if (function_exists('suscribirWebhookCliente')) {
+                        suscribirWebhookCliente($waba_id, $access_token);
+                    }
+                }
+
+                file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 6] ¡Conexión completada con éxito! Redirigiendo...\n", FILE_APPEND);
+
+                // Limpiar la URL redirigiendo de nuevo al panel limpio
+                header('Location: panel_negocio.php?whatsapp_conectado=1');
+                exit;
+            } else {
+                file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [ERROR] No se pudo extraer el phone_number_id de la respuesta.\n", FILE_APPEND);
+            }
+        } else {
+            file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [ERROR] No se encontró el WABA ID en los granular_scopes del token.\n", FILE_APPEND);
+        }
+    } else {
+        file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [ERROR] El JSON de respuesta no devolvió un access_token.\n", FILE_APPEND);
+    }
+}
 
 if (!isset($_SESSION['negocio_id'])) {
     header('Location: login_negocio.php?redirect=panel_negocio.php');
@@ -205,6 +335,10 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
             <a href="clientes/index.php" class="w-full text-left px-4 py-2.5 text-xs text-emerald-400 font-semibold hover:bg-slate-800 flex items-center gap-2.5 transition">
               <i class="fa-solid fa-users-gear text-emerald-400 w-4"></i> Clientes & Promociones
             </a>
+
+            <button onclick="abrirModalWhatsAppNegocio(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-emerald-400 font-semibold hover:bg-slate-800 flex items-center gap-2.5 transition">
+              <i class="fa-brands fa-whatsapp text-emerald-400 w-4"></i> Conectar Mi WhatsApp Business
+            </button>
 
             <button onclick="abrirModalMercadoPago(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
               <i class="fa-solid fa-credit-card text-sky-400 w-4"></i> Conectar Mercado Pago
@@ -944,6 +1078,45 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
     </div>
   </div>
 
+<!-- MODAL: CONFIGURAR WHATSAPP BUSINESS PROPIO -->
+<div id="modalWhatsAppNegocio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+      <h3 class="font-bold text-white text-base flex items-center gap-2">
+        <i class="fa-brands fa-whatsapp text-emerald-400"></i> Canal de WhatsApp Business
+      </h3>
+      <button onclick="cerrarModal('modalWhatsAppNegocio')" class="text-slate-400 hover:text-white text-lg">&times;</button>
+    </div>
+
+    <div class="space-y-4 text-xs">
+      <p class="text-slate-400">
+        Conecta tu propia cuenta de WhatsApp Business en pocos clics mediante el flujo oficial de Meta. Tus clientes te escribirán y recibirán las respuestas de la IA directamente desde tu número.
+      </p>
+
+      <!-- Estado actual de la conexión -->
+      <div id="waEstadoConexion" class="bg-slate-950 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+        <span class="text-slate-300 font-semibold">Estado:</span>
+        <span id="txtWaEstado" class="text-amber-400 font-bold">Verificando...</span>
+      </div>
+
+      <!-- BOTÓN OFICIAL DE CONEXIÓN EMBEDDED SIGNUP -->
+      <div id="contenedorBotonMeta" class="pt-2">
+        <button type="button" onclick="launchWhatsAppSignup()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 px-4 rounded-xl text-center transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+          <i class="fa-brands fa-whatsapp text-base"></i> Conectar con WhatsApp
+        </button>
+      </div>
+
+      <!-- Opción para volver a modo compartido si lo desea -->
+      <div class="pt-3 border-t border-slate-800 flex justify-between items-center">
+        <span class="text-slate-400">¿Querés usar el canal general?</span>
+        <button type="button" onclick="cambiarModoWhatsApp('shared')" class="text-xs text-sky-400 hover:underline font-semibold">
+          Cambiar a Compartido
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
   <!-- MODAL: CONFIGURAR RECURSOS / CANCHAS / CONSULTORIOS -->
   <div id="modalRecursos" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -1359,7 +1532,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
 
         if (numeroLimpio.length === 10) {
           esCelular = true;
-          numeroLimpio = '549' + numeroLimpio;
+          numeroLimpio = '54' + numeroLimpio;
         } else {
           numeroLimpio = '54' + numeroLimpio;
         }
@@ -2620,6 +2793,103 @@ function renderizarQrTurnoSeleccionado() {
           }
         });
     }
+
+  function abrirModalWhatsAppNegocio() {
+    document.getElementById('modalWhatsAppNegocio').classList.remove('hidden');
+    fetch('acciones_panel.php?accion=obtener_config_whatsapp')
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'success' && res.data) {
+          document.getElementById('waWhatsappMode').value = 'shared';
+          document.getElementById('waWhatsappMode').disabled = true;
+          document.getElementById('waPhoneNumberId').value = res.data.wa_phone_number_id || '';
+          document.getElementById('waWabaId').value = res.data.wa_waba_id || '';
+          document.getElementById('waAccessToken').value = res.data.wa_access_token || '';
+          document.getElementById('waPhoneNumberId').disabled = true;
+          document.getElementById('waWabaId').disabled = true;
+          document.getElementById('waAccessToken').disabled = true;
+          toggleCamposWhatsApp();
+        }
+      })
+      .catch(err => console.error("Error al obtener config de WhatsApp:", err));
+  }
+
+  function toggleCamposWhatsApp() {
+    const modo = document.getElementById('waWhatsappMode').value;
+    const camposPropio = document.getElementById('camposWhatsAppPropio');
+    if (modo === 'own') {
+      camposPropio.classList.remove('hidden');
+    } else {
+      camposPropio.classList.add('hidden');
+    }
+  }
+
+  function guardarConfigWhatsApp(e) {
+    e.preventDefault();
+    const form = document.getElementById('formWhatsAppNegocio');
+    const formData = new FormData(form);
+    formData.append('accion', 'guardar_config_whatsapp');
+
+    fetch('acciones_panel.php', { method: 'POST', body: formData })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'success') {
+          alert('Configuración de WhatsApp guardada con éxito.');
+          cerrarModal('modalWhatsAppNegocio');
+        } else {
+          alert('Error: ' + res.message);
+        }
+      })
+      .catch(err => console.error("Error al guardar WhatsApp:", err));
+  }
+
+  // Inicializar Facebook SDK
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : '1417416286523037', // Reemplazá con tu Meta App ID real
+      cookie     : true,
+      xfbml      : true,
+      version    : 'v20.0'
+    });
+  };
+
+function launchWhatsAppSignup() {
+  //alert('La conexión de WhatsApp Business propio está temporalmente deshabilitada. Por ahora se utiliza el canal compartido de la app.');
+  //return;
+  const appId = '1417416286523037';
+  const redirectUri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
+  const scope = 'whatsapp_business_management,whatsapp_business_messaging';
+
+  // Mostramos indicador de carga visual
+  document.getElementById('contenedorBotonMeta').innerHTML = `
+    <div class="text-center py-2 text-emerald-400 font-semibold flex items-center justify-center gap-2">
+      <i class="fa-solid fa-spinner fa-spin"></i> Redirigiendo a Meta...
+    </div>
+  `;
+
+  // Redirección directa por URL oficial de Meta (Versión v20.0)
+  const authUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${appId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&response_type=code`;
+
+  window.location.href = authUrl;
+}
+
+  // Función para cambiar de modo (propio a compartido)
+  function cambiarModoWhatsApp(modo) {
+    var formData = new FormData();
+    formData.append('accion', 'guardar_config_whatsapp');
+    formData.append('whatsapp_mode', modo);
+
+    fetch('acciones_panel.php', { method: 'POST', body: formData })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === 'success') {
+          alert('Modo de WhatsApp actualizado.');
+          location.reload();
+        } else {
+          alert('Error: ' + res.message);
+        }
+      });
+  }
   </script>
 
   <script>
@@ -2674,5 +2944,7 @@ function renderizarQrTurnoSeleccionado() {
       deferredPrompt = null;
     });
   </script>
+  <!-- Meta SDK para WhatsApp Embedded Signup -->
+  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/es_LA/sdk.js"></script>
 </body>
 </html>

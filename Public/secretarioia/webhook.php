@@ -2,6 +2,7 @@
 // webhook.php - Router Central Exclusivo con Procesamiento de Audio
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/funciones_whatsapp.php';
 
 date_default_timezone_set('America/Argentina/Buenos_Aires');
 
@@ -76,7 +77,7 @@ if ($type === 'reaction') {
 
 if ($type !== 'text' && $type !== 'audio' && $type !== 'interactive' && $type !== 'location' && $type !== 'image' && $type !== 'document') {
     file_put_contents(__DIR__ . '/log.txt', "[" . date('Y-m-d H:i:s') . "] Tipo de mensaje no soportado ('{$type}') recibido de {$from}.\n", FILE_APPEND);
-    enviarRespuestaWhatsApp($from, $phoneNumberId, "⚠️ *Tipo de mensaje no permitido*: Por el momento solo procesamos mensajes de texto o notas de voz. Por favor, vuelve a intentarlo por alguno de esos medios.");
+    enviarRespuestaWhatsApp($pdo,$from, $$negocio['id'], "⚠️ *Tipo de mensaje no permitido*: Por el momento solo procesamos mensajes de texto o notas de voz. Por favor, vuelve a intentarlo por alguno de esos medios.");
     exit;
 }
 
@@ -179,15 +180,15 @@ try {
         // Evaluar si presionó una opción interactiva o escribió el comando
         if ($interactiveId === 'btn_modo_negocio' || $textBodyLower === 'modo negocio') {
             setModoActivo($pdo, $from, 'negocio');
-            enviarRespuestaWhatsApp($from, $phoneNumberId, "🏢 *Modo Negocio Activado*\nA partir de ahora tus mensajes gestionarán tu agenda y clientes.");
+            enviarRespuestaWhatsApp($pdo,$from, $$negocio['id'], "🏢 *Modo Negocio Activado*\nA partir de ahora tus mensajes gestionarán tu agenda y clientes.");
             redirigirAWebhook('webhook_negocios.php', $input);
             exit;
         } elseif ($interactiveId === 'btn_modo_persona' || $textBodyLower === 'modo persona') {
             setModoActivo($pdo, $from, 'persona');
-            enviarRespuestaWhatsApp($from, $phoneNumberId, "👤 *Modo Persona Activado*\nA partir de ahora interactúas como usuario personal.");
+            enviarRespuestaWhatsApp($pdo,$from, $$negocio['id'], "👤 *Modo Persona Activado*\nA partir de ahora interactúas como usuario personal.");
             exit;
         } elseif ($textBodyLower === 'cambiar modo' || $textBodyLower === 'menu modo' || $textBodyLower === 'modo') {
-            mostrarMenuSeleccion($from, $phoneNumberId, $nombreNegocio);
+            mostrarMenuSeleccion($pdo, $from, $$negocio['id'], $nombreNegocio);;
             exit;
         }
 
@@ -196,7 +197,7 @@ try {
         $modoActivo = $stmtEstado->fetchColumn();
 
         if (!$modoActivo) {
-            mostrarMenuSeleccion($from, $phoneNumberId, $nombreNegocio);
+            mostrarMenuSeleccion($pdo, $from, $$negocio['id'], $nombreNegocio);;
             exit;
         }
 
@@ -221,11 +222,10 @@ exit;
 // FUNCIONES AUXILIARES DE ENRUTAMIENTO Y MENSAJERÍA
 // -----------------------------------------------------------------------------
 
-function mostrarMenuSeleccion($to, $phoneNumberId, $nombreNegocio) {
+function mostrarMenuSeleccion($pdo, $to, $negocioId, $nombreNegocio) {
     $payloadWa = [
         'messaging_product' => 'whatsapp',
         'recipient_type'    => 'individual',
-        'to'                => $to,
         'type'              => 'interactive',
         'interactive'       => [
             'type'   => 'list',
@@ -262,19 +262,13 @@ function mostrarMenuSeleccion($to, $phoneNumberId, $nombreNegocio) {
         ]
     ];
 
-    $ch = curl_init("https://graph.facebook.com/v20.0/{$phoneNumberId}/messages");
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer " . META_ACCESS_TOKEN, "Content-Type: application/json"]);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadWa));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_exec($ch);
-    curl_close($ch);
+    return ejecutarCurlWhatsAppInteligente($pdo, $negocioId, $payloadWa, $to, 'interactive');
 }
 
 function setModoActivo($pdo, $telefono, $modo) {
     $stmt = $pdo->prepare("
-        INSERT INTO saas_usuario_estados (telefono, modo_activo) 
-        VALUES (?, ?) 
+        INSERT INTO saas_usuario_estados (telefono, modo_activo)
+        VALUES (?, ?)
         ON DUPLICATE KEY UPDATE modo_activo = VALUES(modo_activo)
     ");
     $stmt->execute([$telefono, $modo]);
@@ -291,19 +285,12 @@ function redirigirAWebhook($archivoDestino, $input) {
     curl_close($ch);
 }
 
-function enviarRespuestaWhatsApp($to, $phoneNumberId, $text) {
+function enviarRespuestaWhatsApp($pdo, $to, $negocioId, $text) {
     $payloadWa = [
         'messaging_product' => 'whatsapp',
-        'to' => $to,
         'type' => 'text',
         'text' => ['body' => $text]
     ];
 
-    $ch = curl_init("https://graph.facebook.com/v20.0/{$phoneNumberId}/messages");
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Bearer " . META_ACCESS_TOKEN, "Content-Type: application/json"]);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payloadWa));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_exec($ch);
-    curl_close($ch);
+    return ejecutarCurlWhatsAppInteligente($pdo, $negocioId, $payloadWa, $to, 'text');
 }

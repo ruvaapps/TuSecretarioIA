@@ -85,7 +85,7 @@ try {
         $linkReserva = "https://tusecretarioia.lovar.com.ar/reserva.php?slug=" . $negocioSlug;
 
         // 2. Enviar mensaje usando el Template homologado por Meta
-        $resultadoEnvio = enviarWhatsAppTemplateApi($telefono, $nombreCliente, $negocioNombre, $textoPromo, $linkReserva, $logFile);
+        $resultadoEnvio = enviarWhatsAppTemplateApi($pdo, (int)$item['negocio_id'], (int)$item['cliente_id'], $telefono, $nombreCliente, $negocioNombre, $textoPromo, $linkReserva, $logFile);
 
         if ($resultadoEnvio['exito']) {
             $stmtUpd = $pdo->prepare("
@@ -119,8 +119,8 @@ try {
 /**
  * Función para realizar el envío de la Plantilla (Template) a WhatsApp Cloud API
  */
-function enviarWhatsAppTemplateApi($telefono, $nombreCliente, $negocioNombre, $textoPromo, $linkReserva, $logFile) {
-    $phoneAccountId = WHATSAPP_PHONE_NUMBER_ID; 
+function enviarWhatsAppTemplateApi($pdo, $negocioId, $clienteId, $telefono, $nombreCliente, $negocioNombre, $textoPromo, $linkReserva, $logFile) {
+    $phoneAccountId = WHATSAPP_PHONE_NUMBER_ID;
     $accessToken = WHATSAPP_ACCESS_TOKEN; 
 	
     $url = "https://graph.facebook.com/v18.0/{$phoneAccountId}/messages";
@@ -173,6 +173,15 @@ function enviarWhatsAppTemplateApi($telefono, $nombreCliente, $negocioNombre, $t
     if ($httpCode >= 200 && $httpCode < 300) {
         $json = json_decode($response, true);
         $wamid = $json['messages'][0]['id'] ?? null;
+
+        try {
+            $telefonoNorm = preg_replace('/[^0-9]/', '', (string)$telefono);
+            $stmtLog = $pdo->prepare("INSERT INTO saas_whatsapp_mensajes_log (negocio_id, cliente_id, telefono_destino, tipo_mensaje, origen, costo_unitario) VALUES (?, ?, ?, ?, 'app_shared', 0.00)");
+            $stmtLog->execute([(int)$negocioId, (int)$clienteId, $telefonoNorm, 'template']);
+        } catch (Exception $e) {
+            escribirLog("Error registrando log WhatsApp promo: " . $e->getMessage(), $logFile);
+        }
+
         return ['exito' => true, 'wamid' => $wamid];
     } else {
         return ['exito' => false, 'error' => "HTTP {$httpCode}: " . $response];
