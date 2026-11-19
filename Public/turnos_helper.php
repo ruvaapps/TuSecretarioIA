@@ -9,7 +9,6 @@ if (!defined('DEFAULT_WHATSAPP_ACCESS_TOKEN')) {
 }
 
 if (!defined('WHATSAPP_OWN_MODE_ENABLED')) {
-    // Reactivado: Meta aprobó los permisos, los negocios pueden usar su propio canal.
     define('WHATSAPP_OWN_MODE_ENABLED', true);
 }
 
@@ -66,7 +65,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         logTurnosHelper("=== INICIO AGENDAR TURNO ===");
         logTurnosHelper("Params: Negocio: {$negocio_id} | Cliente: {$nombre_cliente} ({$telefono_cliente}) | Servicio: {$servicio_id} | Recurso ID: " . ($recurso_id ?: 'Ninguno') . " | Fecha: {$fecha} | Hora: {$hora} | Origen: {$origen}");
 
-        // 1. Obtener información del negocio y credenciales de WhatsApp
         $stmtNegocio = $pdo->prepare("
             SELECT
                 nombre, direccion, localidad, instagram, mp_access_token,
@@ -90,7 +88,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         $instagram_fmt   = !empty($negocio['instagram']) ? '@' . ltrim($negocio['instagram'], '@') : '';
         $mpAccessToken   = $negocio['mp_access_token'] ?? null;
 
-        // Credenciales dinámicas de WhatsApp
         $waCreds         = obtenerCredencialesNegocioWhatsApp($pdo, $negocio_id);
         $phoneNumberId   = $waCreds['phone_number_id'];
         $accessToken     = $waCreds['access_token'];
@@ -98,7 +95,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         $permite_mp     = (int)($negocio['permite_mercadopago'] ?? 1);
         $permite_transf = (int)($negocio['permite_transferencia'] ?? 0);
 
-        // 2. Obtener o crear cliente
         $stmtCliente = $pdo->prepare("SELECT id FROM saas_clientes WHERE negocio_id = ? AND telefono = ?");
         $stmtCliente->execute([$negocio_id, $telefono_cliente]);
         $cliente = $stmtCliente->fetch(PDO::FETCH_ASSOC);
@@ -113,7 +109,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
             logTurnosHelper("Nuevo cliente creado ID: {$cliente_id}");
         }
 
-        // 3. Detalle del servicio y cálculo de horarios
         $stmtServ = $pdo->prepare("SELECT nombre, duracion_minutos, sena FROM saas_servicios WHERE id = ? AND negocio_id = ?");
         $stmtServ->execute([$servicio_id, $negocio_id]);
         $serv = $stmtServ->fetch(PDO::FETCH_ASSOC);
@@ -137,7 +132,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         $inicio = date('Y-m-d H:i:s', $inicio_ts);
         $fin    = date('Y-m-d H:i:s', $inicio_ts + ($duracion * 60));
 
-        // Validar choque de turnos o bloqueos
         if ($recurso_id) {
             $stmtT = $pdo->prepare("
                 SELECT COUNT(*) FROM saas_turnos
@@ -167,11 +161,9 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
             return ['status' => 'error', 'message' => 'El horario seleccionado ya se encuentra ocupado o bloqueado.'];
         }
 
-        // 4. Estado inicial y método de pago
         $estado_inicial = ($monto_sena > 0) ? 'pendiente_pago' : 'confirmado';
         $metodo_pago    = ($monto_sena > 0) ? (($permite_transf === 1) ? 'transferencia' : 'mercadopago') : null;
 
-        // 5. Insertar turno
         $stmtTurno = $pdo->prepare("
             INSERT INTO saas_turnos (negocio_id, cliente_id, servicio_id, recurso_id, fecha_hora_inicio, fecha_hora_fin, estado, monto_sena, metodo_pago)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -181,7 +173,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
 
         logTurnosHelper("Turno insertado exitosamente con ID: {$turno_id}");
 
-        // 6. Registro de cobro del SaaS ($300)
         $monto_cobro = 300.00;
         $stmtCobro = $pdo->prepare("
             INSERT INTO cobros_turnos (negocio_id, turno_id, cliente_telefono, monto, estado)
@@ -189,7 +180,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         ");
         $stmtCobro->execute([$negocio_id, $turno_id, $telefono_cliente, $monto_cobro]);
 
-        // 7. Generar link de MP si corresponde
         $link_pago = null;
         if ($monto_sena > 0 && $metodo_pago === 'mercadopago' && $mpAccessToken) {
             if (function_exists('generarLinkSenaMercadoPago')) {
@@ -212,7 +202,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
             }
         }
 
-        // 8. Notificación por WhatsApp con credenciales dinámicas
         $fechaFormateada = date('d/m/Y', strtotime($fecha));
         $horaFormateada  = date('H:i', strtotime($hora));
 
@@ -236,7 +225,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
             }
         }
 
-        // 9. WebPush al dueño
         if (function_exists('notificarNuevoTurnoWebPush')) {
             logTurnosHelper("Disparando WebPush al dueño...");
             notificarNuevoTurnoWebPush($pdo, $negocio_id, $nombre_cliente, $nombre_servicio, $fecha, $hora, null, null, $telefono_cliente);
@@ -275,12 +263,10 @@ function cancelarTurnoCompleto($pdo, $turno_id, $negocio_id) {
         logTurnosHelper("=== INICIO CANCELAR TURNO ===");
         logTurnosHelper("Params: Turno ID: {$turno_id} | Negocio ID: {$negocio_id}");
 
-        // Obtener credenciales dinámicas de WhatsApp
         $waCreds       = obtenerCredencialesNegocioWhatsApp($pdo, $negocio_id);
         $phoneNumberId = $waCreds['phone_number_id'];
         $accessToken   = $waCreds['access_token'];
 
-        // 1. Obtener información del turno
         $stmtInfo = $pdo->prepare("
             SELECT
                 t.fecha_hora_inicio,
@@ -302,12 +288,10 @@ function cancelarTurnoCompleto($pdo, $turno_id, $negocio_id) {
             return ['status' => 'error', 'message' => 'Turno no encontrado'];
         }
 
-        // 2. Cambiar estado del turno a cancelado
         $stmtUpd = $pdo->prepare("UPDATE saas_turnos SET estado = 'cancelado' WHERE id = ? AND negocio_id = ?");
         $stmtUpd->execute([$turno_id, $negocio_id]);
         logTurnosHelper("Estado del turno ID {$turno_id} actualizado a 'cancelado' en BD.");
 
-        // 3. Cancelar recordatorios asociados
         if (!empty($turno['cliente_telefono'])) {
             $stmtCancelRec = $pdo->prepare("
                 UPDATE recordatorios
@@ -316,7 +300,6 @@ function cancelarTurnoCompleto($pdo, $turno_id, $negocio_id) {
             ");
             $stmtCancelRec->execute([$turno['cliente_telefono'], $turno['fecha_hora_inicio']]);
 
-            // 4. Enviar notificación de cancelación por WhatsApp con credenciales del negocio
             if (!empty($turno['fecha_hora_inicio'])) {
                 $fechaHora = strtotime($turno['fecha_hora_inicio']);
                 $fechaFmt  = date('d/m/Y', $fechaHora);
@@ -339,7 +322,6 @@ function cancelarTurnoCompleto($pdo, $turno_id, $negocio_id) {
             }
         }
 
-        // 5. Notificación Web Push al dueño del negocio
         if (function_exists('notificarNuevoTurnoWebPush') && !empty($turno['fecha_hora_inicio'])) {
             logTurnosHelper("Disparando WebPush de cancelación al dueño...");
             $fechaStr = date('Y-m-d', strtotime($turno['fecha_hora_inicio']));
@@ -371,7 +353,7 @@ function cancelarTurnoCompleto($pdo, $turno_id, $negocio_id) {
 }
 
 /**
- * Funciones de envío cURL específicas para el helper (para evitar conflictos si ya existen en otros archivos)
+ * Funciones de envío cURL específicas para el helper
  */
 function enviarPlantillaConfirmacionHelper($to, $nombreCliente, $nombreNegocio, $instagram, $nombreServicio, $fechaFmt, $horaFmt, $phoneNumberId, $accessToken, $pdo = null, $negocio_id = null) {
     $url = "https://graph.facebook.com/v20.0/{$phoneNumberId}/messages";
@@ -568,7 +550,6 @@ if (!function_exists('notificarNuevoTurnoWebPush')) {
             $fechaFmt = date('d/m/Y', strtotime($fecha));
             $horaFmt  = date('H:i', strtotime($hora));
 
-            // Formato compatible con PuenteSMS: incluye [telefono] cuando hay número de cliente
             $prefijoTel = !empty($telefonoCliente) ? "[" . trim($telefonoCliente) . "] " : "";
 
             $titulo = $tituloPersonalizado ?: "SecretarioIA - Nuevo Turno";
@@ -580,4 +561,47 @@ if (!function_exists('notificarNuevoTurnoWebPush')) {
                 'icon'  => "/icon.png",
                 'url'   => "/panel.php"
             ]);
+
+            $authConfig = [
+                'VAPID' => [
+                    'subject'    => VAPID_SUBJECT,
+                    'publicKey'  => VAPID_PUBLIC_KEY,
+                    'privateKey' => VAPID_PRIVATE_KEY,
+                ],
+            ];
+
+            $webPush = new \Minishlink\WebPush\WebPush($authConfig);
+
+            foreach ($suscripciones as $sub) {
+                if (empty($sub['endpoint']) || empty($sub['p256dh']) || empty($sub['auth'])) {
+                    continue;
+                }
+
+                $subscription = \Minishlink\WebPush\Subscription::create([
+                    'endpoint' => $sub['endpoint'],
+                    'publicKey' => $sub['p256dh'],
+                    'authToken' => $sub['auth'],
+                ]);
+
+                $webPush->queueNotification($subscription, $payload);
+            }
+
+            foreach ($webPush->flush() as $report) {
+                $endpoint = $report->getRequest()->getUri()->__toString();
+                if ($report->isSuccess()) {
+                    logTurnosHelper("WebPush enviado con éxito a: {$endpoint}");
+                } else {
+                    logTurnosHelper("WebPush falló para {$endpoint}: {$report->getReason()}");
+                    if ($report->isSubscriptionExpired()) {
+                        $stmtDel = $pdo->prepare("DELETE FROM saas_push_subscriptions WHERE endpoint = ?");
+                        $stmtDel->execute([$endpoint]);
+                        logTurnosHelper("Suscripción expirada eliminada de BD: {$endpoint}");
+                    }
+                }
+            }
+
+        } catch (Exception $e) {
+            logTurnosHelper("ERROR en notificarNuevoTurnoWebPush: " . $e->getMessage());
+        }
+    }
 }
