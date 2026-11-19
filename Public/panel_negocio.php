@@ -1269,11 +1269,21 @@ function despacharSmsInteligente(telefono, mensaje) {
   const telLimpio = telefono.replace(/[^0-9]/g, '');
 
   if (esAndroid) {
-    console.log("Despachando Intent hacia PuenteSMS...");
+    // Ajusta la ruta (ej. /send o /send-sms) según lo que tenga implementado LocalServer en :8080
+    const urlLocal = `http://127.0.0.1:8080/send?phone=${encodeURIComponent(telLimpio)}&message=${encodeURIComponent(mensaje)}`;
 
-    const intentUrl = `intent://send?phone=${encodeURIComponent(telLimpio)}&message=${encodeURIComponent(mensaje)}#Intent;scheme=puentesms;package=com.lovar.puentesms;action=android.intent.action.VIEW;end`;
+    fetch(urlLocal, {
+      method: 'GET',
+      mode: 'no-cors'
+    })
+      .then(() => {
+        console.log("Enviado a LocalServer (:8080) sin abrir PuenteSMS");
+      })
+      .catch((err) => {
+        console.warn("LocalServer (:8080) no disponible, usando fallback push...", err);
+        despacharViaWebPushServer(telLimpio, mensaje);
+      });
 
-    window.location.href = intentUrl;
     return true;
   } else {
     despacharViaWebPushServer(telLimpio, mensaje);
