@@ -1269,18 +1269,29 @@ function despacharSmsInteligente(telefono, mensaje) {
   const telLimpio = telefono.replace(/[^0-9]/g, '');
 
   if (esAndroid) {
-    // Ajusta la ruta (ej. /send o /send-sms) según lo que tenga implementado LocalServer en :8080
-    const urlLocal = `http://127.0.0.1:8080/send?phone=${encodeURIComponent(telLimpio)}&message=${encodeURIComponent(mensaje)}`;
+    const payload = JSON.stringify({
+      phone: telLimpio,
+      message: mensaje
+    });
 
-    fetch(urlLocal, {
-      method: 'GET',
-      mode: 'no-cors'
+    fetch('http://127.0.0.1:8080/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: payload
     })
-      .then(() => {
-        console.log("Enviado a LocalServer (:8080) sin abrir PuenteSMS");
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status} desde LocalServer`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("SMS despachado vía LocalServer :8080:", data);
       })
       .catch((err) => {
-        console.warn("LocalServer (:8080) no disponible, usando fallback push...", err);
+        console.warn("Fallo LocalServer :8080, usando fallback push...", err);
         despacharViaWebPushServer(telLimpio, mensaje);
       });
 
