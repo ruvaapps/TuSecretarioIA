@@ -1261,43 +1261,46 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
      * Función para despachar SMS detectando si se ejecuta desde Android (Deep Link local)
      * o respaldo vía WebPush desde la PC.
      */
-    function despacharSmsInteligente(telefono, mensaje) {
-      const esAndroid = /Android/i.test(navigator.userAgent);
-      const telLimpio = telefono.replace(/[^0-9]/g, '');
+/**
+ * Despacha el SMS localmente si está en Android, evitando el disparo de WebPush.
+ */
+function despacharSmsInteligente(telefono, mensaje) {
+  const esAndroid = /Android/i.test(navigator.userAgent);
+  const telLimpio = telefono.replace(/[^0-9]/g, '');
 
-      if (esAndroid) {
-        // 1. Comunicación directa e instantánea con la app PuenteSMS mediante Intent en el navegador
-        // Esto invoca la Activity declarada en tu manifest de PuenteSMS
-        const intentUrl = `intent://send?phone=${encodeURIComponent(telLimpio)}&message=${encodeURIComponent(mensaje)}#Intent;scheme=puentesms;package=com.tuempresa.puentesms;end`;
+  if (esAndroid) {
+    console.log("Detectado Android local. Disparando Intent hacia PuenteSMS...");
 
-        // Intentar abrir el canal local
-        window.location.href = intentUrl;
-        console.log("Despacho local directo a PuenteSMS en el mismo teléfono.");
+    // Estructura oficial de Intent URL para Chrome en Android
+    // Reemplazá 'com.lovar.puentesms' por el package id real si varía
+    const intentUrl = `intent://send?phone=${encodeURIComponent(telLimpio)}&message=${encodeURIComponent(mensaje)}#Intent;scheme=puentesms;package=com.lovar.puentesms;action=android.intent.action.VIEW;end`;
 
-      } else {
-        // 2. Si estás en la PC (o un SO sin la app local), se envía por el servidor vía WebPush
-        despacharViaWebPushServer(telLimpio, mensaje);
-      }
-    }
+    // Disparar Intent local
+    window.location.href = intentUrl;
 
-    function despacharViaWebPushServer(telefono, mensaje) {
-      fetch('acciones_panel.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accion: 'despachar_sms_push',
-          telefono: telefono,
-          mensaje: mensaje
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'success') {
-          console.log("SMS despachado vía WebPush al servidor.");
-        }
-      })
-      .catch(err => console.error("Error WebPush:", err));
-    }
+    // IMPORTANTE: Retornar true para confirmar que se procesó localmente
+    return true;
+  } else {
+    console.log("Detectado entorno PC/No-Android. Despachando vía servidor WebPush...");
+    despacharViaWebPushServer(telLimpio, mensaje);
+    return false;
+  }
+}
+
+function despacharViaWebPushServer(telefono, mensaje) {
+  fetch('acciones_panel.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      accion: 'despachar_sms_push',
+      telefono: telefono,
+      mensaje: mensaje
+    })
+  })
+  .then(res => res.json())
+  .then(data => console.log("Respuesta WebPush servidor:", data))
+  .catch(err => console.error("Error WebPush:", err));
+}
 
     function filtrarCalendarioPorRecurso() {
       recursoFiltroActual = document.getElementById('filtroRecursoCalendario').value;
