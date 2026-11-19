@@ -1273,16 +1273,7 @@ function despacharSmsInteligente(telefono, mensaje) {
 
     const intentUrl = `intent://send?phone=${encodeURIComponent(telLimpio)}&message=${encodeURIComponent(mensaje)}#Intent;scheme=puentesms;package=com.lovar.puentesms;action=android.intent.action.VIEW;end`;
 
-    // Disparo local vía iframe transparente para no interferir la UI del navegador
-    let iframe = document.getElementById('iframe_puente_sms');
-    if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.id = 'iframe_puente_sms';
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-    }
-    iframe.src = intentUrl;
-
+    window.location.href = intentUrl;
     return true;
   } else {
     despacharViaWebPushServer(telLimpio, mensaje);
