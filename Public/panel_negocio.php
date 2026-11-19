@@ -1266,31 +1266,37 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
       const telLimpio = telefono.replace(/[^0-9]/g, '');
 
       if (esAndroid) {
-        // Ejecución instantánea local en Android vía Deep Link nativo
-        const deepLink = `puentesms://send?phone=${encodeURIComponent(telLimpio)}&message=${encodeURIComponent(mensaje)}`;
-        window.location.href = deepLink;
-        console.log("Despacho SMS por Deep Link nativo Android.");
+        // 1. Comunicación directa e instantánea con la app PuenteSMS mediante Intent en el navegador
+        // Esto invoca la Activity declarada en tu manifest de PuenteSMS
+        const intentUrl = `intent://send?phone=${encodeURIComponent(telLimpio)}&message=${encodeURIComponent(mensaje)}#Intent;scheme=puentesms;package=com.tuempresa.puentesms;end`;
+
+        // Intentar abrir el canal local
+        window.location.href = intentUrl;
+        console.log("Despacho local directo a PuenteSMS en el mismo teléfono.");
+
       } else {
-        // Respaldo desde la PC vía servidor Push
-        fetch('acciones_panel.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            accion: 'despachar_sms_push',
-            telefono: telLimpio,
-            mensaje: mensaje
-          })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === 'success') {
-            console.log("SMS despachado vía respaldo WebPush servidor.");
-          } else {
-            console.warn("Respuesta WebPush:", data.message);
-          }
-        })
-        .catch(err => console.error("Error al despachar SMS WebPush:", err));
+        // 2. Si estás en la PC (o un SO sin la app local), se envía por el servidor vía WebPush
+        despacharViaWebPushServer(telLimpio, mensaje);
       }
+    }
+
+    function despacharViaWebPushServer(telefono, mensaje) {
+      fetch('acciones_panel.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accion: 'despachar_sms_push',
+          telefono: telefono,
+          mensaje: mensaje
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'success') {
+          console.log("SMS despachado vía WebPush al servidor.");
+        }
+      })
+      .catch(err => console.error("Error WebPush:", err));
     }
 
     function filtrarCalendarioPorRecurso() {
