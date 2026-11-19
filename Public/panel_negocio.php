@@ -1268,38 +1268,39 @@ function despacharSmsInteligente(telefono, mensaje) {
   const esAndroid = /Android/i.test(navigator.userAgent);
   const telLimpio = telefono.replace(/[^0-9]/g, '');
 
-  if (esAndroid) {
-    const payload = JSON.stringify({
-      phone: telLimpio,
-      message: mensaje
-    });
-
-    fetch('http://127.0.0.1:8080/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: payload
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status} desde LocalServer`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log("SMS despachado vía LocalServer :8080:", data);
-      })
-      .catch((err) => {
-        console.warn("Fallo LocalServer :8080, usando fallback push...", err);
-        despacharViaWebPushServer(telLimpio, mensaje);
-      });
-
-    return true;
-  } else {
+  if (!esAndroid) {
     despacharViaWebPushServer(telLimpio, mensaje);
     return false;
   }
+
+  const payload = JSON.stringify({
+    phone: telLimpio,
+    message: mensaje
+  });
+
+  // Intento 1: POST estándar hacia LocalServer :8080
+  fetch('http://127.0.0.1:8080/send', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: payload
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} desde LocalServer`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      console.log("SMS despachado vía LocalServer :8080:", data);
+    })
+    .catch((err) => {
+      console.warn("POST estándar a :8080 falló, probando fallback push...", err);
+      despacharViaWebPushServer(telLimpio, mensaje);
+    });
+
+  return true;
 }
 function despacharViaWebPushServer(telefono, mensaje) {
   fetch('acciones_panel.php', {
