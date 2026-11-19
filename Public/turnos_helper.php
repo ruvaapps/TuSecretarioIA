@@ -239,7 +239,7 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         // 9. WebPush al dueño
         if (function_exists('notificarNuevoTurnoWebPush')) {
             logTurnosHelper("Disparando WebPush al dueño...");
-            notificarNuevoTurnoWebPush($pdo, $negocio_id, $nombre_cliente, $nombre_servicio, $fecha, $hora);
+            notificarNuevoTurnoWebPush($pdo, $negocio_id, $nombre_cliente, $nombre_servicio, $fecha, $hora, null, null, $telefono_cliente);
         }
 
         logTurnosHelper("=== FIN AGENDAR TURNO EXITOSO (ID: {$turno_id}) ===");
@@ -532,7 +532,7 @@ function ejecutarCurlWhatsAppHelper($url, $payload, $telefono, $accessToken, $ti
  * Función centralizada para enviar notificación push al negocio
  */
 if (!function_exists('notificarNuevoTurnoWebPush')) {
-    function notificarNuevoTurnoWebPush($pdo, $negocio_id, $nombreCliente, $nombreServicio, $fecha, $hora, $tituloPersonalizado = null, $cuerpoPersonalizado = null) {
+    function notificarNuevoTurnoWebPush($pdo, $negocio_id, $nombreCliente, $nombreServicio, $fecha, $hora, $tituloPersonalizado = null, $cuerpoPersonalizado = null, $telefonoCliente = null) {
         try {
             if (!class_exists('Minishlink\WebPush\WebPush')) {
                 $autoloadPath = __DIR__ . '/vendor/autoload.php';
@@ -568,8 +568,11 @@ if (!function_exists('notificarNuevoTurnoWebPush')) {
             $fechaFmt = date('d/m/Y', strtotime($fecha));
             $horaFmt  = date('H:i', strtotime($hora));
 
-            $titulo = $tituloPersonalizado ?: "🗓️ ¡Nuevo Turno Agendado!";
-            $cuerpo  = $cuerpoPersonalizado ?: "{$nombreCliente} reservó {$nombreServicio} para el {$fechaFmt} a las {$horaFmt} hs.";
+            // Formato compatible con PuenteSMS: incluye [telefono] cuando hay número de cliente
+            $prefijoTel = !empty($telefonoCliente) ? "[" . trim($telefonoCliente) . "] " : "";
+
+            $titulo = $tituloPersonalizado ?: "SecretarioIA - Nuevo Turno";
+            $cuerpo  = $cuerpoPersonalizado ?: "{$prefijoTel}Hola {$nombreCliente}, tu turno de {$nombreServicio} quedo confirmado para el {$fechaFmt} a las {$horaFmt} hs.";
 
             $payload = json_encode([
                 'title' => $titulo,
@@ -577,36 +580,4 @@ if (!function_exists('notificarNuevoTurnoWebPush')) {
                 'icon'  => "/icon.png",
                 'url'   => "/panel.php"
             ]);
-
-            if (class_exists('Minishlink\WebPush\WebPush')) {
-                $auth = [
-                    'VAPID' => [
-                        'subject'    => VAPID_SUBJECT,
-                        'publicKey'  => VAPID_PUBLIC_KEY,
-                        'privateKey' => VAPID_PRIVATE_KEY,
-                    ],
-                ];
-
-                $webPush = new \Minishlink\WebPush\WebPush($auth);
-
-                foreach ($suscripciones as $sub) {
-                    $subscription = \Minishlink\WebPush\Subscription::create([
-                        'endpoint'        => $sub['endpoint'],
-                        'publicKey'       => $sub['p256dh_key'] ?? $sub['p256dh'] ?? '',
-                        'authToken'       => $sub['auth_token'] ?? $sub['auth'] ?? '',
-                        'contentEncoding' => 'aes128gcm',
-                    ]);
-                    $webPush->sendOneNotification($subscription, $payload);
-                }
-
-                foreach ($webPush->flush() as $report) {
-                    if (!$report->isSuccess()) {
-                        logTurnosHelper("WebPush error en envío: " . $report->getReason());
-                    }
-                }
-            }
-        } catch (Exception $e) {
-            logTurnosHelper("Excepción en notificarNuevoTurnoWebPush: " . $e->getMessage());
-        }
-    }
 }
