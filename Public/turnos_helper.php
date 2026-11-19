@@ -13,7 +13,7 @@ if (!defined('WHATSAPP_OWN_MODE_ENABLED')) {
 }
 
 /**
- * Función centralizada para registrar logs específicos de turnos
+ * Log centralizado para la helper de turnos
  */
 if (!function_exists('logTurnosHelper')) {
     function logTurnosHelper($msg) {
@@ -30,7 +30,7 @@ if (!function_exists('logTurnosHelper')) {
 }
 
 /**
- * Función auxiliar interna para obtener credenciales dinámicas de WhatsApp
+ * Credenciales dinámicas de WhatsApp
  */
 function obtenerCredencialesNegocioWhatsApp($pdo, $negocio_id) {
     if (!WHATSAPP_OWN_MODE_ENABLED) {
@@ -58,7 +58,7 @@ function obtenerCredencialesNegocioWhatsApp($pdo, $negocio_id) {
 }
 
 /**
- * 1. Función centralizada para AGENDAR un turno.
+ * 1. AGENDAR TURNO COMPLETO
  */
 function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_cliente, $servicio_id, $fecha, $hora, $origen = 'panel', $recurso_id = null) {
     try {
@@ -95,13 +95,14 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         $permite_mp     = (int)($negocio['permite_mercadopago'] ?? 1);
         $permite_transf = (int)($negocio['permite_transferencia'] ?? 0);
 
+        // Cliente
         $stmtCliente = $pdo->prepare("SELECT id FROM saas_clientes WHERE negocio_id = ? AND telefono = ?");
         $stmtCliente->execute([$negocio_id, $telefono_cliente]);
         $cliente = $stmtCliente->fetch(PDO::FETCH_ASSOC);
 
         if ($cliente) {
             $cliente_id = $cliente['id'];
-            logTurnosHelper("Cliente existente encontrado ID: {$cliente_id}");
+            logTurnosHelper("Cliente existente ID: {$cliente_id}");
         } else {
             $stmtNewCliente = $pdo->prepare("INSERT INTO saas_clientes (negocio_id, nombre, telefono) VALUES (?, ?, ?)");
             $stmtNewCliente->execute([$negocio_id, $nombre_cliente, $telefono_cliente]);
@@ -109,12 +110,13 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
             logTurnosHelper("Nuevo cliente creado ID: {$cliente_id}");
         }
 
+        // Servicio
         $stmtServ = $pdo->prepare("SELECT nombre, duracion_minutos, sena FROM saas_servicios WHERE id = ? AND negocio_id = ?");
         $stmtServ->execute([$servicio_id, $negocio_id]);
         $serv = $stmtServ->fetch(PDO::FETCH_ASSOC);
 
         if (!$serv) {
-            logTurnosHelper("ERROR: Servicio ID {$servicio_id} no encontrado para negocio {$negocio_id}.");
+            logTurnosHelper("ERROR: Servicio ID {$servicio_id} no encontrado.");
             return ['status' => 'error', 'message' => 'Servicio no encontrado'];
         }
 
@@ -132,6 +134,7 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         $inicio = date('Y-m-d H:i:s', $inicio_ts);
         $fin    = date('Y-m-d H:i:s', $inicio_ts + ($duracion * 60));
 
+        // Validar choque de horarios
         if ($recurso_id) {
             $stmtT = $pdo->prepare("
                 SELECT COUNT(*) FROM saas_turnos
@@ -157,7 +160,7 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         $cantBloqueosChoque = $stmtB->fetchColumn();
 
         if ($cantTurnosChoque > 0 || $cantBloqueosChoque > 0) {
-            logTurnosHelper("CHOQUE DETECTADO: Turnos solapados: {$cantTurnosChoque} | Bloqueos: {$cantBloqueosChoque}");
+            logTurnosHelper("CHOQUE DETECTADO: Turnos: {$cantTurnosChoque} | Bloqueos: {$cantBloqueosChoque}");
             return ['status' => 'error', 'message' => 'El horario seleccionado ya se encuentra ocupado o bloqueado.'];
         }
 
@@ -173,6 +176,7 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
 
         logTurnosHelper("Turno insertado exitosamente con ID: {$turno_id}");
 
+        // Cobro interno SaaS
         $monto_cobro = 300.00;
         $stmtCobro = $pdo->prepare("
             INSERT INTO cobros_turnos (negocio_id, turno_id, cliente_telefono, monto, estado)
@@ -183,7 +187,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         $link_pago = null;
         if ($monto_sena > 0 && $metodo_pago === 'mercadopago' && $mpAccessToken) {
             if (function_exists('generarLinkSenaMercadoPago')) {
-                logTurnosHelper("Generando preferencia de Mercado Pago...");
                 $mpRes = generarLinkSenaMercadoPago(
                     $mpAccessToken,
                     $turno_id,
@@ -197,7 +200,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
                     $link_pago = $mpRes['init_point'];
                     $stmtUpdate = $pdo->prepare("UPDATE saas_turnos SET mp_preference_id = ?, link_pago = ? WHERE id = ?");
                     $stmtUpdate->execute([$mpRes['preference_id'], $link_pago, $turno_id]);
-                    logTurnosHelper("Link MP generado: {$link_pago}");
                 }
             }
         }
@@ -210,24 +212,34 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
             $negocioConDetalles .= " - Ubicación: {$direccion_fmt}";
         }
 
+        // WhatsApp Opcional
         if (!empty($telefono_cliente)) {
-            logTurnosHelper("Enviando notificación por WhatsApp al cliente {$telefono_cliente}...");
-            if ($monto_sena > 0) {
-                if ($metodo_pago === 'transferencia' && function_exists('enviarMensajeTransferenciaWhatsAppHelper')) {
-                    enviarMensajeTransferenciaWhatsAppHelper($telefono_cliente, $nombre_cliente, $nombre_servicio, $negocioConDetalles, $fechaFormateada, $horaFormateada, $monto_sena, $negocio, $phoneNumberId, $accessToken, $pdo, $negocio_id);
-                } elseif (function_exists('enviarMensajeSenaWhatsAppHelper')) {
-                    enviarMensajeSenaWhatsAppHelper($telefono_cliente, $nombre_cliente, $nombre_servicio, $negocioConDetalles, $fechaFormateada, $horaFormateada, $monto_sena, $link_pago, $phoneNumberId, $accessToken, $pdo, $negocio_id);
+            try {
+                if ($monto_sena > 0) {
+                    if ($metodo_pago === 'transferencia' && function_exists('enviarMensajeTransferenciaWhatsAppHelper')) {
+                        enviarMensajeTransferenciaWhatsAppHelper($telefono_cliente, $nombre_cliente, $nombre_servicio, $negocioConDetalles, $fechaFormateada, $horaFormateada, $monto_sena, $negocio, $phoneNumberId, $accessToken, $pdo, $negocio_id);
+                    } elseif (function_exists('enviarMensajeSenaWhatsAppHelper')) {
+                        enviarMensajeSenaWhatsAppHelper($telefono_cliente, $nombre_cliente, $nombre_servicio, $negocioConDetalles, $fechaFormateada, $horaFormateada, $monto_sena, $link_pago, $phoneNumberId, $accessToken, $pdo, $negocio_id);
+                    }
+                } else {
+                    if (function_exists('enviarPlantillaConfirmacionHelper')) {
+                        enviarPlantillaConfirmacionHelper($telefono_cliente, $nombre_cliente, $negocioConDetalles, $instagram_fmt, $nombre_servicio, $fechaFormateada, $horaFormateada, $phoneNumberId, $accessToken, $pdo, $negocio_id);
+                    }
                 }
-            } else {
-                if (function_exists('enviarPlantillaConfirmacionHelper')) {
-                    enviarPlantillaConfirmacionHelper($telefono_cliente, $nombre_cliente, $negocioConDetalles, $instagram_fmt, $nombre_servicio, $fechaFormateada, $horaFormateada, $phoneNumberId, $accessToken, $pdo, $negocio_id);
-                }
+            } catch (Exception $eWa) {
+                logTurnosHelper("Aviso WhatsApp no enviado: " . $eWa->getMessage());
             }
         }
 
+        // DISPARAR WEB PUSH HACIA PUENTESMS (Android)
         if (function_exists('notificarNuevoTurnoWebPush')) {
-            logTurnosHelper("Disparando WebPush al dueño...");
-            notificarNuevoTurnoWebPush($pdo, $negocio_id, $nombre_cliente, $nombre_servicio, $fecha, $hora, null, null, $telefono_cliente);
+            logTurnosHelper("Disparando WebPush para PuenteSMS...");
+            try {
+                $mensajeSMS = "Hola {$nombre_cliente}, tu turno de {$nombre_servicio} en {$nombre_comercio} quedo confirmado para el {$fechaFormateada} a las {$horaFormateada} hs.";
+                notificarNuevoTurnoWebPush($pdo, $negocio_id, $nombre_cliente, $nombre_servicio, $fecha, $hora, "SecretarioIA - Nuevo Turno", $mensajeSMS, $telefono_cliente);
+            } catch (Exception $ePush) {
+                logTurnosHelper("ERROR secundario en WebPush: " . $ePush->getMessage());
+            }
         }
 
         logTurnosHelper("=== FIN AGENDAR TURNO EXITOSO (ID: {$turno_id}) ===");
@@ -253,7 +265,7 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
 }
 
 /**
- * 2. Función centralizada para CANCELAR un turno y notificar al cliente y al negocio.
+ * 2. CANCELAR TURNO COMPLETO
  */
 function cancelarTurnoCompleto($pdo, $turno_id, $negocio_id) {
     try {
@@ -284,76 +296,67 @@ function cancelarTurnoCompleto($pdo, $turno_id, $negocio_id) {
         $turno = $stmtInfo->fetch(PDO::FETCH_ASSOC);
 
         if (!$turno) {
-            logTurnosHelper("ERROR: Turno ID {$turno_id} no encontrado en la base de datos para Negocio {$negocio_id}.");
+            logTurnosHelper("ERROR: Turno ID {$turno_id} no encontrado.");
             return ['status' => 'error', 'message' => 'Turno no encontrado'];
         }
 
         $stmtUpd = $pdo->prepare("UPDATE saas_turnos SET estado = 'cancelado' WHERE id = ? AND negocio_id = ?");
         $stmtUpd->execute([$turno_id, $negocio_id]);
-        logTurnosHelper("Estado del turno ID {$turno_id} actualizado a 'cancelado' en BD.");
 
         if (!empty($turno['cliente_telefono'])) {
-            $stmtCancelRec = $pdo->prepare("
-                UPDATE recordatorios
-                SET estado = 'cancelado'
-                WHERE telefono = ? AND fecha_evento = ?
-            ");
-            $stmtCancelRec->execute([$turno['cliente_telefono'], $turno['fecha_hora_inicio']]);
+            try {
+                $stmtCancelRec = $pdo->prepare("UPDATE recordatorios SET estado = 'cancelado' WHERE telefono = ? AND fecha_evento = ?");
+                $stmtCancelRec->execute([$turno['cliente_telefono'], $turno['fecha_hora_inicio']]);
+            } catch (Exception $eRec) {}
 
-            if (!empty($turno['fecha_hora_inicio'])) {
-                $fechaHora = strtotime($turno['fecha_hora_inicio']);
-                $fechaFmt  = date('d/m/Y', $fechaHora);
-                $horaFmt   = date('H:i', $fechaHora);
+            $fechaHora = strtotime($turno['fecha_hora_inicio']);
+            $fechaFmt  = date('d/m/Y', $fechaHora);
+            $horaFmt   = date('H:i', $fechaHora);
 
-                if (function_exists('enviarPlantillaCancelacionHelper')) {
-                    logTurnosHelper("Enviando plantilla de cancelación vía WhatsApp a {$turno['cliente_telefono']}...");
-                    enviarPlantillaCancelacionHelper(
-                        $turno['cliente_telefono'],
-                        $turno['cliente_nombre'] ?? 'Cliente',
-                        $fechaFmt,
-                        $horaFmt,
-                        $turno['negocio_nombre'] ?? 'Nuestro Comercio',
-                        $phoneNumberId,
-                        $accessToken,
+            // WhatsApp cancelacion
+            if (function_exists('enviarPlantillaCancelacionHelper')) {
+                try {
+                    enviarPlantillaCancelacionHelper($turno['cliente_telefono'], $turno['cliente_nombre'] ?? 'Cliente', $fechaFmt, $horaFmt, $turno['negocio_nombre'] ?? 'Nuestro Comercio', $phoneNumberId, $accessToken, $pdo, $negocio_id);
+                } catch (Exception $eWa) {}
+            }
+
+            // WebPush Cancelación para PuenteSMS
+            if (function_exists('notificarNuevoTurnoWebPush')) {
+                try {
+                    $fechaStr   = date('Y-m-d', $fechaHora);
+                    $horaStr    = date('H:i:s', $fechaHora);
+                    $clienteNom = $turno['cliente_nombre'] ?? 'Cliente';
+                    $servicioNom = $turno['servicio_nombre'] ?? 'Turno';
+                    $negocioNom = $turno['negocio_nombre'] ?? 'Nuestro Comercio';
+
+                    $mensajeCancelSMS = "Hola {$clienteNom}, tu turno de {$servicioNom} en {$negocioNom} para el {$fechaFmt} a las {$horaFmt} hs ha sido cancelado.";
+
+                    notificarNuevoTurnoWebPush(
                         $pdo,
-                        $negocio_id
+                        $negocio_id,
+                        $clienteNom,
+                        $servicioNom,
+                        $fechaStr,
+                        $horaStr,
+                        "SecretarioIA - Turno Cancelado",
+                        $mensajeCancelSMS,
+                        $turno['cliente_telefono']
                     );
-                }
+                } catch (Exception $ePush) {}
             }
         }
 
-        if (function_exists('notificarNuevoTurnoWebPush') && !empty($turno['fecha_hora_inicio'])) {
-            logTurnosHelper("Disparando WebPush de cancelación al dueño...");
-            $fechaStr = date('Y-m-d', strtotime($turno['fecha_hora_inicio']));
-            $horaStr  = date('H:i:s', strtotime($turno['fecha_hora_inicio']));
-            $clienteNom = $turno['cliente_nombre'] ?? 'Un cliente';
-            $servicioNom = $turno['servicio_nombre'] ?? 'Turno';
-
-            notificarNuevoTurnoWebPush(
-                $pdo,
-                $negocio_id,
-                $clienteNom,
-                $servicioNom,
-                $fechaStr,
-                $horaStr,
-                "❌ Turno Cancelado",
-                "{$clienteNom} canceló el turno de {$servicioNom} para el " . date('d/m/Y', strtotime($fechaStr)) . " a las " . date('H:i', strtotime($horaStr)) . " hs."
-            );
-        }
-
         logTurnosHelper("=== FIN CANCELAR TURNO EXITOSO (ID: {$turno_id}) ===");
-
         return ['status' => 'success', 'message' => 'Turno cancelado correctamente'];
 
     } catch (PDOException $e) {
-        $msgErr = "EXCEPCION BD [cancelarTurnoCompleto]: " . $e->getMessage();
-        logTurnosHelper($msgErr);
+        logTurnosHelper("EXCEPCION BD [cancelarTurnoCompleto]: " . $e->getMessage());
         return ['status' => 'error', 'message' => 'Error al cancelar el turno: ' . $e->getMessage()];
     }
 }
 
 /**
- * Funciones de envío cURL específicas para el helper
+ * Funciones Auxiliares de envío de WhatsApp
  */
 function enviarPlantillaConfirmacionHelper($to, $nombreCliente, $nombreNegocio, $instagram, $nombreServicio, $fechaFmt, $horaFmt, $phoneNumberId, $accessToken, $pdo = null, $negocio_id = null) {
     $url = "https://graph.facebook.com/v20.0/{$phoneNumberId}/messages";
@@ -489,29 +492,12 @@ function ejecutarCurlWhatsAppHelper($url, $payload, $telefono, $accessToken, $ti
         logTurnosHelper("ERROR cURL WhatsApp Helper a {$telefono}: " . $err);
     } else {
         logTurnosHelper("Respuesta API WhatsApp Helper para {$telefono}: " . $res);
-
-        $isSharedToken = trim((string)$accessToken) === trim((string)DEFAULT_WHATSAPP_ACCESS_TOKEN);
-        $isSharedPhone = strpos((string)$url, '/' . DEFAULT_WHATSAPP_PHONE_NUMBER_ID . '/messages') !== false;
-        if ($isSharedToken && $isSharedPhone && $httpCode >= 200 && $httpCode < 300 && $pdo && $negocio_id) {
-            try {
-                $telefonoNorm = preg_replace('/[^0-9]/', '', (string)$telefono);
-                $stmtCli = $pdo->prepare("SELECT id FROM saas_clientes WHERE negocio_id = ? AND telefono = ? LIMIT 1");
-                $stmtCli->execute([$negocio_id, $telefonoNorm]);
-                $clienteId = $stmtCli->fetchColumn() ?: null;
-
-                $stmtLog = $pdo->prepare("INSERT INTO saas_whatsapp_mensajes_log (negocio_id, cliente_id, telefono_destino, tipo_mensaje, origen, costo_unitario) VALUES (?, ?, ?, ?, 'app_shared', 0.00)");
-                $stmtLog->execute([$negocio_id, $clienteId, $telefonoNorm, $tipo_mensaje]);
-            } catch (Exception $e) {
-                logTurnosHelper("Error registrando log WhatsApp app_shared: " . $e->getMessage());
-            }
-        }
     }
-
     return $res;
 }
 
 /**
- * Función centralizada para enviar notificación push al negocio
+ * Función centralizada para notificar via WebPush a PuenteSMS
  */
 if (!function_exists('notificarNuevoTurnoWebPush')) {
     function notificarNuevoTurnoWebPush($pdo, $negocio_id, $nombreCliente, $nombreServicio, $fecha, $hora, $tituloPersonalizado = null, $cuerpoPersonalizado = null, $telefonoCliente = null) {
@@ -524,6 +510,11 @@ if (!function_exists('notificarNuevoTurnoWebPush')) {
                 if (file_exists($autoloadPath)) {
                     require_once $autoloadPath;
                 }
+            }
+
+            if (!class_exists('Minishlink\WebPush\WebPush')) {
+                logTurnosHelper("WebPush: La librería Minishlink\WebPush no está disponible.");
+                return;
             }
 
             if (!defined('VAPID_PUBLIC_KEY')) {
@@ -550,16 +541,17 @@ if (!function_exists('notificarNuevoTurnoWebPush')) {
             $fechaFmt = date('d/m/Y', strtotime($fecha));
             $horaFmt  = date('H:i', strtotime($hora));
 
+            // Formato de número obligatorio con corchetes
             $prefijoTel = !empty($telefonoCliente) ? "[" . trim($telefonoCliente) . "] " : "";
 
             $titulo = $tituloPersonalizado ?: "SecretarioIA - Nuevo Turno";
-            $cuerpo  = $cuerpoPersonalizado ?: "{$prefijoTel}Hola {$nombreCliente}, tu turno de {$nombreServicio} quedo confirmado para el {$fechaFmt} a las {$horaFmt} hs.";
+            $cuerpo = $cuerpoPersonalizado ? "{$prefijoTel}{$cuerpoPersonalizado}" : "{$prefijoTel}Hola {$nombreCliente}, tu turno de {$nombreServicio} quedo confirmado para el {$fechaFmt} a las {$horaFmt} hs.";
 
             $payload = json_encode([
                 'title' => $titulo,
                 'body'  => $cuerpo,
                 'icon'  => "/icon.png",
-                'url'   => "/panel.php"
+                'url'   => "/panel_negocio.php"
             ]);
 
             $authConfig = [
@@ -589,13 +581,12 @@ if (!function_exists('notificarNuevoTurnoWebPush')) {
             foreach ($webPush->flush() as $report) {
                 $endpoint = $report->getRequest()->getUri()->__toString();
                 if ($report->isSuccess()) {
-                    logTurnosHelper("WebPush enviado con éxito a: {$endpoint}");
+                    logTurnosHelper("WebPush enviado con éxito a: " . substr($endpoint, 0, 40) . "...");
                 } else {
-                    logTurnosHelper("WebPush falló para {$endpoint}: {$report->getReason()}");
+                    logTurnosHelper("WebPush falló para " . substr($endpoint, 0, 40) . "... : {$report->getReason()}");
                     if ($report->isSubscriptionExpired()) {
                         $stmtDel = $pdo->prepare("DELETE FROM saas_push_subscriptions WHERE endpoint = ?");
                         $stmtDel->execute([$endpoint]);
-                        logTurnosHelper("Suscripción expirada eliminada de BD: {$endpoint}");
                     }
                 }
             }
