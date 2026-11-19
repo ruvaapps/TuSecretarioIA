@@ -1269,24 +1269,26 @@ function despacharSmsInteligente(telefono, mensaje) {
   const telLimpio = telefono.replace(/[^0-9]/g, '');
 
   if (esAndroid) {
-    console.log("Detectado Android local. Disparando Intent hacia PuenteSMS...");
+    console.log("Despachando Intent hacia PuenteSMS...");
 
-    // Estructura oficial de Intent URL para Chrome en Android
-    // Reemplazá 'com.lovar.puentesms' por el package id real si varía
     const intentUrl = `intent://send?phone=${encodeURIComponent(telLimpio)}&message=${encodeURIComponent(mensaje)}#Intent;scheme=puentesms;package=com.lovar.puentesms;action=android.intent.action.VIEW;end`;
 
-    // Disparar Intent local
-    window.location.href = intentUrl;
+    // Disparo local vía iframe transparente para no interferir la UI del navegador
+    let iframe = document.getElementById('iframe_puente_sms');
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = 'iframe_puente_sms';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+    }
+    iframe.src = intentUrl;
 
-    // IMPORTANTE: Retornar true para confirmar que se procesó localmente
     return true;
   } else {
-    console.log("Detectado entorno PC/No-Android. Despachando vía servidor WebPush...");
     despacharViaWebPushServer(telLimpio, mensaje);
     return false;
   }
 }
-
 function despacharViaWebPushServer(telefono, mensaje) {
   fetch('acciones_panel.php', {
     method: 'POST',
