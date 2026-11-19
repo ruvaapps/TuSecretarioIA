@@ -108,7 +108,7 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
                     if (function_exists('crearPlantillasBaseMeta')) {
                         crearPlantillasBaseMeta($waba_id, $access_token);
                     }
-                file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 5.1] ¡Cargando Webhook...\n", FILE_APPEND);
+                    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 5.1] ¡Cargando Webhook...\n", FILE_APPEND);
 
                     if (function_exists('suscribirWebhookCliente')) {
                         suscribirWebhookCliente($waba_id, $access_token);
@@ -1257,6 +1257,42 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
       verificarSuscripcionPush();
     });
 
+    /**
+     * Función para despachar SMS detectando si se ejecuta desde Android (Deep Link local)
+     * o respaldo vía WebPush desde la PC.
+     */
+    function despacharSmsInteligente(telefono, mensaje) {
+      const esAndroid = /Android/i.test(navigator.userAgent);
+      const telLimpio = telefono.replace(/[^0-9]/g, '');
+
+      if (esAndroid) {
+        // Ejecución instantánea local en Android vía Deep Link nativo
+        const deepLink = `puentesms://send?phone=${encodeURIComponent(telLimpio)}&message=${encodeURIComponent(mensaje)}`;
+        window.location.href = deepLink;
+        console.log("Despacho SMS por Deep Link nativo Android.");
+      } else {
+        // Respaldo desde la PC vía servidor Push
+        fetch('acciones_panel.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accion: 'despachar_sms_push',
+            telefono: telLimpio,
+            mensaje: mensaje
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'success') {
+            console.log("SMS despachado vía respaldo WebPush servidor.");
+          } else {
+            console.warn("Respuesta WebPush:", data.message);
+          }
+        })
+        .catch(err => console.error("Error al despachar SMS WebPush:", err));
+      }
+    }
+
     function filtrarCalendarioPorRecurso() {
       recursoFiltroActual = document.getElementById('filtroRecursoCalendario').value;
       if (calendar) {
@@ -1623,6 +1659,12 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         .then(res => res.json())
         .then(res => {
           if (res.status === 'success') {
+            // Invocar despacho inteligente de aviso SMS
+            if (validacionTel.numeroCompleto) {
+              const msjSms = `Hola ${document.getElementById('inputNombre').value}, tu turno ha sido agendado para el ${document.getElementById('inputFecha').value} a las ${hora} hs.`;
+              despacharSmsInteligente(validacionTel.numeroCompleto, msjSms);
+            }
+
             cerrarModal('modalNuevoTurno');
             calendar.refetchEvents();
             document.getElementById('formNuevoTurno').reset();
@@ -2487,6 +2529,10 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
           btnSubmit.innerHTML = textOriginal;
 
           if (res.status === 'success') {
+            // Invocar despacho inteligente de aviso SMS al cliente
+            const msjSmsLP = `Hola ${nombreCliente}, te enviamos el presupuesto solicitado de ${negocio_nombre}.`;
+            despacharSmsInteligente(validTel.numeroCompleto, msjSmsLP);
+
             alert('¡Lista de precios enviada correctamente!');
             cerrarModal('modalEnviarListaPrecios');
           } else {
@@ -2500,6 +2546,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
           alert('Ocurrió un error al procesar la solicitud.');
         });
     }
+
 // Función para calcular CRC16 (requerido por el estándar EMVCo / BCRA)
 function calcularCRC16(str) {
   let crc = 0xFFFF;
