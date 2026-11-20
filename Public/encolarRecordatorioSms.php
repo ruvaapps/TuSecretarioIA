@@ -88,7 +88,7 @@ function encolarTurnosProximos(PDO $pdo, int $horasAnticipacion = 2, int $ventan
             t.id AS turno_id,
             t.negocio_id,
             t.cliente_id,
-            t.fecha_hora,
+            t.fecha_hora_inicio,
             c.nombre AS cliente_nombre,
             c.telefono,
             n.nombre AS negocio_nombre
@@ -96,8 +96,8 @@ function encolarTurnosProximos(PDO $pdo, int $horasAnticipacion = 2, int $ventan
         INNER JOIN saas_clientes c ON c.id = t.cliente_id
         INNER JOIN saas_negocios n ON n.id = t.negocio_id
         WHERE t.estado IN ('confirmado', 'programado')
-          AND t.fecha_hora > NOW()
-          AND t.fecha_hora <= DATE_ADD(NOW(), INTERVAL :ventana_horas HOUR)
+          AND t.fecha_hora_inicio > NOW()
+          AND t.fecha_hora_inicio <= DATE_ADD(NOW(), INTERVAL :ventana_horas HOUR)
           AND c.telefono IS NOT NULL
           AND c.telefono <> ''
           AND NOT EXISTS (
@@ -106,7 +106,7 @@ function encolarTurnosProximos(PDO $pdo, int $horasAnticipacion = 2, int $ventan
               WHERE q.turno_id = t.id
                 AND q.estado IN ('pendiente', 'reservado', 'enviado')
           )
-        ORDER BY t.fecha_hora ASC
+        ORDER BY t.fecha_hora_inicio ASC
     ";
 
     $stmt = $pdo->prepare($sql);
@@ -117,12 +117,12 @@ function encolarTurnosProximos(PDO $pdo, int $horasAnticipacion = 2, int $ventan
     $omitidos = 0;
 
     foreach ($turnos as $turno) {
-        $fechaTurnoTs = strtotime((string)$turno['fecha_hora']);
+        $fechaTurnoTs = strtotime((string)$turno['fecha_hora_inicio']);
         if ($fechaTurnoTs === false) {
             $omitidos++;
             logCronSms('WARN', 'Turno omitido por fecha_hora inválida', [
                 'turno_id'   => $turno['turno_id'] ?? null,
-                'fecha_hora' => $turno['fecha_hora'] ?? null,
+                'fecha_hora_inicio' => $turno['fecha_hora_inicio'] ?? null,
             ]);
             continue;
         }
