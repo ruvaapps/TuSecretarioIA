@@ -75,7 +75,6 @@ try {
             ':id'             => $id,
         ]);
 
-        // Se considera procesado si existía y no estaba cancelado
         $check = $pdo->prepare('SELECT id FROM saas_sms_cola WHERE id = :id LIMIT 1');
         $check->execute([':id' => $id]);
         if ($check->fetchColumn() !== false) {
@@ -83,11 +82,53 @@ try {
         }
     }
 
+    if ($procesadosIds !== []) {
+        $idsUnicos = array_values(array_unique($procesadosIds));
+        $placeholders = implode(',', array_fill(0, count($idsUnicos), '?'));
+
+        $sqlCampEnvio = "
+            UPDATE saas_campanas_envios e
+            INNER JOIN saas_sms_cola q
+                ON q.referencia_id = e.id
+               AND q.tipo = 'promo'
+            SET
+                e.estado = CASE
+                    WHEN q.estado = 'enviado' THEN 'enviado'
+                    WHEN q.estado = 'fallido' THEN 'fallido'
+                    WHEN q.estado = 'cancelado' THEN 'cancelado'
+                    ELSE e.estado
+                END,
+                e.enviado_el = CASE
+                    WHEN q.estado = 'enviado' AND e.enviado_el IS NULL THEN COALESCE(q.enviado_at, NOW())
+                    ELSE e.enviado_el
+                END,
+                e.error_mensaje = CASE
+                    WHEN q.estado = 'fallido' THEN COALESCE(q.ultimo_error, e.error_mensaje)
+                    ELSE e.error_mensaje
+                END
+            WHERE q.id IN ({$placeholders})
+        ";
+        $stmtCampEnvio = $pdo->prepare($sqlCampEnvio);
+        $stmtCampEnvio->execute($idsUnicos);
+
+        $pdo->exec("
+            UPDATE saas_campanas_promos p
+            SET p.estado = 'completada'
+            WHERE p.estado = 'en_proceso'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM saas_campanas_envios e
+                  WHERE e.campana_id = p.id
+                    AND e.estado IN ('pendiente', 'encolado')
+              )
+        ");
+    }
+
     $pdo->commit();
 
     echo json_encode([
-        'ok'            => true,
-        'procesados_ids'=> array_values(array_unique($procesadosIds)),
+        'ok'             => true,
+        'procesados_ids' => array_values(array_unique($procesadosIds)),
     ]);
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) {

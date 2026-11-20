@@ -67,6 +67,8 @@ try {
             id,
             negocio_id,
             turno_id,
+            tipo,
+            prioridad,
             telefono,
             mensaje,
             send_at,
@@ -79,7 +81,7 @@ try {
               )
           AND send_at <= DATE_ADD(NOW(), INTERVAL :ventana MINUTE)
           AND (expires_at IS NULL OR expires_at > NOW())
-        ORDER BY send_at ASC, id ASC
+        ORDER BY prioridad ASC, send_at ASC, id ASC
         LIMIT :limite
         FOR UPDATE SKIP LOCKED
     ";
@@ -100,7 +102,7 @@ try {
             SET
                 estado = 'reservado',
                 dispositivo_id = ?,
-                reservado_hasta = DATE_ADD(NOW(), INTERVAL 15 MINUTE)
+                reservado_hasta = DATE_ADD(NOW(), INTERVAL 30 MINUTE)
             WHERE id IN ({$placeholders})
         ";
 
@@ -134,6 +136,8 @@ try {
         'id'         => (int)$m['id'],
         'negocio_id' => (int)$m['negocio_id'],
         'turno_id'   => $m['turno_id'] !== null ? (int)$m['turno_id'] : null,
+        'tipo'       => (string)($m['tipo'] ?? 'recordatorio'),
+        'prioridad'  => (int)($m['prioridad'] ?? 10),
         'telefono'   => (string)$m['telefono'],
         'mensaje'    => (string)$m['mensaje'],
         'send_at'    => (string)$m['send_at'],
@@ -142,10 +146,10 @@ try {
     ], $mensajes);
 
     echo json_encode([
-        'ok'            => true,
-        'servidor_hora' => (string)$horaServidor,
-        'mensajes'      => $mensajesFormateados,
-        'cancelados_ids'=> $canceladosIds,
+        'ok'             => true,
+        'servidor_hora'  => (string)$horaServidor,
+        'mensajes'       => $mensajesFormateados,
+        'cancelados_ids' => $canceladosIds,
     ]);
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
