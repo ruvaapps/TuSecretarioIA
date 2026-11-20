@@ -69,7 +69,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
             SELECT
                 nombre, direccion, localidad, instagram, mp_access_token,
                 permite_mercadopago, permite_transferencia,
-                whatsapp_mode, wa_phone_number_id, wa_access_token,
                 banco_nombre, banco_titular, banco_cuit_cuil, banco_cbu_cvu, banco_alias, banco_instrucciones
             FROM saas_negocios
             WHERE id = ?
@@ -85,12 +84,7 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         $nombre_comercio = $negocio['nombre'] ?? 'Nuestro Negocio';
         $direccion_full  = trim(($negocio['direccion'] ?? '') . ' ' . ($negocio['localidad'] ?? ''));
         $direccion_fmt   = !empty($direccion_full) ? $direccion_full : '';
-        $instagram_fmt   = !empty($negocio['instagram']) ? '@' . ltrim($negocio['instagram'], '@') : '';
         $mpAccessToken   = $negocio['mp_access_token'] ?? null;
-
-        $waCreds         = obtenerCredencialesNegocioWhatsApp($pdo, $negocio_id);
-        $phoneNumberId   = $waCreds['phone_number_id'];
-        $accessToken     = $waCreds['access_token'];
 
         $permite_mp     = (int)($negocio['permite_mercadopago'] ?? 1);
         $permite_transf = (int)($negocio['permite_transferencia'] ?? 0);
@@ -164,14 +158,30 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
             return ['status' => 'error', 'message' => 'El horario seleccionado ya se encuentra ocupado o bloqueado.'];
         }
 
+        // Estado inicial y método de pago según seña
         $estado_inicial = ($monto_sena > 0) ? 'pendiente_pago' : 'confirmado';
-        $metodo_pago    = ($monto_sena > 0) ? (($permite_transf === 1) ? 'transferencia' : 'mercadopago') : null;
+        $metodo_pago    = null;
+        if ($monto_sena > 0) {
+            if ($permite_transf === 1) {
+                $metodo_pago = 'transferencia';
+            } elseif ($permite_mp === 1) {
+                $metodo_pago = 'mercadopago';
+            }
+        }
 
+        // Insertar turno en saas_turnos (listo para que el Cron lea los datos de seña)
+        // Si agregás una columna como sena_sms_enviado (DEFAULT 0), podés incluirla acá también.
         $stmtTurno = $pdo->prepare("
-            INSERT INTO saas_turnos (negocio_id, cliente_id, servicio_id, recurso_id, fecha_hora_inicio, fecha_hora_fin, estado, monto_sena, metodo_pago)
+            INSERT INTO saas_turnos (
+                negocio_id, cliente_id, servicio_id, recurso_id,
+                fecha_hora_inicio, fecha_hora_fin, estado, monto_sena, metodo_pago
+            )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmtTurno->execute([$negocio_id, $cliente_id, $servicio_id, $recurso_id, $inicio, $fin, $estado_inicial, $monto_sena, $metodo_pago]);
+        $stmtTurno->execute([
+            $negocio_id, $cliente_id, $servicio_id, $recurso_id,
+            $inicio, $fin, $estado_inicial, $monto_sena, $metodo_pago
+        ]);
         $turno_id = $pdo->lastInsertId();
 
         logTurnosHelper("Turno insertado exitosamente con ID: {$turno_id}");
@@ -184,8 +194,11 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         ");
         $stmtCobro->execute([$negocio_id, $turno_id, $telefono_cliente, $monto_cobro]);
 
+        // Generar y guardar link de Mercado Pago en saas_turnos si corresponde
         $link_pago = null;
-        if ($monto_sena > 0 && $metodo_pago === 'mercadopago' && $mpAccessToken) {
+        $mp_preference_id = null;
+
+        if ($monto_sena > 0 && $metodo_pago === 'mercadopago' && !empty($mpAccessToken)) {
             if (function_exists('generarLinkSenaMercadoPago')) {
                 $mpRes = generarLinkSenaMercadoPago(
                     $mpAccessToken,
@@ -196,49 +209,18 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
                     'https://tusecretarioia.lovar.com.ar'
                 );
 
-                if ($mpRes && isset($mpRes['init_point'])) {
-                    $link_pago = $mpRes['init_point'];
-                    $stmtUpdate = $pdo->prepare("UPDATE saas_turnos SET mp_preference_id = ?, link_pago = ? WHERE id = ?");
-                    $stmtUpdate->execute([$mpRes['preference_id'], $link_pago, $turno_id]);
+                if ($mpRes && !empty($mpRes['init_point'])) {
+                    $link_pago        = $mpRes['init_point'];
+                    $mp_preference_id = $mpRes['preference_id'] ?? null;
+
+                    $stmtUpdate = $pdo->prepare("
+                        UPDATE saas_turnos
+                        SET mp_preference_id = ?, link_pago = ?
+                        WHERE id = ?
+                    ");
+                    $stmtUpdate->execute([$mp_preference_id, $link_pago, $turno_id]);
+                    logTurnosHelper("Link de Mercado Pago guardado en saas_turnos para turno ID {$turno_id}");
                 }
-            }
-        }
-
-        $fechaFormateada = date('d/m/Y', strtotime($fecha));
-        $horaFormateada  = date('H:i', strtotime($hora));
-
-        $negocioConDetalles = $nombre_comercio;
-        if (!empty($direccion_fmt)) {
-            $negocioConDetalles .= " - Ubicación: {$direccion_fmt}";
-        }
-
-        // WhatsApp Opcional
-        if (!empty($telefono_cliente)) {
-            try {
-                if ($monto_sena > 0) {
-                    if ($metodo_pago === 'transferencia' && function_exists('enviarMensajeTransferenciaWhatsAppHelper')) {
-                        enviarMensajeTransferenciaWhatsAppHelper($telefono_cliente, $nombre_cliente, $nombre_servicio, $negocioConDetalles, $fechaFormateada, $horaFormateada, $monto_sena, $negocio, $phoneNumberId, $accessToken, $pdo, $negocio_id);
-                    } elseif (function_exists('enviarMensajeSenaWhatsAppHelper')) {
-                        enviarMensajeSenaWhatsAppHelper($telefono_cliente, $nombre_cliente, $nombre_servicio, $negocioConDetalles, $fechaFormateada, $horaFormateada, $monto_sena, $link_pago, $phoneNumberId, $accessToken, $pdo, $negocio_id);
-                    }
-                } else {
-                    if (function_exists('enviarPlantillaConfirmacionHelper')) {
-                        enviarPlantillaConfirmacionHelper($telefono_cliente, $nombre_cliente, $negocioConDetalles, $instagram_fmt, $nombre_servicio, $fechaFormateada, $horaFormateada, $phoneNumberId, $accessToken, $pdo, $negocio_id);
-                    }
-                }
-            } catch (Exception $eWa) {
-                logTurnosHelper("Aviso WhatsApp no enviado: " . $eWa->getMessage());
-            }
-        }
-
-        // DISPARAR WEB PUSH HACIA PUENTESMS (Android)
-        if (function_exists('notificarNuevoTurnoWebPush')) {
-            logTurnosHelper("Disparando WebPush para PuenteSMS...");
-            try {
-                $mensajeSMS = "Hola {$nombre_cliente}, tu turno de {$nombre_servicio} en {$nombre_comercio} quedo confirmado para el {$fechaFormateada} a las {$horaFormateada} hs.";
-                notificarNuevoTurnoWebPush($pdo, $negocio_id, $nombre_cliente, $nombre_servicio, $fecha, $hora, "SecretarioIA - Nuevo Turno", $mensajeSMS, $telefono_cliente);
-            } catch (Exception $ePush) {
-                logTurnosHelper("ERROR secundario en WebPush: " . $ePush->getMessage());
             }
         }
 
