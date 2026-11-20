@@ -1699,7 +1699,7 @@ function despacharViaWebPushServer(telefono, mensaje) {
         });
     }
 
-    function cambiarEstadoTurno(nuevoEstado) {
+function cambiarEstadoTurno(nuevoEstado) {
       if (!turnoSeleccionadoId) return;
 
       var formData = new FormData();
@@ -1711,6 +1711,25 @@ function despacharViaWebPushServer(telefono, mensaje) {
         .then(res => res.json())
         .then(res => {
           if (res.status === 'success') {
+            var estadoNorm = String(nuevoEstado || '').toLowerCase();
+            if (estadoNorm === 'cancelado' || estadoNorm === 'cancelada') {
+              // Tomá los datos desde donde los tengas guardados al abrir modalDetalle,
+              // o desde res.turno si acciones_panel.php los devuelve en el JSON
+              var turnoData = res.turno || window.turnoSeleccionadoData || {};
+              var tel = (turnoData.cliente_telefono || turnoData.telefono || '').trim();
+              var nombre = (turnoData.cliente_nombre || turnoData.nombre || 'cliente').trim();
+              var fecha = (turnoData.fecha || '').trim();
+              var hora = (turnoData.hora || '').trim();
+
+              if (tel) {
+                var detalleFechaHora = (fecha && hora)
+                  ? ` del ${fecha} a las ${hora} hs`
+                  : (fecha ? ` del ${fecha}` : '');
+                var msjCancel = `Hola ${nombre}, tu turno${detalleFechaHora} ha sido cancelado.`;
+                despacharSmsInteligente(tel, msjCancel);
+              }
+            }
+
             cerrarModal('modalDetalle');
             calendar.refetchEvents();
           } else {
