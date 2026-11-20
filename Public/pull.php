@@ -1,37 +1,67 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/config_sms.php';
+header('Content-Type: application/json; charset=utf-8');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['ok' => false, 'error' => 'Método no permitido']);
-    exit;
+function logPullDebug(string $msg, array $ctx = []): void
+{
+    $line = '[' . date('Y-m-d H:i:s') . '] ' . $msg;
+    if ($ctx !== []) {
+        $line .= ' ' . json_encode($ctx, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+    @file_put_contents(__DIR__ . '/pull_debug.log', $line . PHP_EOL, FILE_APPEND | LOCK_EX);
 }
 
-$input = readJsonInput();
-$dispositivoId = trim((string)($input['dispositivo_id'] ?? ''));
-if ($dispositivoId === '') {
-    http_response_code(422);
-    echo json_encode(['ok' => false, 'error' => 'dispositivo_id es obligatorio']);
-    exit;
-}
-
-$ventanaMinutos = max(1, min(1440, (int)($input['ventana_minutos'] ?? 180)));
-$limite         = max(1, min(200, (int)($input['limite'] ?? 50)));
-$idsLocales     = array_values(array_unique(array_filter(
-    array_map('intval', (array)($input['ids_locales_activos'] ?? [])),
-    static fn(int $id): bool => $id > 0
-)));
-
-$pdo = getPdo();
-verifyDeviceToken($pdo, $dispositivoId);
+register_shutdown_function(static function (): void {
+    $err = error_get_last();
+    if ($err !== null && in_array($err['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+        logPullDebug('FATAL_SHUTDOWN', $err);
+        if (!headers_sent()) {
+            http_response_code(500);
+        }
+        echo json_encode([
+            'ok' => false,
+            'error' => 'Error fatal en pull',
+            'debug' => $err['message'] . ' en ' . $err['file'] . ':' . $err['line'],
+        ]);
+    }
+});
 
 try {
+    logPullDebug('Inicio pull.php');
+    require_once __DIR__ . '/config_sms.php';
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['ok' => false, 'error' => 'Método no permitido']);
+        exit;
+    }
+
+    $input = readJsonInput();
+    logPullDebug('Input leído', ['has_device' => !empty($input['dispositivo_id'])]);
+
+    $dispositivoId = trim((string)($input['dispositivo_id'] ?? ''));
+    if ($dispositivoId === '') {
+        http_response_code(422);
+        echo json_encode(['ok' => false, 'error' => 'dispositivo_id es obligatorio']);
+        exit;
+    }
+
+    $ventanaMinutos = max(1, min(1440, (int)($input['ventana_minutos'] ?? 180)));
+    $limite         = max(1, min(200, (int)($input['limite'] ?? 50)));
+    $idsLocales     = array_values(array_unique(array_filter(
+        array_map('intval', (array)($input['ids_locales_activos'] ?? [])),
+        static fn(int $id): bool => $id > 0
+    )));
+
+    $pdo = getPdo();
+    logPullDebug('PDO conectado');
+
+    verifyDeviceToken($pdo, $dispositivoId);
+    logPullDebug('Token verificado', ['dispositivo_id' => $dispositivoId]);
+
     $pdo->beginTransaction();
 
-    // 1. Buscar mensajes listos para reservar dentro de la ventana
-    // Incluye 'pendiente' y 'reservado' cuya reserva venció (por corte del teléfono)
     $sqlSelect = "
         SELECT
             id,
@@ -59,6 +89,7 @@ try {
     $stmtSelect->bindValue(':limite', $limite, PDO::PARAM_INT);
     $stmtSelect->execute();
     $mensajes = $stmtSelect->fetchAll();
+    logPullDebug('Select ejecutado', ['count' => count($mensajes)]);
 
     if ($mensajes !== []) {
         $idsParaReservar = array_map(static fn(array $m): int => (int)$m['id'], $mensajes);
@@ -76,9 +107,9 @@ try {
         $stmtReserve = $pdo->prepare($sqlReserve);
         $params = array_merge([$dispositivoId], $idsParaReservar);
         $stmtReserve->execute($params);
+        logPullDebug('Reserva actualizada', ['ids' => $idsParaReservar]);
     }
 
-    // 2. Detectar cuáles de los IDs activos en el teléfono ya fueron cancelados en el servidor
     $canceladosIds = [];
     if ($idsLocales !== []) {
         $placeholdersCancel = implode(',', array_fill(0, count($idsLocales), '?'));
@@ -117,10 +148,18 @@ try {
         'cancelados_ids'=> $canceladosIds,
     ]);
 } catch (Throwable $e) {
-    if ($pdo->inTransaction()) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    error_log('SMS pull error: ' . $e->getMessage());
+    logPullDebug('EXCEPCION', [
+        'message' => $e->getMessage(),
+        'file'    => $e->getFile(),
+        'line'    => $e->getLine(),
+    ]);
     http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'Error interno en pull']);
+    echo json_encode([
+        'ok'    => false,
+        'error' => 'Error interno en pull',
+        'debug' => $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine(),
+    ]);
 }
