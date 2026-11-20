@@ -7,15 +7,15 @@ if (!isset($_SESSION['negocio_id'])) {
 }
 
 $negocio_id     = $_SESSION['negocio_id'];
-$negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
+$negocio_nombre = $_SESSION['negocio_nombre'] ?? 'Mi Negocio';
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Clientes & Promociones - <?php echo htmlspecialchars($negocio_nombre); ?></title>
-  
+  <title>Clientes & Promociones SMS - <?php echo htmlspecialchars($negocio_nombre); ?></title>
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome -->
@@ -23,7 +23,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
 
   <style>
     .badge-tag { background-color: #334155; color: #cbd5e1; font-weight: 500; padding: 2px 8px; border-radius: 6px; font-size: 11px; margin-right: 4px; }
-    .preview-whatsapp { background-color: #0b141a; border: 1px solid #1f2937; border-radius: 12px; padding: 14px; color: #e9edef; font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+    .preview-sms { background-color: #0b141a; border: 1px solid #1f2937; border-radius: 12px; padding: 14px; color: #e9edef; font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
   </style>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen select-none pb-20">
@@ -37,7 +37,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
         </a>
         <div>
           <h1 class="text-sm font-bold text-white leading-tight"><?php echo htmlspecialchars($negocio_nombre); ?></h1>
-          <p class="text-[10px] text-emerald-400 font-medium">Gestión de Clientes & Promociones</p>
+          <p class="text-[10px] text-emerald-400 font-medium">Gestión de Clientes & Promociones SMS</p>
         </div>
       </div>
 
@@ -62,18 +62,18 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
         <i class="fa-solid fa-address-book"></i> Mis Clientes
       </button>
       <button id="btnTabPromos" onclick="cambiarTab('promos'); cargarCampanas();" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-900 transition flex items-center justify-center gap-2">
-        <i class="fa-solid fa-bullhorn"></i> Campañas y Promos
+        <i class="fa-solid fa-bullhorn"></i> Campañas y Promos SMS
       </button>
     </div>
 
     <!-- PESTAÑA 1: LISTADO DE CLIENTES -->
     <div id="content-clientes" class="space-y-4">
-      
+
       <!-- Buscador y Filtros -->
       <div class="bg-slate-950 p-3 sm:p-4 rounded-2xl border border-slate-800 flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center shadow-xl">
         <div class="relative flex-1">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-500 text-xs"></i>
-          <input type="text" id="buscarCliente" class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" placeholder="Buscar por nombre o WhatsApp..." onkeyup="filtrarTablaLocal()">
+          <input type="text" id="buscarCliente" class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500" placeholder="Buscar por nombre o teléfono SMS..." onkeyup="filtrarTablaLocal()">
         </div>
         <div class="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800 self-center">
           <button type="button" class="btn-filtro-cliente active px-3 py-1.5 rounded-lg text-[11px] font-semibold bg-emerald-500 text-slate-950 transition" onclick="cargarClientes('todos', this)">Todos</button>
@@ -89,7 +89,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
             <thead class="bg-slate-900 text-slate-400 border-b border-slate-800 uppercase text-[10px] tracking-wider">
               <tr>
                 <th class="p-3 sm:p-4">Cliente</th>
-                <th class="p-3 sm:p-4">WhatsApp</th>
+                <th class="p-3 sm:p-4">Teléfono SMS</th>
                 <th class="p-3 sm:p-4">Última Visita</th>
                 <th class="p-3 sm:p-4">Turnos</th>
                 <th class="p-3 sm:p-4">Etiquetas / Notas</th>
@@ -107,11 +107,11 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
 
     <!-- PESTAÑA 2: CAMPAÑAS Y PROMOS -->
     <div id="content-promos" class="space-y-4 hidden">
-      
+
       <!-- Sub pestañas -->
       <div class="flex border-b border-slate-800 gap-4 text-xs font-semibold">
         <button id="btnSubtabNueva" onclick="cambiarSubtab('nueva')" class="pb-2 border-b-2 border-emerald-400 text-emerald-400 transition flex items-center gap-1.5">
-          <i class="fa-solid fa-plus"></i> Nueva Campaña
+          <i class="fa-solid fa-plus"></i> Nueva Campaña SMS
         </button>
         <button id="btnSubtabMonitor" onclick="cambiarSubtab('monitor'); cargarCampanas();" class="pb-2 border-b-2 border-transparent text-slate-400 hover:text-white transition flex items-center gap-1.5">
           <i class="fa-solid fa-chart-line"></i> Monitor de Campañas
@@ -120,16 +120,16 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
 
       <!-- SUB-PESTAÑA A: NUEVA CAMPAÑA -->
       <div id="content-sub-nueva" class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
+
         <div class="lg:col-span-7">
           <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-4">
             <div class="border-b border-slate-800 pb-3 flex items-center gap-2">
-              <i class="fa-solid fa-paper-plane text-emerald-400"></i>
-              <h3 class="font-bold text-white text-sm">Crear Nueva Campaña de WhatsApp</h3>
+              <i class="fa-solid fa-comment-sms text-emerald-400"></i>
+              <h3 class="font-bold text-white text-sm">Crear Nueva Campaña de SMS</h3>
             </div>
 
             <form id="formCampana" onsubmit="guardarCampana(event)" class="space-y-4 text-xs">
-              
+
               <!-- Reutilizar Plantilla -->
               <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1">
                 <label class="block text-emerald-400 font-semibold flex items-center gap-1.5">
@@ -151,7 +151,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
                   <option value="todos">Todos los clientes</option>
                   <option value="inactivos">Clientes inactivos (+30 días)</option>
                   <option value="cumpleanios">Cumpleañeros de este mes</option>
-                  <option value="manual">🎯 Seleccionar clientes individualmente</option>
+                  <option value="manual">Seleccionar clientes individualmente</option>
                 </select>
               </div>
 
@@ -162,19 +162,19 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
                   <button type="button" class="text-emerald-400 hover:underline" onclick="toggleTodosClientesManual()">Seleccionar todos</button>
                 </div>
                 <input type="text" id="buscarClienteManual" placeholder="Buscar cliente por nombre o teléfono..." onkeyup="filtrarClientesManual()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500">
-                
+
                 <div id="listaClientesManual" class="max-h-48 overflow-y-auto space-y-1 pr-1">
                   <!-- Se genera dinámicamente mediante JS -->
                 </div>
               </div>
 
               <div>
-                <label class="block text-slate-400 mb-1 font-semibold">Detalle de la Promoción</label>
+                <label class="block text-slate-400 mb-1 font-semibold">Detalle de la Promoción (SMS)</label>
                 <textarea id="campanaMensaje" rows="4" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 resize-none" placeholder="15% de descuento en todos nuestros lavados por el día de la madre..." required onkeyup="actualizarPreview()"></textarea>
               </div>
 
               <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
-                <i class="fa-solid fa-rocket"></i> Lanzar Campaña por WhatsApp
+                <i class="fa-solid fa-paper-plane"></i> Encolar Campaña SMS
               </button>
             </form>
           </div>
@@ -184,12 +184,12 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
         <div class="lg:col-span-5">
           <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3">
             <div class="border-b border-slate-800 pb-3 flex items-center gap-2">
-              <i class="fa-brands fa-whatsapp text-emerald-400"></i>
-              <h3 class="font-bold text-white text-sm">Vista Previa en Celular</h3>
+              <i class="fa-solid fa-comment-sms text-emerald-400"></i>
+              <h3 class="font-bold text-white text-sm">Vista Previa SMS en Celular</h3>
             </div>
-            
-            <div class="preview-whatsapp shadow-inner" id="whatsappPreview">
-              ¡Hola <strong>Camila</strong>! 🎁 Queríamos contarte que en <strong><?php echo htmlspecialchars($negocio_nombre); ?></strong> tenemos una promoción especial para vos: 15% de descuento en todos nuestros lavados por el día de la madre... ¡Te esperamos!
+
+            <div class="preview-sms shadow-inner" id="smsPreview">
+              Hola Camila! En <?php echo htmlspecialchars($negocio_nombre); ?> tenemos una promo especial para vos: 15% de descuento en todos nuestros lavados por el día de la madre... Te esperamos!
             </div>
           </div>
         </div>
@@ -201,7 +201,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
         <div class="bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
           <div class="p-4 border-b border-slate-800 flex justify-between items-center">
             <h3 class="font-bold text-white text-sm flex items-center gap-2">
-              <i class="fa-solid fa-list-check text-emerald-400"></i> Historial y Progreso de Envíos
+              <i class="fa-solid fa-list-check text-emerald-400"></i> Historial y Progreso de Envíos SMS
             </h3>
             <button onclick="cargarCampanas()" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1.5">
               <i class="fa-solid fa-rotate"></i> Actualizar
@@ -214,7 +214,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
                 <tr>
                   <th class="p-3 sm:p-4">Campaña</th>
                   <th class="p-3 sm:p-4">Filtro</th>
-                  <th class="p-3 sm:p-4">Progreso / Envíos</th>
+                  <th class="p-3 sm:p-4">Progreso / Envíos SMS</th>
                   <th class="p-3 sm:p-4">Estado</th>
                   <th class="p-3 sm:p-4">Fecha</th>
                   <th class="p-3 sm:p-4 text-right">Acciones</th>
@@ -244,14 +244,14 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
 
       <form id="formCliente" onsubmit="guardarCliente(event)" class="space-y-3 text-xs">
         <input type="hidden" id="clienteId">
-        
+
         <div>
           <label class="block text-slate-400 mb-1 font-semibold">Nombre Completo</label>
           <input type="text" id="clienteNombre" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500" placeholder="Ej: Camila Roldán">
         </div>
 
         <div>
-          <label class="block text-slate-400 mb-1 font-semibold">Teléfono / WhatsApp *</label>
+          <label class="block text-slate-400 mb-1 font-semibold">Teléfono SMS *</label>
           <div class="flex gap-2">
             <select id="codigoPaisCliente" onchange="validarTelefonoCliente()" class="bg-slate-950 border border-slate-800 rounded-xl px-2 py-2 text-white text-xs focus:outline-none focus:border-emerald-500 w-28 shrink-0">
               <option value="54" selected>🇦🇷 +54</option>
@@ -266,12 +266,12 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
               <option value="1">🇺🇸 +1</option>
             </select>
 
-            <input 
-              type="tel" 
-              id="clienteTelefono" 
+            <input
+              type="tel"
+              id="clienteTelefono"
               required
-              oninput="this.value = this.value.replace(/[^0-9]/g, ''); validarTelefonoCliente();" 
-              placeholder="Ej: 3511234567" 
+              oninput="this.value = this.value.replace(/[^0-9]/g, ''); validarTelefonoCliente();"
+              placeholder="Ej: 3511234567"
               class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
             >
           </div>
@@ -311,12 +311,12 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
     </div>
   </div>
 
-  <!-- MODAL: DETALLE Y DETALLE DE ENVÍOS DE CAMPAÑA -->
+  <!-- MODAL: DETALLE DE ENVÍOS SMS DE CAMPAÑA -->
   <div id="modalDetalleCampana" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <h3 class="font-bold text-white text-base flex items-center gap-2">
-          <i class="fa-solid fa-circle-info text-emerald-400"></i> Detalle de Envíos
+          <i class="fa-solid fa-circle-info text-emerald-400"></i> Detalle de Envíos SMS
         </h3>
         <button onclick="cerrarModal('modalDetalleCampana')" class="text-slate-400 hover:text-white text-lg">&times;</button>
       </div>
@@ -326,7 +326,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
           <thead class="bg-slate-950 text-slate-400 border-b border-slate-800 uppercase text-[10px] tracking-wider">
             <tr>
               <th class="p-3">Cliente</th>
-              <th class="p-3">WhatsApp</th>
+              <th class="p-3">Teléfono SMS</th>
               <th class="p-3">Estado</th>
               <th class="p-3">Fecha Envío</th>
               <th class="p-3">Detalle</th>
@@ -449,7 +449,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
       actualizarContadorClientesManual();
   }
 
-  // Validación y Normalización de Teléfono
+  // Validación y Normalización de Teléfono SMS
   function validarTelefonoCliente() {
       const codPais = document.getElementById('codigoPaisCliente').value;
       let rawTel = document.getElementById('clienteTelefono').value.replace(/[^0-9]/g, '');
@@ -485,7 +485,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
       }
 
       if (esValido) {
-          msjBox.innerHTML = `<span class="text-emerald-400 font-semibold"><i class="fa-brands fa-whatsapp"></i> Formato válido: +${numeroLimpio}</span>`;
+          msjBox.innerHTML = `<span class="text-emerald-400 font-semibold"><i class="fa-solid fa-mobile-screen-button"></i> Formato SMS válido: +${numeroLimpio}</span>`;
       } else {
           msjBox.innerHTML = `<span class="text-amber-400 font-semibold"><i class="fa-solid fa-circle-exclamation"></i> Código de área + número sin 0 ni 15. Ej: <strong>3511234567</strong></span>`;
       }
@@ -527,11 +527,11 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
       tbody.innerHTML = lista.map(c => {
           const tags = c.etiquetas ? c.etiquetas.split(',').map(t => `<span class="badge-tag">${t.trim()}</span>`).join('') : '';
           const ultimaVisita = c.ultima_visita ? new Date(c.ultima_visita).toLocaleDateString() : 'Sin visitas';
-          
+
           return `
               <tr class="hover:bg-slate-900/60 transition">
                   <td class="p-3 sm:p-4 font-semibold text-white">${c.nombre || 'Sin nombre'}</td>
-                  <td class="p-3 sm:p-4"><a href="https://wa.me/${c.telefono}" target="_blank" class="text-emerald-400 hover:underline font-medium"><i class="fa-brands fa-whatsapp me-1"></i>${c.telefono}</a></td>
+                  <td class="p-3 sm:p-4"><span class="text-emerald-400 font-medium"><i class="fa-solid fa-mobile-screen-button me-1"></i>${c.telefono}</span></td>
                   <td class="p-3 sm:p-4 text-slate-400">${ultimaVisita}</td>
                   <td class="p-3 sm:p-4"><span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md font-semibold">${c.total_turnos} turnos</span></td>
                   <td class="p-3 sm:p-4">${tags}</td>
@@ -545,8 +545,8 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
 
   function filtrarTablaLocal() {
       const query = document.getElementById('buscarCliente').value.toLowerCase();
-      const filtrados = clientesData.filter(c => 
-          (c.nombre && c.nombre.toLowerCase().includes(query)) || 
+      const filtrados = clientesData.filter(c =>
+          (c.nombre && c.nombre.toLowerCase().includes(query)) ||
           c.telefono.includes(query)
       );
       renderizarTabla(filtrados);
@@ -554,7 +554,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
 
   function guardarCliente(e) {
       e.preventDefault();
-      
+
       const valTel = validarTelefonoCliente();
       if (!valTel.numeroCompleto) {
           alert('Por favor verifique el número de teléfono ingresado.');
@@ -593,7 +593,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
 
       document.getElementById('clienteId').value = c.id;
       document.getElementById('clienteNombre').value = c.nombre || '';
-      
+
       let telLimpio = c.telefono || '';
       if (telLimpio.startsWith('549') && telLimpio.length === 13) {
           document.getElementById('codigoPaisCliente').value = '54';
@@ -602,7 +602,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
           document.getElementById('codigoPaisCliente').value = '54';
           telLimpio = telLimpio.substring(2);
       }
-      
+
       document.getElementById('clienteTelefono').value = telLimpio;
       validarTelefonoCliente();
 
@@ -625,14 +625,14 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
 
   function actualizarPreview() {
       const msg = document.getElementById('campanaMensaje').value;
-      document.getElementById('whatsappPreview').innerHTML = 
-          `¡Hola <strong>Camila</strong>! 🎁 Queríamos contarte que en <strong>${negocioNombreActual}</strong> tenemos una promoción especial para vos: ${msg} ¡Te esperamos!`;
+      document.getElementById('smsPreview').innerHTML =
+          `Hola Camila! En <strong>${negocioNombreActual}</strong> tenemos una promo especial para vos: ${msg} Te esperamos!`;
   }
 
   function guardarCampana(e) {
       e.preventDefault();
       const filtro = document.getElementById('campanaFiltro').value;
-      
+
       let clientesIds = [];
       if (filtro === 'manual') {
           clientesIds = Array.from(document.querySelectorAll('.chk-cliente-manual:checked')).map(c => parseInt(c.value));
@@ -668,7 +668,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
       });
   }
 
-  // Monitor y Gestión de Campañas
+  // Monitor y Gestión de Campañas SMS
   function cargarCampanas() {
       const tbody = document.getElementById('tbodyCampanas');
       tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-500"><i class="fa-solid fa-circle-notch fa-spin text-emerald-400 text-xl mb-2 block"></i>Cargando campañas...</td></tr>';
@@ -704,8 +704,8 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
           if (c.estado === 'completada') badgeEstado = '<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md font-semibold"><i class="fa-solid fa-check me-1"></i>Completada</span>';
           if (c.estado === 'cancelada') badgeEstado = '<span class="bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded-md font-semibold">Cancelada</span>';
 
-          const btnCancelar = c.estado === 'en_proceso' 
-              ? `<button class="text-red-400 hover:text-red-300 p-1.5 rounded-lg hover:bg-red-500/10 transition" title="Cancelar Campaña" onclick="cambiarEstadoCampana(${c.id}, 'cancelada')"><i class="fa-solid fa-ban"></i></button>` 
+          const btnCancelar = c.estado === 'en_proceso'
+              ? `<button class="text-red-400 hover:text-red-300 p-1.5 rounded-lg hover:bg-red-500/10 transition" title="Cancelar Campaña" onclick="cambiarEstadoCampana(${c.id}, 'cancelada')"><i class="fa-solid fa-ban"></i></button>`
               : '';
 
           return `
@@ -736,7 +736,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
 
   function poblarSelectPlantillas(lista) {
       const select = document.getElementById('selectPlantillas');
-      select.innerHTML = '<option value="">-- Seleccionar una campaña existente --</option>' + 
+      select.innerHTML = '<option value="">-- Seleccionar una campaña existente --</option>' +
           lista.map(c => `<option value="${c.id}">${c.titulo} (${c.filtro_etiqueta})</option>`).join('');
   }
 
@@ -758,7 +758,7 @@ $negocio_nombre =$_SESSION['negocio_nombre'] ?? 'Mi Negocio';
   }
 
   function cambiarEstadoCampana(id, nuevoEstado) {
-      if (!confirm('¿Seguro que deseas cancelar esta campaña? Los envíos pendientes no se procesarán.')) return;
+      if (!confirm('¿Seguro que deseas cancelar esta campaña SMS? Los envíos pendientes no se procesarán.')) return;
 
       fetch('api_campanas.php?action=cambiar_estado', {
           method: 'POST',

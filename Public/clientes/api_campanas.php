@@ -2,7 +2,7 @@
 // clientes/api_campanas.php
 header('Content-Type: application/json');
 session_start();
-require_once '../conexion.php'; 
+require_once '../conexion.php';
 
 $negocioId = $_SESSION['negocio_id'] ?? 4;
 $action = $_GET['action'] ?? 'crear';
@@ -12,89 +12,89 @@ try {
 
         // 1. CREAR NUEVA CAMPAÑA
         case 'crear':
-		    $data = json_decode(file_get_contents('php://input'), true);
-		    $titulo = trim($data['titulo'] ?? '');
-		    $mensaje = trim($data['mensaje'] ?? '');
-		    $filtro = $data['filtro'] ?? 'todos';
-		    $clientesIds = $data['clientes_ids'] ?? []; // Array de IDs si el filtro es manual
-		
-		    if (empty($titulo) || empty($mensaje)) {
-		        echo json_encode(['status' => 'error', 'message' => 'Título y mensaje son requeridos.']);
-		        exit;
-		    }
-		
-		    // Validación si selecciona filtro manual
-		    if ($filtro === 'manual' && empty($clientesIds)) {
-		        echo json_encode(['status' => 'error', 'message' => 'Debe seleccionar al menos un cliente.']);
-		        exit;
-		    }
-		
-		    $pdo->beginTransaction();
-		
-		    $stmt = $pdo->prepare("
-		        INSERT INTO saas_campanas_promos (negocio_id, titulo, mensaje, filtro_etiqueta, estado)
-		        VALUES (:negocio_id, :titulo, :mensaje, :filtro, 'en_proceso')
-		    ");
-		    $stmt->execute([
-		        ':negocio_id' => $negocioId,
-		        ':titulo' => $titulo,
-		        ':mensaje' => $mensaje,
-		        ':filtro' => $filtro
-		    ]);
-		    $campanaId = $pdo->lastInsertId();
-		
-		    $clientes = [];
-		
-		    if ($filtro === 'manual') {
-		        // Asegurar que sean enteros válidos que pertenezcan al negocio
-		        $inQuery = implode(',', array_map('intval', $clientesIds));
-		        if (!empty($inQuery)) {
-		            $stmtCl = $pdo->prepare("SELECT id FROM saas_clientes WHERE id IN ($inQuery) AND negocio_id = :negocio_id AND deleted_at IS NULL");
-		            $stmtCl->execute([':negocio_id' => $negocioId]);
-		            $clientes = $stmtCl->fetchAll(PDO::FETCH_COLUMN);
-		        }
-		    } else {
-		        // Lógica de filtros automáticos previos
-		        $sqlClientes = "SELECT id FROM saas_clientes WHERE negocio_id = :negocio_id AND deleted_at IS NULL";
-		
-		        if ($filtro === 'inactivos') {
-		            $sqlClientes = "
-		                SELECT c.id 
-		                FROM saas_clientes c
-		                LEFT JOIN saas_turnos t ON c.id = t.cliente_id
-		                WHERE c.negocio_id = :negocio_id AND c.deleted_at IS NULL
-		                GROUP BY c.id HAVING MAX(t.fecha_hora_inicio) < DATE_SUB(NOW(), INTERVAL 30 DAY) OR MAX(t.fecha_hora_inicio) IS NULL
-		            ";
-		        } elseif ($filtro === 'cumpleanios') {
-		            $sqlClientes .= " AND MONTH(fecha_nacimiento) = MONTH(CURRENT_DATE())";
-		        } elseif (strpos($filtro, 'etiqueta_') === 0) {
-		            $tag = str_replace('etiqueta_', '', $filtro);
-		            $sqlClientes .= " AND etiquetas LIKE " . $pdo->quote('%' . $tag . '%');
-		        }
-		
-		        $stmtCl = $pdo->prepare($sqlClientes);
-		        $stmtCl->execute([':negocio_id' => $negocioId]);
-		        $clientes = $stmtCl->fetchAll(PDO::FETCH_COLUMN);
-		    }
-		
-		    if (!empty($clientes)) {
-		        $stmtEnvio = $pdo->prepare("
-		            INSERT INTO saas_campanas_envios (campana_id, cliente_id, estado)
-		            VALUES (:campana_id, :cliente_id, 'pendiente')
-		        ");
-		        foreach ($clientes as $clienteId) {
-		            $stmtEnvio->execute([':campana_id' => $campanaId, ':cliente_id' => $clienteId]);
-		        }
-		    }
-		
-		    $pdo->commit();
-		    echo json_encode(['status' => 'success', 'message' => 'Campaña creada con ' . count($clientes) . ' destinatarios en cola.']);
-		    break;
+            $data = json_decode(file_get_contents('php://input'), true);
+            $titulo = trim($data['titulo'] ?? '');
+            $mensaje = trim($data['mensaje'] ?? '');
+            $filtro = $data['filtro'] ?? 'todos';
+            $clientesIds = $data['clientes_ids'] ?? []; // Array de IDs si el filtro es manual
+
+            if (empty($titulo) || empty($mensaje)) {
+                echo json_encode(['status' => 'error', 'message' => 'Título y mensaje son requeridos.']);
+                exit;
+            }
+
+            // Validación si selecciona filtro manual
+            if ($filtro === 'manual' && empty($clientesIds)) {
+                echo json_encode(['status' => 'error', 'message' => 'Debe seleccionar al menos un cliente.']);
+                exit;
+            }
+
+            $pdo->beginTransaction();
+
+            $stmt = $pdo->prepare("
+                INSERT INTO saas_campanas_promos (negocio_id, titulo, mensaje, filtro_etiqueta, estado)
+                VALUES (:negocio_id, :titulo, :mensaje, :filtro, 'en_proceso')
+            ");
+            $stmt->execute([
+                ':negocio_id' => $negocioId,
+                ':titulo' => $titulo,
+                ':mensaje' => $mensaje,
+                ':filtro' => $filtro
+            ]);
+            $campanaId = $pdo->lastInsertId();
+
+            $clientes = [];
+
+            if ($filtro === 'manual') {
+                // Asegurar que sean enteros válidos que pertenezcan al negocio
+                $inQuery = implode(',', array_map('intval', $clientesIds));
+                if (!empty($inQuery)) {
+                    $stmtCl = $pdo->prepare("SELECT id FROM saas_clientes WHERE id IN ($inQuery) AND negocio_id = :negocio_id AND deleted_at IS NULL");
+                    $stmtCl->execute([':negocio_id' => $negocioId]);
+                    $clientes = $stmtCl->fetchAll(PDO::FETCH_COLUMN);
+                }
+            } else {
+                // Lógica de filtros automáticos previos
+                $sqlClientes = "SELECT id FROM saas_clientes WHERE negocio_id = :negocio_id AND deleted_at IS NULL";
+
+                if ($filtro === 'inactivos') {
+                    $sqlClientes = "
+                        SELECT c.id
+                        FROM saas_clientes c
+                        LEFT JOIN saas_turnos t ON c.id = t.cliente_id
+                        WHERE c.negocio_id = :negocio_id AND c.deleted_at IS NULL
+                        GROUP BY c.id HAVING MAX(t.fecha_hora_inicio) < DATE_SUB(NOW(), INTERVAL 30 DAY) OR MAX(t.fecha_hora_inicio) IS NULL
+                    ";
+                } elseif ($filtro === 'cumpleanios') {
+                    $sqlClientes .= " AND MONTH(fecha_nacimiento) = MONTH(CURRENT_DATE())";
+                } elseif (strpos($filtro, 'etiqueta_') === 0) {
+                    $tag = str_replace('etiqueta_', '', $filtro);
+                    $sqlClientes .= " AND etiquetas LIKE " . $pdo->quote('%' . $tag . '%');
+                }
+
+                $stmtCl = $pdo->prepare($sqlClientes);
+                $stmtCl->execute([':negocio_id' => $negocioId]);
+                $clientes = $stmtCl->fetchAll(PDO::FETCH_COLUMN);
+            }
+
+            if (!empty($clientes)) {
+                $stmtEnvio = $pdo->prepare("
+                    INSERT INTO saas_campanas_envios (campana_id, cliente_id, estado)
+                    VALUES (:campana_id, :cliente_id, 'pendiente')
+                ");
+                foreach ($clientes as $clienteId) {
+                    $stmtEnvio->execute([':campana_id' => $campanaId, ':cliente_id' => $clienteId]);
+                }
+            }
+
+            $pdo->commit();
+            echo json_encode(['status' => 'success', 'message' => 'Campaña creada con ' . count($clientes) . ' destinatarios en cola.']);
+            break;
 
         // 2. LISTAR CAMPAÑAS CON MÉTRICAS DE MONITOREO
         case 'listar':
             $stmt = $pdo->prepare("
-                SELECT 
+                SELECT
                     p.id,
                     p.titulo,
                     p.mensaje,
@@ -122,7 +122,7 @@ try {
             $campanaId = $_GET['id'] ?? 0;
 
             $stmt = $pdo->prepare("
-                SELECT 
+                SELECT
                     e.id AS envio_id,
                     e.estado,
                     e.enviado_el,
@@ -152,12 +152,36 @@ try {
                 exit;
             }
 
+            $pdo->beginTransaction();
+
             $stmt = $pdo->prepare("
-                UPDATE saas_campanas_promos 
-                SET estado = :estado 
+                UPDATE saas_campanas_promos
+                SET estado = :estado
                 WHERE id = :id AND negocio_id = :negocio_id
             ");
             $stmt->execute([':estado' => $nuevoEstado, ':id' => $campanaId, ':negocio_id' => $negocioId]);
+
+            if ($nuevoEstado === 'cancelada') {
+                $stmtCancCola = $pdo->prepare("
+                    UPDATE saas_sms_cola q
+                    INNER JOIN saas_campanas_envios e ON q.referencia_id = e.id
+                    SET q.estado = 'cancelado'
+                    WHERE e.campana_id = :campana_id
+                      AND q.tipo = 'promo'
+                      AND q.estado IN ('pendiente', 'reservado')
+                ");
+                $stmtCancCola->execute([':campana_id' => $campanaId]);
+
+                $stmtCancEnv = $pdo->prepare("
+                    UPDATE saas_campanas_envios
+                    SET estado = 'cancelado'
+                    WHERE campana_id = :campana_id
+                      AND estado = 'pendiente'
+                ");
+                $stmtCancEnv->execute([':campana_id' => $campanaId]);
+            }
+
+            $pdo->commit();
 
             echo json_encode(['status' => 'success', 'message' => 'Estado de campaña actualizado.']);
             break;

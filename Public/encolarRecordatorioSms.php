@@ -404,6 +404,7 @@ if (PHP_SAPI === 'cli') {
         $recCount   = encolarTurnosProximos($pdo, 2, 6);
         $senaCount  = encolarSenasPendientes($pdo, 100);
         $promoCount = encolarPromosActivas($pdo, 50);
+        $promoCount = encolarPromosDesdeCampanas($pdo, 50);
 
         logCronSms('INFO', 'Ejecución CLI finalizada', [
             'recordatorios_encolados' => $recCount,
@@ -419,6 +420,96 @@ if (PHP_SAPI === 'cli') {
         exit(1);
     }
 }
+
+function encolarPromosDesdeCampanas(PDO $pdo, int $limitePorCorrida = 20): int
+{
+    $sql = "
+        SELECT
+            e.id AS envio_id,
+            e.campana_id,
+            e.cliente_id,
+            p.negocio_id,
+            p.mensaje AS mensaje_promo,
+            c.nombre AS cliente_nombre,
+            c.telefono AS cliente_telefono,
+            n.nombre AS negocio_nombre,
+            n.slug AS negocio_slug
+        FROM saas_campanas_envios e
+        INNER JOIN saas_campanas_promos p ON e.campana_id = p.id
+        INNER JOIN saas_clientes c ON e.cliente_id = c.id
+        INNER JOIN saas_negocios n ON p.negocio_id = n.id
+        WHERE e.estado = 'pendiente'
+          AND p.estado = 'en_proceso'
+          AND c.telefono IS NOT NULL
+          AND c.telefono <> ''
+          AND NOT EXISTS (
+              SELECT 1
+              FROM saas_sms_cola q
+              WHERE q.tipo = 'promo'
+                AND q.referencia_id = e.id
+                AND q.estado IN ('pendiente', 'reservado', 'enviado')
+          )
+        ORDER BY e.id ASC
+        LIMIT :limite
+    ";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue(':limite', $limitePorCorrida, PDO::PARAM_INT);
+    $stmt->execute();
+    $pendientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $encolados = 0;
+
+    foreach ($pendientes as $item) {
+        $telLimpio = normalizarTelefonoCola((string)$item['cliente_telefono']);
+        if ($telLimpio === '') {
+            $stmtErr = $pdo->prepare("
+                UPDATE saas_campanas_envios
+                SET estado = 'fallido', error_mensaje = 'Teléfono inválido o vacío'
+                WHERE id = :id
+            ");
+            $stmtErr->execute([':id' => (int)$item['envio_id']]);
+            continue;
+        }
+
+        $nombreCliente = trim((string)($item['cliente_nombre'] ?? ''));
+        $saludo        = $nombreCliente !== '' ? "Hola {$nombreCliente}! " : "Hola! ";
+        $negocioNombre = trim((string)($item['negocio_nombre'] ?? ''));
+        $textoPromo    = trim((string)($item['mensaje_promo'] ?? ''));
+        $slug          = trim((string)($item['negocio_slug'] ?? ''));
+
+        $mensaje = $saludo
+            . ($negocioNombre !== '' ? "{$negocioNombre}: " : "")
+            . $textoPromo;
+
+        if ($slug !== '') {
+            $mensaje .= " Reservá en: https://tusecretarioia.lovar.com.ar/reserva.php?slug=" . $slug;
+        }
+
+        $ahora = date('Y-m-d H:i:s');
+        $expira = date('Y-m-d H:i:s', strtotime('+7 days'));
+
+        // Prioridad más alta (ej. 20) que recordatorios (5) y señas (3) para no tapar turnos próximos
+        encolarSmsCola(
+            $pdo,
+            'promo',
+            (int)$item['negocio_id'],
+            null,
+            (int)$item['cliente_id'],
+            $telLimpio,
+            $mensaje,
+            $ahora,
+            $expira,
+            (int)$item['envio_id'],
+            20
+        );
+
+        $encolados++;
+    }
+
+    return $encolados;
+}
+
 /*
 ####[cite: 2, 3, 4, 5]
 
