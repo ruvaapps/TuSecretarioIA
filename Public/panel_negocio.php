@@ -397,6 +397,9 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
 
             <!-- SUBMENÚ 4: CANALES Y AJUSTES -->
             <div>
+              <a href="instalar_puentesms.php" class="w-full text-left pl-9 pr-4 py-2 text-emerald-400 font-semibold hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-mobile-screen-button w-3.5"></i> Descargar PuenteSMS
+              </a>
               <button type="button" onclick="toggleSubmenu('subAjustes', 'chevAjustes')" class="w-full px-4 py-2.5 flex items-center justify-between text-slate-200 hover:bg-slate-800/70 font-semibold transition">
                 <span class="flex items-center gap-2.5">
                   <i class="fa-solid fa-sliders text-amber-400 w-4"></i> Canales y Ajustes
