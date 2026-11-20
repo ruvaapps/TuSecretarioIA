@@ -1700,43 +1700,46 @@ function despacharViaWebPushServer(telefono, mensaje) {
     }
 
 function cambiarEstadoTurno(nuevoEstado) {
-      if (!turnoSeleccionadoId) return;
+  if (!turnoSeleccionadoId) return;
 
-      var formData = new FormData();
-      formData.append('accion', 'cambiar_estado');
-      formData.append('turno_id', turnoSeleccionadoId);
-      formData.append('estado', nuevoEstado);
+  var formData = new FormData();
+  formData.append('accion', 'cambiar_estado');
+  formData.append('turno_id', turnoSeleccionadoId);
+  formData.append('estado', nuevoEstado);
 
-      fetch('acciones_panel.php', { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(res => {
-          if (res.status === 'success') {
-            var estadoNorm = String(nuevoEstado || '').toLowerCase();
-            if (estadoNorm === 'cancelado' || estadoNorm === 'cancelada') {
-              // Tomá los datos desde donde los tengas guardados al abrir modalDetalle,
-              // o desde res.turno si acciones_panel.php los devuelve en el JSON
-              var turnoData = res.turno || window.turnoSeleccionadoData || {};
-              var tel = (turnoData.cliente_telefono || turnoData.telefono || '').trim();
-              var nombre = (turnoData.cliente_nombre || turnoData.nombre || 'cliente').trim();
-              var fecha = (turnoData.fecha || '').trim();
-              var hora = (turnoData.hora || '').trim();
+  fetch('acciones_panel.php', { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === 'success') {
+        var estadoNorm = String(nuevoEstado || '').toLowerCase();
+        if ((estadoNorm === 'cancelado' || estadoNorm === 'cancelada') && res.turno) {
+          var tel = String(res.turno.cliente_telefono || '').trim();
+          var nombre = String(res.turno.cliente_nombre || 'cliente').trim();
+          var fecha = String(res.turno.fecha || '').trim();
+          var hora = String(res.turno.hora || '').trim();
+          var negocio = String(res.turno.negocio_nombre || '').trim();
 
-              if (tel) {
-                var detalleFechaHora = (fecha && hora)
-                  ? ` del ${fecha} a las ${hora} hs`
-                  : (fecha ? ` del ${fecha}` : '');
-                var msjCancel = `Hola ${nombre}, tu turno${detalleFechaHora} ha sido cancelado.`;
-                despacharSmsInteligente(tel, msjCancel);
-              }
-            }
+          if (tel) {
+            var detalleFechaHora = (fecha && hora)
+              ? ` del ${fecha} a las ${hora} hs`
+              : (fecha ? ` del ${fecha}` : '');
+            var msjCancel = `Hola ${nombre}, tu turno${detalleFechaHora} ha sido cancelado.` + (negocio ? ` (${negocio})` : '');
 
-            cerrarModal('modalDetalle');
-            calendar.refetchEvents();
-          } else {
-            alert('Error: ' + res.message);
+            despacharSmsInteligente(tel, msjCancel);
           }
-        });
-    }
+        }
+
+        cerrarModal('modalDetalle');
+        calendar.refetchEvents();
+      } else {
+        alert('Error: ' + (res.message || 'No se pudo actualizar el turno.'));
+      }
+    })
+    .catch(err => {
+      console.error('Error al cambiar estado:', err);
+      alert('Error de comunicación con el servidor.');
+    });
+}
 
     function abrirModalRecursos() {
       document.getElementById('modalRecursos').classList.remove('hidden');
