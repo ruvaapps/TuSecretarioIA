@@ -1047,7 +1047,36 @@ try {
             echo json_encode(['status' => 'success', 'message' => 'Estado actualizado correctamente']);
         }
         exit;
-  } elseif ($accion === 'obtener_horarios_disponibles') {
+  
+        } elseif ($accion === 'despachar_sms_push') {
+    require_once __DIR__ . '/turnos_helper.php';
+
+    $telefono = trim($inputJSON['telefono'] ?? ($_POST['telefono'] ?? ''));
+    $mensaje  = trim($inputJSON['mensaje'] ?? ($_POST['mensaje'] ?? ''));
+
+    if (!$negocio_id || $mensaje === '') {
+        echo json_encode(['status' => 'error', 'message' => 'Datos incompletos para enviar push']);
+        exit;
+    }
+
+    if (function_exists('notificarNuevoTurnoWebPush')) {
+        notificarNuevoTurnoWebPush(
+            $pdo,
+            (int)$negocio_id,
+            'Cliente',
+            'Turno',
+            date('Y-m-d'),
+            date('H:i:s'),
+            'SecretarioIA - Aviso de Turno',
+            $mensaje,
+            $telefono !== '' ? $telefono : null
+        );
+    }
+
+    logAccionesPanel("WebPush despachado vía despachar_sms_push para Negocio ID: {$negocio_id}");
+    echo json_encode(['status' => 'success', 'message' => 'Notificación push enviada']);
+    exit;
+        } elseif ($accion === 'obtener_horarios_disponibles') {
         $fecha       = $_GET['fecha'] ?? '';
         $servicio_id = isset($_GET['servicio_id']) ? (int)$_GET['servicio_id'] : null;
         $recurso_id  = (!empty($_GET['recurso_id']) && (int)$_GET['recurso_id'] > 0) ? (int)$_GET['recurso_id'] : null;
