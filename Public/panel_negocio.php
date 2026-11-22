@@ -108,7 +108,7 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
                     if (function_exists('crearPlantillasBaseMeta')) {
                         crearPlantillasBaseMeta($waba_id, $access_token);
                     }
-                file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 5.1] ¡Cargando Webhook...\n", FILE_APPEND);
+                    file_put_contents(__DIR__ . '/oauth_debug.log', date('Y-m-d H:i:s') . " - [LOG PASO 5.1] ¡Cargando Webhook...\n", FILE_APPEND);
 
                     if (function_exists('suscribirWebhookCliente')) {
                         suscribirWebhookCliente($waba_id, $access_token);
@@ -322,77 +322,111 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
           <span class="hidden sm:inline">Instalar App</span>
         </button>
 
-        <div class="relative">
-          <button onclick="toggleMenu()" id="btnMenu" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 w-10 h-10 rounded-xl flex items-center justify-center text-base transition">
+<div class="relative">
+          <button onclick="toggleMenu()" id="btnMenu" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 w-10 h-10 rounded-xl flex items-center justify-center text-base transition" title="Menú">
             <i class="fa-solid fa-bars"></i>
           </button>
 
-          <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-50 overflow-hidden py-1">
+          <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-64 max-h-[80vh] overflow-y-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-50 py-1.5 text-xs">
             <div class="px-4 py-2 border-b border-slate-800 text-[11px] text-slate-400 font-semibold uppercase tracking-wider">
               Opciones del Panel
             </div>
 
-            <a href="clientes/index.php" class="w-full text-left px-4 py-2.5 text-xs text-emerald-400 font-semibold hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-users-gear text-emerald-400 w-4"></i> Clientes & Promociones
-            </a>
+            <!-- SUBMENÚ 1: CLIENTES Y DIFUSIÓN -->
+            <div class="border-b border-slate-800/70">
+              <button type="button" onclick="toggleSubmenu('subClientes', 'chevClientes')" class="w-full px-4 py-2.5 flex items-center justify-between text-slate-200 hover:bg-slate-800/70 font-semibold transition">
+                <span class="flex items-center gap-2.5">
+                  <i class="fa-solid fa-users text-emerald-400 w-4"></i> Clientes y Difusión
+                </span>
+                <i id="chevClientes" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"></i>
+              </button>
+              <div id="subClientes" class="hidden bg-slate-950/60 py-1 space-y-0.5">
+                <a href="clientes/index.php" class="w-full text-left pl-9 pr-4 py-2 text-emerald-400 font-semibold hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-users-gear w-3.5"></i> Clientes & Promociones
+                </a>
+                <button type="button" onclick="abrirModalEnviarListaPrecios(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-file-invoice-dollar text-emerald-400 w-3.5"></i> Enviar Lista de Precios
+                </button>
+                <button type="button" onclick="abrirModalQR(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-qrcode text-emerald-400 w-3.5"></i> Mis Enlaces y QR
+                </button>
+              </div>
+            </div>
 
-            <button onclick="abrirModalWhatsAppNegocio(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-emerald-400 font-semibold hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-brands fa-whatsapp text-emerald-400 w-4"></i> Conectar Mi WhatsApp Business
-            </button>
+            <!-- SUBMENÚ 2: AGENDA Y ESPACIOS -->
+            <div class="border-b border-slate-800/70">
+              <button type="button" onclick="toggleSubmenu('subAgenda', 'chevAgenda')" class="w-full px-4 py-2.5 flex items-center justify-between text-slate-200 hover:bg-slate-800/70 font-semibold transition">
+                <span class="flex items-center gap-2.5">
+                  <i class="fa-solid fa-calendar-check text-emerald-400 w-4"></i> Agenda y Espacios
+                </span>
+                <i id="chevAgenda" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"></i>
+              </button>
+              <div id="subAgenda" class="hidden bg-slate-950/60 py-1 space-y-0.5">
+                <button type="button" onclick="abrirModalHorarios(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-clock text-emerald-400 w-3.5"></i> Configurar Horarios
+                </button>
+                <button type="button" onclick="abrirModalServicios(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-list-check text-emerald-400 w-3.5"></i> Configurar Servicios
+                </button>
+                <button type="button" onclick="abrirModalRecursos(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-emerald-400 font-semibold hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-cubes w-3.5"></i> Recursos / Espacios
+                </button>
+              </div>
+            </div>
 
-            <button onclick="abrirModalMercadoPago(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-credit-card text-sky-400 w-4"></i> Conectar Mercado Pago
-            </button>
+            <!-- SUBMENÚ 3: COBROS Y PAGOS -->
+            <div class="border-b border-slate-800/70">
+              <button type="button" onclick="toggleSubmenu('subCobros', 'chevCobros')" class="w-full px-4 py-2.5 flex items-center justify-between text-slate-200 hover:bg-slate-800/70 font-semibold transition">
+                <span class="flex items-center gap-2.5">
+                  <i class="fa-solid fa-wallet text-sky-400 w-4"></i> Cobros y Pagos
+                </span>
+                <i id="chevCobros" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"></i>
+              </button>
+              <div id="subCobros" class="hidden bg-slate-950/60 py-1 space-y-0.5">
+                <button type="button" onclick="abrirModalRevisionPagos(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-amber-300 font-semibold hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-receipt text-amber-400 w-3.5"></i> Revisar Comprobantes
+                </button>
+                <button type="button" onclick="abrirModalDatosCobro(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-building-columns text-emerald-400 w-3.5"></i> Cobros / Transferencia
+                </button>
+                <button type="button" onclick="abrirModalMercadoPago(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-credit-card text-sky-400 w-3.5"></i> Conectar Mercado Pago
+                </button>
+              </div>
+            </div>
 
-            <button onclick="abrirModalEnviarListaPrecios(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-file-invoice-dollar text-emerald-400 w-4"></i> Enviar Lista de Precios
-            </button>
+            <!-- SUBMENÚ 4: CANALES Y AJUSTES -->
+            <div>
+              <button type="button" onclick="toggleSubmenu('subAjustes', 'chevAjustes')" class="w-full px-4 py-2.5 flex items-center justify-between text-slate-200 hover:bg-slate-800/70 font-semibold transition">
+                <span class="flex items-center gap-2.5">
+                  <i class="fa-solid fa-sliders text-amber-400 w-4"></i> Canales y Ajustes
+                </span>
+                <i id="chevAjustes" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"></i>
+              </button>
+              <div id="subAjustes" class="hidden bg-slate-950/60 py-1 space-y-0.5">
+                <a href="instalar_puentesms.php" class="w-full text-left pl-9 pr-4 py-2 text-emerald-400 font-semibold hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-mobile-screen-button w-3.5"></i> Descargar PuenteSMS
+                </a>
+                <button type="button" onclick="abrirModalDomicilio(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-location-dot text-emerald-400 w-3.5"></i> Configurar Domicilio
+                </button>
+                <button type="button" onclick="abrirModalInstagram(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-brands fa-instagram text-emerald-400 w-3.5"></i> Configurar Instagram
+                </button>
+                <button type="button" onclick="abrirModalAlerta(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-bell text-emerald-400 w-3.5"></i> Alerta Resumen Diario
+                </button>
+                <button type="button" onclick="toggleSuscripcionPush(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-bell text-amber-400 w-3.5"></i> Notificaciones Push
+                </button>
+              </div>
+            </div>
 
-            <button onclick="abrirModalDatosCobro(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-building-columns text-emerald-400 w-4"></i> Configurar Cobros / Transferencia
-            </button>
-
-            <button onclick="abrirModalRevisionPagos(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-amber-300 hover:bg-slate-800 flex items-center gap-2.5 transition font-semibold">
-              <i class="fa-solid fa-receipt text-amber-400 w-4"></i> Revisar Comprobantes
-            </button>
-
-            <button onclick="toggleSuscripcionPush(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-bell text-amber-400 w-4"></i> Notificaciones Push
-            </button>
-
-            <button onclick="abrirModalHorarios(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-clock text-emerald-400 w-4"></i> Configurar Horarios
-            </button>
-
-            <button onclick="abrirModalServicios(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-list-check text-emerald-400 w-4"></i> Configurar Servicios
-            </button>
-
-            <button onclick="abrirModalRecursos(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-emerald-400 font-semibold hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-cubes text-emerald-400 w-4"></i> Recursos / Espacios
-            </button>
-
-            <button onclick="abrirModalDomicilio(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-location-dot text-emerald-400 w-4"></i> Configurar Domicilio
-            </button>
-
-            <button onclick="abrirModalInstagram(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-brands fa-instagram text-emerald-400 w-4"></i> Configurar Instagram
-            </button>
-
-            <button onclick="abrirModalAlerta(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-bell text-emerald-400 w-4"></i> Alerta Resumen Diario
-            </button>
-
-            <button onclick="abrirModalQR(); toggleMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-qrcode text-emerald-400 w-4"></i> Mis Enlaces y QR
-            </button>
-
-            <div class="border-t border-slate-800 my-1"></div>
-
-            <a href="logout.php" class="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-500/10 flex items-center gap-2.5 transition">
-              <i class="fa-solid fa-right-from-bracket w-4"></i> Cerrar Sesión
-            </a>
+            <div class="border-t border-slate-800 mt-1 pt-1">
+              <a href="logout.php" class="w-full text-left px-4 py-2.5 text-red-400 hover:bg-red-500/10 flex items-center gap-2.5 transition">
+                <i class="fa-solid fa-right-from-bracket w-4"></i> Cerrar Sesión
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -1257,6 +1291,66 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
       verificarSuscripcionPush();
     });
 
+    /**
+     * Función para despachar SMS detectando si se ejecuta desde Android (Deep Link local)
+     * o respaldo vía WebPush desde la PC.
+     */
+/**
+ * Despacha el SMS localmente si está en Android, evitando el disparo de WebPush.
+ */
+function despacharSmsInteligente(telefono, mensaje) {
+  const esAndroid = /Android/i.test(navigator.userAgent);
+  const telLimpio = telefono.replace(/[^0-9]/g, '');
+
+  if (!esAndroid) {
+    despacharViaWebPushServer(telLimpio, mensaje);
+    return false;
+  }
+
+  const payload = JSON.stringify({
+    phone: telLimpio,
+    message: mensaje
+  });
+
+  // Intento 1: POST estándar hacia LocalServer :8080
+  fetch('http://127.0.0.1:8080/send', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: payload
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} desde LocalServer`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      console.log("SMS despachado vía LocalServer :8080:", data);
+    })
+    .catch((err) => {
+      console.warn("POST estándar a :8080 falló, probando fallback push...", err);
+      despacharViaWebPushServer(telLimpio, mensaje);
+    });
+
+  return true;
+}
+function despacharViaWebPushServer(telefono, mensaje) {
+  fetch('acciones_panel.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      accion: 'despachar_sms_push',
+      telefono: telefono,
+      mensaje: mensaje
+    })
+  })
+  .then(res => res.json())
+  .then(data => console.log("Respuesta WebPush servidor:", data))
+  .catch(err => console.error("Error WebPush:", err));
+}
+
     function filtrarCalendarioPorRecurso() {
       recursoFiltroActual = document.getElementById('filtroRecursoCalendario').value;
       if (calendar) {
@@ -1426,6 +1520,16 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
     function toggleMenu() {
       const menu = document.getElementById('dropdownMenu');
       menu.classList.toggle('hidden');
+    }
+
+    function toggleSubmenu(subId, chevId) {
+      const sub = document.getElementById(subId);
+      const chev = document.getElementById(chevId);
+      if (!sub) return;
+      sub.classList.toggle('hidden');
+      if (chev) {
+        chev.classList.toggle('rotate-180');
+      }
     }
 
     window.addEventListener('click', function(e) {
@@ -1623,6 +1727,12 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         .then(res => res.json())
         .then(res => {
           if (res.status === 'success') {
+            // Invocar despacho inteligente de aviso SMS
+            if (validacionTel.numeroCompleto) {
+              const msjSms = `Hola ${document.getElementById('inputNombre').value}, tu turno ha sido agendado para el ${document.getElementById('inputFecha').value} a las ${hora} hs.`;
+              despacharSmsInteligente(validacionTel.numeroCompleto, msjSms);
+            }
+
             cerrarModal('modalNuevoTurno');
             calendar.refetchEvents();
             document.getElementById('formNuevoTurno').reset();
@@ -1633,25 +1743,47 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
         });
     }
 
-    function cambiarEstadoTurno(nuevoEstado) {
-      if (!turnoSeleccionadoId) return;
+function cambiarEstadoTurno(nuevoEstado) {
+  if (!turnoSeleccionadoId) return;
 
-      var formData = new FormData();
-      formData.append('accion', 'cambiar_estado');
-      formData.append('turno_id', turnoSeleccionadoId);
-      formData.append('estado', nuevoEstado);
+  var formData = new FormData();
+  formData.append('accion', 'cambiar_estado');
+  formData.append('turno_id', turnoSeleccionadoId);
+  formData.append('estado', nuevoEstado);
 
-      fetch('acciones_panel.php', { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(res => {
-          if (res.status === 'success') {
-            cerrarModal('modalDetalle');
-            calendar.refetchEvents();
-          } else {
-            alert('Error: ' + res.message);
+  fetch('acciones_panel.php', { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === 'success') {
+        var estadoNorm = String(nuevoEstado || '').toLowerCase();
+        if ((estadoNorm === 'cancelado' || estadoNorm === 'cancelada') && res.turno) {
+          var tel = String(res.turno.cliente_telefono || '').trim();
+          var nombre = String(res.turno.cliente_nombre || 'cliente').trim();
+          var fecha = String(res.turno.fecha || '').trim();
+          var hora = String(res.turno.hora || '').trim();
+          var negocio = String(res.turno.negocio_nombre || '').trim();
+
+          if (tel) {
+            var detalleFechaHora = (fecha && hora)
+              ? ` del ${fecha} a las ${hora} hs`
+              : (fecha ? ` del ${fecha}` : '');
+            var msjCancel = `Hola ${nombre}, tu turno${detalleFechaHora} ha sido cancelado.` + (negocio ? ` (${negocio})` : '');
+
+            despacharSmsInteligente(tel, msjCancel);
           }
-        });
-    }
+        }
+
+        cerrarModal('modalDetalle');
+        calendar.refetchEvents();
+      } else {
+        alert('Error: ' + (res.message || 'No se pudo actualizar el turno.'));
+      }
+    })
+    .catch(err => {
+      console.error('Error al cambiar estado:', err);
+      alert('Error de comunicación con el servidor.');
+    });
+}
 
     function abrirModalRecursos() {
       document.getElementById('modalRecursos').classList.remove('hidden');
@@ -2487,6 +2619,10 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
           btnSubmit.innerHTML = textOriginal;
 
           if (res.status === 'success') {
+            // Invocar despacho inteligente de aviso SMS al cliente
+            const msjSmsLP = `Hola ${nombreCliente}, te enviamos el presupuesto solicitado de ${negocio_nombre}.`;
+            despacharSmsInteligente(validTel.numeroCompleto, msjSmsLP);
+
             alert('¡Lista de precios enviada correctamente!');
             cerrarModal('modalEnviarListaPrecios');
           } else {
@@ -2500,6 +2636,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
           alert('Ocurrió un error al procesar la solicitud.');
         });
     }
+
 // Función para calcular CRC16 (requerido por el estándar EMVCo / BCRA)
 function calcularCRC16(str) {
   let crc = 0xFFFF;

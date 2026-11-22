@@ -15,6 +15,11 @@ $access_token    = "EAAUJIfJBzp0BSdlljUGVo0bDbADhLC6I6ilZCVZBBtBqXmWMZBckitoaIfd
 date_default_timezone_set('America/Argentina/Cordoba');
 $ahora = date('Y-m-d H:i:s');
 
+// Cargar helper para WebPush (PuenteSMS)
+if (file_exists(__DIR__ . '/turnos_helper.php')) {
+    require_once __DIR__ . '/turnos_helper.php';
+}
+
 function guardarLog($mensaje) {
     $fecha = date('Y-m-d H:i:s');
     file_put_contents(__DIR__ . '/log.txt', "[{$fecha}] {$mensaje}\n", FILE_APPEND);
@@ -25,21 +30,21 @@ function guardarLog($mensaje) {
  */
 function normalizarTelefonoMeta($telefono) {
     $num = preg_replace('/[^0-9]/', '', $telefono);
-    
+
     if (str_starts_with($num, '0')) {
         $num = substr($num, 1);
     }
-    
+
     if (str_starts_with($num, '15')) {
         $num = substr($num, 2);
     }
-    
+
     if (!str_starts_with($num, '549') && !str_starts_with($num, '54')) {
         $num = '549' . $num;
     } elseif (str_starts_with($num, '54') && !str_starts_with($num, '549')) {
         $num = '549' . substr($num, 2);
     }
-    
+
     return $num;
 }
 
@@ -179,9 +184,10 @@ $stmtRec->close();
 // 2. PROCESAR RECORDATORIOS DE TURNOS (Tabla: saas_turnos - 2 hs antes)
 // =========================================================================
 
-$sqlTurnos = "SELECT 
+$sqlTurnos = "SELECT
                 t.id AS turno_id,
                 t.negocio_id,
+                c.nombre AS cliente_nombre,
                 c.telefono AS cliente_telefono,
                 s.nombre AS servicio_nombre,
                 n.nombre AS negocio_nombre,
@@ -202,54 +208,83 @@ $resultTurnos = $stmtTurnos->get_result();
 
 while ($row = $resultTurnos->fetch_assoc()) {
     $turnoId        = $row['turno_id'];
+    $negocioId      = (int)$row['negocio_id'];
+    $clienteNombre  = $row['cliente_nombre'] ?? 'Cliente';
     $telefonoCliente= normalizarTelefonoMeta($row['cliente_telefono']);
-    $tituloEvento   = "Turno de " . $row['servicio_nombre'] . " en " . $row['negocio_nombre'];
+    $servicioNombre = $row['servicio_nombre'];
+    $negocioNombre  = $row['negocio_nombre'];
     $horaStr        = date('d/m/Y H:i', strtotime($row['fecha_hora_inicio']));
 
-    // Envio usando la plantilla simple existente
-    // En la sección 2 de procesar_avisos.php
+    // 1. Envío por WhatsApp
+    $payloadTurno = [
+        'messaging_product' => 'whatsapp',
+        'to' => $telefonoCliente,
+        'type' => 'interactive',
+        'interactive' => [
+            'type' => 'button',
+            'body' => [
+                'text' => "⏰ *Recordatorio de Turno*\n\nHola {$clienteNombre}, tenés un turno de *{$servicioNombre}* en *{$negocioNombre}* para las *{$horaStr} hs*.\n\n¿Nos confirmás tu asistencia?"
+            ],
+            'action' => [
+                'buttons' => [
+                    [
+                        'type' => 'reply',
+                        'reply' => [
+                            'id' => 'confirmar_turno_' . $turnoId,
+                            'title' => '✅ Confirmar'
+                        ]
+                    ],
+                    [
+                        'type' => 'reply',
+                        'reply' => [
+                            'id' => 'cancelar_turno_' . $turnoId,
+                            'title' => '❌ Cancelar'
+                        ]
+                    ]
+                ]
+            ]
+        ]
+    ];
 
-		$payloadTurno = [
-		    'messaging_product' => 'whatsapp',
-		    'to' => $telefonoCliente,
-		    'type' => 'interactive',
-		    'interactive' => [
-		        'type' => 'button',
-		        'body' => [
-		            'text' => "⏰ *Recordatorio de Turno*\n\nTenés un turno de *{$row['servicio_nombre']}* en *{$row['negocio_nombre']}* para el *{$horaStr} hs*.\n\n¿Nos confirmás tu asistencia?"
-		        ],
-		        'action' => [
-		            'buttons' => [
-		                [
-		                    'type' => 'reply',
-		                    'reply' => [
-		                        'id' => 'confirmar_turno_' . $turnoId,
-		                        'title' => '✅ Confirmar'
-		                    ]
-		                ],
-		                [
-		                    'type' => 'reply',
-		                    'reply' => [
-		                        'id' => 'cancelar_turno_' . $turnoId,
-		                        'title' => '❌ Cancelar'
-		                    ]
-		                ]
-		            ]
-		        ]
-		    ]
-		];
+    $resTurno = enviarMensajeWhatsApp($phone_number_id, $access_token, $payloadTurno, $conn, $negocioId);
 
-    $resTurno = enviarMensajeWhatsApp($phone_number_id, $access_token, $payloadTurno, $conn, (int)$row['negocio_id']);
+    // 2. DISPARAR WEB PUSH HACIA PUENTESMS (Android)
+    if (function_exists('notificarNuevoTurnoWebPush')) {
+        try {
+            // Reutilizamos la conexión PDO global si existe o construimos una rápida
+            global $pdo;
+            if (!$pdo) {
+                $pdo = new PDO("mysql:host={$host};dbname={$db_name};charset=utf8", $db_user, $db_pass);
+            }
 
-    if ($resTurno['http_code'] == 200) {
-        $update_turno = $conn->prepare("UPDATE saas_turnos SET recordatorio_enviado = 1 WHERE id = ?");
-        $update_turno->bind_param("i", $turnoId);
-        $update_turno->execute();
-        $update_turno->close();
-        guardarLog("ÉXITO TURNO [ID {$turnoId}]: Recordatorio enviado a {$telefonoCliente}.");
-    } else {
-        guardarLog("ERROR TURNO [ID {$turnoId} | HTTP {$resTurno['http_code']}]: " . $resTurno['response']);
+            $fechaTurno = date('Y-m-d', strtotime($row['fecha_hora_inicio']));
+            $horaTurno  = date('H:i:s', strtotime($row['fecha_hora_inicio']));
+            $mensajeSMS = "Hola {$clienteNombre}, te recordamos tu turno de {$servicioNombre} en {$negocioNombre} para hoy a las " . date('H:i', strtotime($row['fecha_hora_inicio'])) . " hs.";
+
+            notificarNuevoTurnoWebPush(
+                $pdo,
+                $negocioId,
+                $clienteNombre,
+                $servicioNombre,
+                $fechaTurno,
+                $horaTurno,
+                "SecretarioIA - Recordatorio",
+                $mensajeSMS,
+                $row['cliente_telefono']
+            );
+            guardarLog("ÉXITO PUSH PUENTESMS [ID {$turnoId}]: WebPush enviado a app.");
+        } catch (Exception $ePush) {
+            guardarLog("ERROR PUSH PUENTESMS [ID {$turnoId}]: " . $ePush->getMessage());
+        }
     }
+
+    // Marcar como recordatorio enviado
+    $update_turno = $conn->prepare("UPDATE saas_turnos SET recordatorio_enviado = 1 WHERE id = ?");
+    $update_turno->bind_param("i", $turnoId);
+    $update_turno->execute();
+    $update_turno->close();
+
+    guardarLog("ÉXITO TURNO [ID {$turnoId}]: Recordatorio procesado a {$telefonoCliente}.");
 }
 $stmtTurnos->close();
 

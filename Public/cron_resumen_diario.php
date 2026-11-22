@@ -1,70 +1,39 @@
 <?php
 // cron_resumen_diario.php
 
-// 1. Incluimos la conexión a la base de datos
-require_once __DIR__ . '/conexion.php'; 
-
-// 2. Credenciales globales de Meta / WhatsApp API
-define('WHATSAPP_PHONE_NUMBER_ID', '1297893416744537');
-define('WHATSAPP_ACCESS_TOKEN', 'EAAUJIfJBzp0BSdlljUGVo0bDbADhLC6I6ilZCVZBBtBqXmWMZBckitoaIfdlQKqXEZCIM7hRFESbifOTgFkF9CmiIwFB4rYxrTYhP2HTGpRZAuHbX8594DCgnE64PHjVxTEMYBGvsi8UvUtROzB1VioWurXTctZAeVg7xAxbDYLgdcoBSzFUCn5G4IZABNvtZAUZApQZDZD');
+require_once __DIR__ . '/conexion.php';
+require_once __DIR__ . '/turnos_helper.php';
 
 date_default_timezone_set('America/Argentina/Cordoba');
 $fechaHoy        = date('Y-m-d');
 $fechaFormateada = date('d/m/Y');
 $horaActual      = date('H:i'); // Ej: "08:00"
 
-/**
- * Normaliza el número de teléfono para Meta (ej: 549351xxxxxxx)
- */
-function normalizarTelefonoMeta($telefono) {
-    $num = preg_replace('/[^0-9]/', '', $telefono);
-    
-    if (str_starts_with($num, '0')) {
-        $num = substr($num, 1);
-    }
-    
-    if (str_starts_with($num, '15')) {
-        $num = substr($num, 2);
-    }
-    
-    if (!str_starts_with($num, '549') && !str_starts_with($num, '54')) {
-        $num = '549' . $num;
-    } elseif (str_starts_with($num, '54') && !str_starts_with($num, '549')) {
-        $num = '549' . substr($num, 2);
-    }
-    
-    return $num;
-}
-
 try {
-    // 3. Obtener negocios activos que tengan la alerta activada y coincidan con la hora actual
+    // 1. Obtener negocios activos con alerta activada y coincidencia horaria
     $sqlNegocios = "
-        SELECT n.id, n.nombre, n.telefono_dueno 
+        SELECT n.id, n.nombre
         FROM saas_negocios n
         INNER JOIN saas_configuracion_agenda c ON n.id = c.negocio_id
-        WHERE n.estado = 'activo' 
-          AND n.telefono_dueno IS NOT NULL 
-          AND n.telefono_dueno != ''
+        WHERE n.estado = 'activo'
           AND c.alerta_resumen_activa = 1
           AND TIME_FORMAT(c.alerta_resumen_hora, '%H:%i') = :hora_actual
     ";
-    
+
     $stmtNegocios = $pdo->prepare($sqlNegocios);
     $stmtNegocios->execute([':hora_actual' => $horaActual]);
     $negocios = $stmtNegocios->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($negocios as $negocio) {
-        $negocioId       = $negocio['id'];
-        $telefonoDestino = normalizarTelefonoMeta($negocio['telefono_dueno']);
-        $nombreComercio  = $negocio['nombre'];
+        $negocioId      = (int)$negocio['id'];
+        $nombreComercio = $negocio['nombre'] ?? 'Negocio';
 
-        // 4. Consultar cantidad de turnos del día
+        // 2. Consultar cantidad de turnos del día
         $sqlTurnos = "
-            SELECT COUNT(*) 
-            FROM saas_turnos 
-            WHERE negocio_id = :negocio_id 
-              AND DATE(fecha_hora_inicio) = :fecha_hoy 
-              AND estado IN ('reservado', 'confirmado')
+            SELECT COUNT(*)
+            FROM saas_turnos
+            WHERE negocio_id = :negocio_id
+              AND DATE(fecha_hora_inicio) = :fecha_hoy
         ";
 
         $stmtTurnos = $pdo->prepare($sqlTurnos);
@@ -72,66 +41,32 @@ try {
             ':negocio_id' => $negocioId,
             ':fecha_hoy'  => $fechaHoy
         ]);
-        $cantTurnos = $stmtTurnos->fetchColumn();
+        $cantTurnos = (int)$stmtTurnos->fetchColumn();
 
-        // 5. Enviar plantilla de WhatsApp
-        enviarPlantillaResumenDiario($pdo, $negocioId, $telefonoDestino, $nombreComercio, $fechaFormateada, $cantTurnos);
-    }
-} catch (PDOException $e) {
-    error_log("Error en ejecucion de CRON Resumen Diario: " . $e->getMessage());
-}
+        // 3. Enviar resumen diario vía WebPush
+        $titulo = "Resumen diario - {$nombreComercio}";
+        $cuerpo = "Hoy ({$fechaFormateada}) tenés {$cantTurnos} turno(s) reservado(s)/confirmado(s).";
 
-/**
- * Función para enviar la plantilla 'resumen_diario_agenda' por WhatsApp Cloud API
- */
-function enviarPlantillaResumenDiario($pdo, $negocioId, $to, $nombreComercio, $fecha, $cantTurnos) {
-    $url = "https://graph.facebook.com/v20.0/" . WHATSAPP_PHONE_NUMBER_ID . "/messages";
+        if (function_exists('notificarNuevoTurnoWebPush')) {
+            notificarNuevoTurnoWebPush(
+                $pdo,
+                $negocioId,
+                $nombreComercio,
+                'Resumen Diario',
+                $fechaHoy,
+                $horaActual . ':00',
+                $titulo,
+                $cuerpo,
+                null
+            );
 
-    $payload = [
-        'messaging_product' => 'whatsapp',
-        'to' => $to,
-        'type' => 'template',
-        'template' => [
-            'name' => 'resumen_diario_agenda',
-            'language' => ['code' => 'es_AR'],
-            'components' => [
-                [
-                    'type' => 'body',
-                    'parameters' => [
-                        ['type' => 'text', 'text' => $nombreComercio], // {{1}}
-                        ['type' => 'text', 'text' => $fecha],          // {{2}}
-                        ['type' => 'text', 'text' => (string)$cantTurnos] // {{3}}
-                    ]
-                ]
-            ]
-        ]
-    ];
-
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        "Authorization: Bearer " . WHATSAPP_ACCESS_TOKEN,
-        "Content-Type: application/json"
-    ]);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    $result = curl_exec($ch);
-    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($httpCode >= 200 && $httpCode < 300) {
-        try {
-            $telefonoNorm = preg_replace('/[^0-9]/', '', (string)$to);
-            $stmtCli = $pdo->prepare("SELECT id FROM saas_clientes WHERE negocio_id = ? AND telefono = ? LIMIT 1");
-            $stmtCli->execute([$negocioId, $telefonoNorm]);
-            $clienteId = $stmtCli->fetchColumn() ?: null;
-
-            $stmtLog = $pdo->prepare("INSERT INTO saas_whatsapp_mensajes_log (negocio_id, cliente_id, telefono_destino, tipo_mensaje, origen, costo_unitario) VALUES (?, ?, ?, ?, 'app_shared', 0.00)");
-            $stmtLog->execute([$negocioId, $clienteId, $telefonoNorm, 'template']);
-        } catch (Exception $e) {
-            error_log("Error registrando log WhatsApp resumen diario: " . $e->getMessage());
+            if (function_exists('logTurnosHelper')) {
+                logTurnosHelper("Resumen diario WebPush procesado para negocio_id={$negocioId} ({$cantTurnos} turnos)");
+            }
+        } else {
+            error_log("notificarNuevoTurnoWebPush no disponible en cron_resumen_diario.php");
         }
     }
-
-    return $result;
+} catch (PDOException $e) {
+    error_log("Error en ejecucion de CRON Resumen Diario (WebPush): " . $e->getMessage());
 }

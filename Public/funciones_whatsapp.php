@@ -66,10 +66,14 @@ if (!function_exists('registrarLogWhatsAppFacturable')) {
  * FUNCIÓN CENTRALIZADA INTELIGENTE: Decide qué credenciales usar y registra el log si es compartido.
  */
 function ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $telefono, $tipo_mensaje = 'text') {
+    logWhatsApp("Iniciando ejecución de cURL para WhatsApp a {$telefono}");
+
     $telefono      = normalizarTelefonoMeta($telefono);
     $accessToken   = WHATSAPP_ACCESS_TOKEN;
     $phoneNumberId = WHATSAPP_PHONE_NUMBER_ID;
     $origenLog     = 'app_shared';
+
+    logWhatsApp("Configurando credenciales: accessToken={$accessToken}, phoneNumberId={$phoneNumberId}");
 
     // 1. Temporalmente se deshabilita el modo own para operar 100% por canal compartido.
     if (WHATSAPP_OWN_MODE_ENABLED && $pdo && $negocio_id) {
@@ -83,6 +87,9 @@ function ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $telefono,
                     $accessToken   = trim($negocioWa['wa_access_token']);
                     $phoneNumberId = trim($negocioWa['wa_phone_number_id']);
                     $origenLog     = 'business_own';
+                    logWhatsApp("Cambiando a modo propio con accessToken={$accessToken}, phoneNumberId={$phoneNumberId}");
+                } else {
+                    logWhatsApp("Credenciales de modo propio no configuradas");
                 }
             }
         } catch (Exception $e) {
@@ -93,6 +100,8 @@ function ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $telefono,
     // Configurar destinatario y URL de la API de Meta
     $payload['to'] = $telefono;
     $url = "https://graph.facebook.com/v20.0/{$phoneNumberId}/messages";
+
+    logWhatsApp("Configurando payload y URL: payload={$payload}, url={$url}");
 
     // 2. Ejecutar petición cURL a Meta
     $ch = curl_init($url);
@@ -107,6 +116,8 @@ function ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $telefono,
     $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err = curl_error($ch);
     curl_close($ch);
+
+    logWhatsApp("Respuesta de cURL: httpCode={$httpCode}, err={$err}");
 
     $msgLog = $err ? "ERROR cURL enviando WhatsApp a {$telefono} [Modo: {$origenLog}]: {$err}" : "Respuesta API WhatsApp para {$telefono} [Modo: {$origenLog}]: {$res}";
 
@@ -138,6 +149,8 @@ function ejecutarCurlWhatsApp($url, $payload, $telefono) {
 // -----------------------------------------------------------------------------
 
 function enviarPlantillaConfirmacion($to, $nombreCliente, $nombreNegocio, $instagram, $nombreServicio, $fechaFmt, $horaFmt, $pdo = null, $negocio_id = null) {
+    logWhatsApp("Iniciando función enviarPlantillaConfirmacion para {$to}");
+
     $payload = [
         'messaging_product' => 'whatsapp',
         'type' => 'template',
@@ -160,10 +173,14 @@ function enviarPlantillaConfirmacion($to, $nombreCliente, $nombreNegocio, $insta
         ]
     ];
 
+    logWhatsApp("Configurando payload para confirmación: payload={$payload}");
+
     return ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $to, 'template');
 }
 
 function enviarMensajeSenaWhatsApp($to, $nombreCliente, $nombreServicio, $nombreNegocio, $fechaFmt, $horaFmt, $montoSena, $linkPago, $pdo = null, $negocio_id = null) {
+    logWhatsApp("Iniciando función enviarMensajeSenaWhatsApp para {$to}");
+
     $payload = [
         'messaging_product' => 'whatsapp',
         'type' => 'template',
@@ -187,10 +204,14 @@ function enviarMensajeSenaWhatsApp($to, $nombreCliente, $nombreServicio, $nombre
         ]
     ];
 
+    logWhatsApp("Configurando payload para mensaje de sена: payload={$payload}");
+
     return ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $to, 'template');
 }
 
 function enviarMensajeTransferenciaWhatsApp($to, $nombreCliente, $nombreServicio, $nombreNegocio, $fechaFmt, $horaFmt, $montoSena, $datosBanco, $pdo = null, $negocio_id = null) {
+    logWhatsApp("Iniciando función enviarMensajeTransferenciaWhatsApp para {$to}");
+
     $bancoNombre  = !empty($datosBanco['banco_nombre']) ? $datosBanco['banco_nombre'] : 'Consultar';
     $bancoTitular = !empty($datosBanco['banco_titular']) ? $datosBanco['banco_titular'] : 'Consultar';
     $bancoAlias   = !empty($datosBanco['banco_alias']) ? $datosBanco['banco_alias'] : 'No especificado';
@@ -222,10 +243,14 @@ function enviarMensajeTransferenciaWhatsApp($to, $nombreCliente, $nombreServicio
         ]
     ];
 
+    logWhatsApp("Configurando payload para mensaje de transferencia: payload={$payload}");
+
     return ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $to, 'template');
 }
 
 function enviarPlantillaCancelacion($to, $nombreCliente, $fechaFmt, $horaFmt, $nombreNegocio, $pdo = null, $negocio_id = null) {
+    logWhatsApp("Iniciando función enviarPlantillaCancelacion para {$to}");
+
     $payload = [
         'messaging_product' => 'whatsapp',
         'type' => 'template',
@@ -245,6 +270,8 @@ function enviarPlantillaCancelacion($to, $nombreCliente, $fechaFmt, $horaFmt, $n
             ]
         ]
     ];
+
+    logWhatsApp("Configurando payload para cancelación: payload={$payload}");
 
     return ejecutarCurlWhatsAppInteligente($pdo, $negocio_id, $payload, $to, 'template');
 }

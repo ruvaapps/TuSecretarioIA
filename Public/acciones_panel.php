@@ -990,7 +990,7 @@ try {
         }
         exit;
 
-    } elseif ($accion === 'cambiar_estado') {
+} elseif ($accion === 'cambiar_estado') {
         logAccionesPanel("Entro a cambiar estado");
 
         require_once __DIR__ . '/turnos_helper.php';
@@ -1005,12 +1005,41 @@ try {
             exit;
         }
 
-        logAccionesPanel("el nuevo estado es: ".$nuevo_estado);
+        logAccionesPanel("el nuevo estado es: " . $nuevo_estado);
 
         if ($nuevo_estado === 'cancelado') {
             logAccionesPanel("llama al cancelar del helper");
 
+            $stmtInfo = $pdo->prepare("
+                SELECT
+                    t.id,
+                    t.negocio_id,
+                    t.cliente_id,
+                    t.servicio_id,
+                    t.fecha_hora_inicio,
+                    DATE_FORMAT(t.fecha_hora_inicio, '%d/%m/%Y') AS fecha,
+                    DATE_FORMAT(t.fecha_hora_inicio, '%H:%i') AS hora,
+                    c.nombre AS cliente_nombre,
+                    c.telefono AS cliente_telefono,
+                    s.nombre AS servicio_nombre,
+                    n.nombre AS negocio_nombre
+                FROM saas_turnos t
+                INNER JOIN saas_clientes c ON t.cliente_id = c.id
+                LEFT JOIN saas_servicios s ON t.servicio_id = s.id
+                LEFT JOIN saas_negocios n ON t.negocio_id = n.id
+                WHERE t.id = ? AND t.negocio_id = ?
+                LIMIT 1
+            ");
+            $stmtInfo->execute([$turno_id, $negocio_id]);
+            $turnoInfo = $stmtInfo->fetch(PDO::FETCH_ASSOC) ?: null;
+
             $res = cancelarTurnoCompleto($pdo, $turno_id, $negocio_id);
+
+            if (!is_array($res)) {
+                $res = ['status' => 'success', 'message' => 'Turno cancelado correctamente'];
+            }
+            $res['turno'] = $turnoInfo;
+
             echo json_encode($res);
         } else {
             $stmt = $pdo->prepare("UPDATE saas_turnos SET estado = ? WHERE id = ? AND negocio_id = ?");
@@ -1018,8 +1047,36 @@ try {
             echo json_encode(['status' => 'success', 'message' => 'Estado actualizado correctamente']);
         }
         exit;
+  
+        } elseif ($accion === 'despachar_sms_push') {
+    require_once __DIR__ . '/turnos_helper.php';
 
-    } elseif ($accion === 'obtener_horarios_disponibles') {
+    $telefono = trim($inputJSON['telefono'] ?? ($_POST['telefono'] ?? ''));
+    $mensaje  = trim($inputJSON['mensaje'] ?? ($_POST['mensaje'] ?? ''));
+
+    if (!$negocio_id || $mensaje === '') {
+        echo json_encode(['status' => 'error', 'message' => 'Datos incompletos para enviar push']);
+        exit;
+    }
+
+    if (function_exists('notificarNuevoTurnoWebPush')) {
+        notificarNuevoTurnoWebPush(
+            $pdo,
+            (int)$negocio_id,
+            'Cliente',
+            'Turno',
+            date('Y-m-d'),
+            date('H:i:s'),
+            'SecretarioIA - Aviso de Turno',
+            $mensaje,
+            $telefono !== '' ? $telefono : null
+        );
+    }
+
+    logAccionesPanel("WebPush despachado vía despachar_sms_push para Negocio ID: {$negocio_id}");
+    echo json_encode(['status' => 'success', 'message' => 'Notificación push enviada']);
+    exit;
+        } elseif ($accion === 'obtener_horarios_disponibles') {
         $fecha       = $_GET['fecha'] ?? '';
         $servicio_id = isset($_GET['servicio_id']) ? (int)$_GET['servicio_id'] : null;
         $recurso_id  = (!empty($_GET['recurso_id']) && (int)$_GET['recurso_id'] > 0) ? (int)$_GET['recurso_id'] : null;
