@@ -41,7 +41,7 @@ try {
     // ------------------------------------------------------------------
     // PASO 1: Intercambiar 'code' por User Access Token
     // ------------------------------------------------------------------
-    //$redirect_uri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
+    //$redirect_uri = 'https://tusecretarioia.lovar.com.ar/panel_negocio.php';
 
     // ------------------------------------------------------------------
         // PASO 1: Intercambiar 'code' por User Access Token
@@ -51,7 +51,7 @@ try {
         //$referer = $_SERVER['HTTP_REFERER'] ?? '';
         //$redirect_uri = strtok($referer, '?'); // Limpiamos parámetros GET si tuviera
 
-        $redirect_uri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
+        $redirect_uri = 'https://tusecretarioia.lovar.com.ar/panel_negocio.php';
 
         // REGISTRO DE LOG (Guarda los datos en un archivo de texto en el servidor)
         $log_data = date('Y-m-d H:i:s') . " - Code recibido: " . $code . " | Redirect URI enviado: " . $redirect_uri . "\n";

@@ -13,7 +13,7 @@ if (isset($_GET['code']) && isset($_SESSION['negocio_id'])) {
     define('META_APP_ID', '1417416286523037');
     define('META_APP_SECRET', '3c23c1b8ca6001aa4cdf4f1677145372');
     define('GRAPH_API_VERSION', 'v20.0');
-    $redirect_uri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
+    $redirect_uri = 'https://tusecretarioia.lovar.com.ar/panel_negocio.php';
 
     $token_url = "https://graph.facebook.com/" . GRAPH_API_VERSION . "/oauth/access_token?" . http_build_query([
         'client_id'     => META_APP_ID,
@@ -3099,7 +3099,7 @@ function launchWhatsAppSignup() {
   //alert('La conexión de WhatsApp Business propio está temporalmente deshabilitada. Por ahora se utiliza el canal compartido de la app.');
   //return;
   const appId = '1417416286523037';
-  const redirectUri = 'https://tusecretarioia.lovar.com.ar/Desarrollo/panel_negocio.php';
+  const redirectUri = 'https://tusecretarioia.lovar.com.ar/panel_negocio.php';
   const scope = 'whatsapp_business_management,whatsapp_business_messaging';
 
   // Mostramos indicador de carga visual
