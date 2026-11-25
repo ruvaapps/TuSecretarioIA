@@ -44,7 +44,7 @@ function readJsonInput(): array
     return $data;
 }
 
-function verifyDeviceToken(PDO $pdo, string $dispositivoId): void
+function verifyDeviceToken(PDO $pdo, string $dispositivoId): array
 {
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     if (!preg_match('/^Bearer\s+(.+)$/i', $authHeader, $matches)) {
@@ -55,16 +55,36 @@ function verifyDeviceToken(PDO $pdo, string $dispositivoId): void
 
     $token = trim($matches[1]);
 
-    // Si tenés tabla saas_sms_dispositivos (id, dispositivo_id, token_hash, activo):
     $stmt = $pdo->prepare(
-        'SELECT token_hash, activo FROM saas_sms_dispositivos WHERE dispositivo_id = :dev LIMIT 1'
+        'SELECT id, negocio_id, dispositivo_id, token_hash, activo
+         FROM saas_sms_dispositivos
+         WHERE dispositivo_id = :dev
+         LIMIT 1'
     );
     $stmt->execute([':dev' => $dispositivoId]);
     $row = $stmt->fetch();
 
-    if (!$row || !(bool)$row['activo'] || !hash_equals((string)$row['token_hash'], hash('sha256', $token))) {
+    if (
+        !$row ||
+        !(bool)$row['activo'] ||
+        (int)($row['negocio_id'] ?? 0) <= 0 ||
+        !hash_equals((string)$row['token_hash'], hash('sha256', $token))
+    ) {
         http_response_code(403);
         echo json_encode(['ok' => false, 'error' => 'Dispositivo no autorizado']);
         exit;
     }
+
+    $upd = $pdo->prepare(
+        'UPDATE saas_sms_dispositivos
+         SET ultimo_visto_at = NOW(), actualizado_at = NOW()
+         WHERE id = :id'
+    );
+    $upd->execute([':id' => (int)$row['id']]);
+
+    return [
+        'id'             => (int)$row['id'],
+        'negocio_id'     => (int)$row['negocio_id'],
+        'dispositivo_id' => (string)$row['dispositivo_id'],
+    ];
 }

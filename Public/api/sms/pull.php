@@ -57,8 +57,8 @@ try {
     $pdo = getPdo();
     logPullDebug('PDO conectado');
 
-    verifyDeviceToken($pdo, $dispositivoId);
-    logPullDebug('Token verificado', ['dispositivo_id' => $dispositivoId]);
+    $dispositivo = verifyDeviceToken($pdo, $dispositivoId);
+    $negocioId = $dispositivo['negocio_id'];
 
     $pdo->beginTransaction();
 
@@ -75,7 +75,8 @@ try {
             expires_at,
             intentos
         FROM saas_sms_cola
-        WHERE (
+        WHERE negocio_id = :negocio_id
+          AND (
                 estado = 'pendiente'
                 OR (estado = 'reservado' AND reservado_hasta IS NOT NULL AND reservado_hasta < NOW())
               )
@@ -87,6 +88,7 @@ try {
     ";
 
     $stmtSelect = $pdo->prepare($sqlSelect);
+    $stmtSelect->bindValue(':negocio_id', $negocioId, PDO::PARAM_INT);
     $stmtSelect->bindValue(':ventana', $ventanaMinutos, PDO::PARAM_INT);
     $stmtSelect->bindValue(':limite', $limite, PDO::PARAM_INT);
     $stmtSelect->execute();
@@ -118,11 +120,12 @@ try {
         $sqlCancel = "
             SELECT id
             FROM saas_sms_cola
-            WHERE id IN ({$placeholdersCancel})
+            WHERE negocio_id = ?
+              AND id IN ({$placeholdersCancel})
               AND estado = 'cancelado'
         ";
         $stmtCancel = $pdo->prepare($sqlCancel);
-        $stmtCancel->execute($idsLocales);
+        $stmtCancel->execute(array_merge([$negocioId], $idsLocales));
         $canceladosIds = array_map(
             static fn(array $r): int => (int)$r['id'],
             $stmtCancel->fetchAll()

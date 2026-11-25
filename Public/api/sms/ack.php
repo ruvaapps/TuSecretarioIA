@@ -20,7 +20,8 @@ if ($dispositivoId === '' || !is_array($resultados)) {
 }
 
 $pdo = getPdo();
-verifyDeviceToken($pdo, $dispositivoId);
+$dispositivo = verifyDeviceToken($pdo, $dispositivoId);
+$negocioId = $dispositivo['negocio_id'];
 
 $estadosPermitidos = ['enviado', 'fallido'];
 $procesadosIds = [];
@@ -39,6 +40,7 @@ try {
             ultimo_error = :ultimo_error,
             sincronizado_at = NOW()
         WHERE id = :id
+          AND negocio_id = :negocio_id
           AND estado <> 'cancelado'
     ";
     $stmt = $pdo->prepare($sqlUpdate);

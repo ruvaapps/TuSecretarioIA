@@ -407,6 +407,9 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
                 <a href="instalar_puentesms.php" class="w-full text-left pl-9 pr-4 py-2 text-emerald-400 font-semibold hover:bg-slate-800 flex items-center gap-2 transition">
                   <i class="fa-solid fa-mobile-screen-button w-3.5"></i> Descargar PuenteSMS
                 </a>
+                <button type="button" onclick="abrirModalCodigoSms(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-sky-300 font-semibold hover:bg-slate-800 flex items-center gap-2 transition">
+                  <i class="fa-solid fa-key w-3.5"></i> Código Vinculación SMS
+                </button>
                 <button type="button" onclick="abrirModalDomicilio(); toggleMenu();" class="w-full text-left pl-9 pr-4 py-2 text-slate-200 hover:bg-slate-800 flex items-center gap-2 transition">
                   <i class="fa-solid fa-location-dot text-emerald-400 w-3.5"></i> Configurar Domicilio
                 </button>
@@ -476,6 +479,44 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
   <button onclick="abrirModalNuevoTurno()" class="fixed bottom-6 right-6 w-14 h-14 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-full flex items-center justify-center text-xl shadow-2xl shadow-emerald-500/40 z-30 transition transform active:scale-95">
     <i class="fa-solid fa-plus"></i>
   </button>
+
+<!-- MODAL: CÓDIGO DE VINCULACIÓN PUENTESMS -->
+<div id="modalCodigoSms" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+  <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-5 space-y-4 shadow-2xl">
+    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+      <h3 class="font-bold text-white text-base flex items-center gap-2">
+        <i class="fa-solid fa-key text-sky-400"></i> Vincular Celular PuenteSMS
+      </h3>
+      <button onclick="cerrarModal('modalCodigoSms')" class="text-slate-400 hover:text-white text-lg">&times;</button>
+    </div>
+
+    <div class="space-y-3 text-xs">
+      <p class="text-slate-400 leading-relaxed">
+        Generá un código temporal de 6 dígitos e ingresalo en la app <strong class="text-slate-200">PuenteSMS</strong> del celular que enviará los SMS de tu negocio.
+      </p>
+
+      <div>
+        <label class="block text-slate-400 mb-1 font-semibold">Etiqueta sugerida para el equipo (opcional)</label>
+        <input type="text" id="smsEtiquetaEquipo" placeholder="Ej: Celular Mostrador" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-sky-500">
+      </div>
+
+      <button type="button" id="btnGenerarCodigoSms" onclick="generarCodigoVinculacionSms()" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+        <i class="fa-solid fa-rotate"></i> Generar Código de 6 Dígitos
+      </button>
+
+      <div id="resultadoCodigoSms" class="hidden bg-slate-950 border border-emerald-500/30 rounded-xl p-4 text-center space-y-2">
+        <div class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Código de vinculación</div>
+        <div id="textoCodigoSms" class="text-3xl font-extrabold tracking-[0.35em] text-emerald-400 font-mono select-all">------</div>
+        <div id="vencimientoCodigoSms" class="text-[11px] text-amber-300"></div>
+        <button type="button" onclick="copiarCodigoSms()" id="btnCopiarCodigoSms" class="mt-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-4 py-1.5 rounded-lg transition inline-flex items-center gap-1.5">
+          <i class="fa-regular fa-copy"></i> Copiar Código
+        </button>
+      </div>
+
+      <div id="errorCodigoSms" class="hidden text-red-400 text-xs bg-red-500/10 border border-red-500/30 rounded-xl p-2.5"></div>
+    </div>
+  </div>
+</div>
 
   <!-- MODAL: REVISIÓN DE COMPROBANTES / TRANSFERENCIAS -->
   <div id="modalRevisionPagos" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
@@ -1298,6 +1339,70 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
 /**
  * Despacha el SMS localmente si está en Android, evitando el disparo de WebPush.
  */
+function abrirModalCodigoSms() {
+  document.getElementById('resultadoCodigoSms').classList.add('hidden');
+  document.getElementById('errorCodigoSms').classList.add('hidden');
+  document.getElementById('textoCodigoSms').innerText = '------';
+  document.getElementById('vencimientoCodigoSms').innerText = '';
+  document.getElementById('modalCodigoSms').classList.remove('hidden');
+}
+
+function generarCodigoVinculacionSms() {
+  const btn = document.getElementById('btnGenerarCodigoSms');
+  const resBox = document.getElementById('resultadoCodigoSms');
+  const errBox = document.getElementById('errorCodigoSms');
+  const etiqueta = document.getElementById('smsEtiquetaEquipo').value.trim();
+
+  resBox.classList.add('hidden');
+  errBox.classList.add('hidden');
+
+  const htmlOriginal = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Generando...`;
+
+  fetch('api/sms/generar-codigo.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ nombre: etiqueta })
+  })
+    .then(res => res.json())
+    .then(data => {
+      btn.disabled = false;
+      btn.innerHTML = htmlOriginal;
+
+      if (data && data.ok && data.codigo) {
+        document.getElementById('textoCodigoSms').innerText = String(data.codigo);
+        document.getElementById('vencimientoCodigoSms').innerText = data.vence_at
+          ? ('Válido hasta: ' + data.vence_at)
+          : 'Código temporal activo';
+        resBox.classList.remove('hidden');
+      } else {
+        errBox.innerText = (data && (data.error || data.message)) || 'No se pudo generar el código.';
+        errBox.classList.remove('hidden');
+      }
+    })
+    .catch(err => {
+      btn.disabled = false;
+      btn.innerHTML = htmlOriginal;
+      console.error('Error al generar código SMS:', err);
+      errBox.innerText = 'Error de comunicación con el servidor.';
+      errBox.classList.remove('hidden');
+    });
+}
+
+function copiarCodigoSms() {
+  const codigo = document.getElementById('textoCodigoSms').innerText.trim();
+  if (!codigo || codigo === '------') return;
+
+  navigator.clipboard.writeText(codigo).then(() => {
+    const btn = document.getElementById('btnCopiarCodigoSms');
+    const orig = btn.innerHTML;
+    btn.innerHTML = `<i class="fa-solid fa-check"></i> ¡Copiado!`;
+    setTimeout(() => { btn.innerHTML = orig; }, 1800);
+  });
+}
+
 function despacharSmsInteligente(telefono, mensaje) {
   const esAndroid = /Android/i.test(navigator.userAgent);
   const telLimpio = telefono.replace(/[^0-9]/g, '');
