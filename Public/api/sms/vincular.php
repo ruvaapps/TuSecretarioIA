@@ -2,7 +2,13 @@
 // vincular.php
 header('Content-Type: application/json; charset=utf-8');
 
-$input = json_decode(file_get_contents('php://input'), true);
+// Ajustá esta ruta a tu archivo de conexión que define $pdo
+require_once __DIR__ . '/../../conexion.php';
+
+$rawInput = file_get_contents('php://input');
+error_log('[vincular.php] RAW INPUT: ' . ($rawInput !== false ? $rawInput : '<false>'));
+
+$input = json_decode($rawInput ?: '', true);
 if (!is_array($input)) {
     $input = $_POST;
 }
@@ -11,9 +17,19 @@ $codigo = trim($input['codigo'] ?? '');
 $dispositivoId = trim($input['dispositivo_id'] ?? '');
 $nombre = trim($input['nombre'] ?? '');
 
+error_log('[vincular.php] Datos parseados -> codigo=' . $codigo . ' | dispositivo_id=' . $dispositivoId . ' | nombre=' . $nombre);
+
 if ($codigo === '' || $dispositivoId === '') {
+    error_log('[vincular.php] Rechazado por falta de codigo o dispositivo_id');
     http_response_code(400);
     echo json_encode(['ok' => false, 'error' => 'Faltan codigo o dispositivo_id']);
+    exit;
+}
+
+if (!isset($pdo) || !($pdo instanceof PDO)) {
+    error_log('[vincular.php] ERROR CRÍTICO: $pdo no está inicializado o no es instancia de PDO');
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'error' => 'Error de conexión a la base de datos en el servidor']);
     exit;
 }
 
@@ -31,6 +47,7 @@ try {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$row) {
+        error_log('[vincular.php] Código inexistente: ' . $codigo);
         $pdo->rollBack();
         http_response_code(404);
         echo json_encode(['ok' => false, 'error' => 'Código inexistente']);
@@ -38,6 +55,7 @@ try {
     }
 
     if (!empty($row['usado_at'])) {
+        error_log('[vincular.php] Código ya utilizado: ' . $codigo . ' (usado_at=' . $row['usado_at'] . ')');
         $pdo->rollBack();
         http_response_code(409);
         echo json_encode(['ok' => false, 'error' => 'El código ya fue utilizado']);
@@ -45,6 +63,7 @@ try {
     }
 
     if (strtotime($row['vence_at']) < time()) {
+        error_log('[vincular.php] Código vencido: ' . $codigo . ' (vence_at=' . $row['vence_at'] . ')');
         $pdo->rollBack();
         http_response_code(410);
         echo json_encode(['ok' => false, 'error' => 'El código venció']);
@@ -80,6 +99,7 @@ try {
             ':token_hash' => $tokenHash,
             ':id'         => $existente['id'],
         ]);
+        error_log('[vincular.php] Dispositivo actualizado id=' . $existente['id'] . ' negocio_id=' . $negocioId);
     } else {
         $insDisp = $pdo->prepare("
             INSERT INTO saas_sms_dispositivos
@@ -93,6 +113,7 @@ try {
             ':nombre'         => $nombreFinal,
             ':token_hash'     => $tokenHash,
         ]);
+        error_log('[vincular.php] Dispositivo insertado dispositivo_id=' . $dispositivoId . ' negocio_id=' . $negocioId);
     }
 
     $marcarUsado = $pdo->prepare("
@@ -103,6 +124,7 @@ try {
     $marcarUsado->execute([':id' => $row['id']]);
 
     $pdo->commit();
+    error_log('[vincular.php] Vinculación exitosa para codigo=' . $codigo . ' negocio_id=' . $negocioId);
 
     echo json_encode([
         'ok'           => true,
@@ -111,9 +133,13 @@ try {
         'nombre'       => $nombreFinal,
     ]);
 } catch (Throwable $e) {
-    if ($pdo->inTransaction()) {
+    error_log('[vincular.php] EXCEPCIÓN: ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
     http_response_code(500);
-    echo json_encode(['ok' => false, 'error' => 'Error al vincular dispositivo']);
+    echo json_encode([
+        'ok'    => false,
+        'error' => 'Error al vincular dispositivo: ' . $e->getMessage(),
+    ]);
 }
