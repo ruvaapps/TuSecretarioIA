@@ -1245,6 +1245,7 @@ $link_instagram = $protocolo . $dominio . $directorio . "/reserva.php?slug=" . $
     const diasNombres = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
     const VAPID_PUBLIC_KEY = '<?php echo VAPID_PUBLIC_KEY; ?>';
+    const NOMBRE_NEGOCIO = <?php echo json_encode($negocio_nombre, JSON_UNESCAPED_UNICODE); ?> || 'nuestro comercio';
 
     var mapaDomicilio = null;
     var marcadorDomicilio = null;
@@ -1833,8 +1834,11 @@ function despacharViaWebPushServer(telefono, mensaje) {
         .then(res => {
           if (res.status === 'success') {
             // Invocar despacho inteligente de aviso SMS
+            // Invocar despacho inteligente de aviso SMS
             if (validacionTel.numeroCompleto) {
-              const msjSms = `Hola ${document.getElementById('inputNombre').value}, tu turno ha sido agendado para el ${document.getElementById('inputFecha').value} a las ${hora} hs.`;
+              const nombreCli = document.getElementById('inputNombre').value.trim();
+              const fechaSel = document.getElementById('inputFecha').value;
+              const msjSms = `Hola ${nombreCli}, tu turno en ${NOMBRE_NEGOCIO} ha sido agendado para el ${fechaSel} a las ${hora} hs.`;
               despacharSmsInteligente(validacionTel.numeroCompleto, msjSms);
             }
 
@@ -1869,13 +1873,14 @@ function cambiarEstadoTurno(nuevoEstado) {
           var negocio = String(res.turno.negocio_nombre || '').trim();
 
           if (tel) {
-            var detalleFechaHora = (fecha && hora)
-              ? ` del ${fecha} a las ${hora} hs`
-              : (fecha ? ` del ${fecha}` : '');
-            var msjCancel = `Hola ${nombre}, tu turno${detalleFechaHora} ha sido cancelado.` + (negocio ? ` (${negocio})` : '');
+          var nombreComercio = negocio || NOMBRE_NEGOCIO;
+          var detalleFechaHora = (fecha && hora)
+            ? ` del ${fecha} a las ${hora} hs`
+            : (fecha ? ` del ${fecha}` : '');
+          var msjCancel = `Hola ${nombre}, tu turno en ${nombreComercio}${detalleFechaHora} ha sido cancelado.`;
 
-            despacharSmsInteligente(tel, msjCancel);
-          }
+          despacharSmsInteligente(tel, msjCancel);
+        }
         }
 
         cerrarModal('modalDetalle');
@@ -2723,9 +2728,9 @@ function cambiarEstadoTurno(nuevoEstado) {
           btnSubmit.disabled = false;
           btnSubmit.innerHTML = textOriginal;
 
-          if (res.status === 'success') {
+        if (res.status === 'success') {
             // Invocar despacho inteligente de aviso SMS al cliente
-            const msjSmsLP = `Hola ${nombreCliente}, te enviamos el presupuesto solicitado de ${negocio_nombre}.`;
+            const msjSmsLP = `Hola ${nombreCliente}, te enviamos el presupuesto solicitado de ${NOMBRE_NEGOCIO}.`;
             despacharSmsInteligente(validTel.numeroCompleto, msjSmsLP);
 
             alert('¡Lista de precios enviada correctamente!');
