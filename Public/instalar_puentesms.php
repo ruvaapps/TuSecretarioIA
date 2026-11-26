@@ -1,21 +1,71 @@
 <?php
 declare(strict_types=1);
 
-session_start();
-if (!isset($_SESSION['negocio_id'])) {
+ob_start();
+header('Content-Type: text/html; charset=UTF-8');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+set_exception_handler(static function (Throwable $e): void {
+    error_log('[instalar_puentesms] Excepción no capturada: ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+    echo '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Error</title></head><body style="font-family:sans-serif;background:#0f172a;color:#f8fafc;padding:2rem;"><h2>No se pudo cargar la página</h2><p>Ocurrió un error interno al preparar la vista. Revisá el registro del servidor.</p></body></html>';
+    exit;
+});
+
+register_shutdown_function(static function (): void {
+    $error = error_get_last();
+    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) {
+        error_log('[instalar_puentesms] Error fatal: ' . $error['message'] . ' en ' . $error['file'] . ':' . $error['line']);
+        if (!headers_sent()) {
+            http_response_code(500);
+        }
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+        echo '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Error</title></head><body style="font-family:sans-serif;background:#0f172a;color:#f8fafc;padding:2rem;"><h2>Error inesperado</h2><p>Se interrumpió la carga de la página. Revisá el error_log del servidor.</p></body></html>';
+    }
+});
+
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
+if (empty($_SESSION['negocio_id'])) {
+    if (ob_get_level() > 0) {
+        ob_end_clean();
+    }
     header('Location: login_negocio.php?redirect=instalar_puentesms.php');
     exit;
 }
 
-require_once 'conexion.php';
-$negocio_nombre = $_SESSION['negocio_nombre'] ?? 'Mi Negocio';
+$conexionPath = __DIR__ . '/conexion.php';
+if (!is_file($conexionPath)) {
+    throw new RuntimeException('No se encontró conexion.php en ' . __DIR__);
+}
+
+require_once $conexionPath;
+
+if (!isset($pdo) || !($pdo instanceof PDO)) {
+    throw new RuntimeException('La conexión $pdo no está disponible tras incluir conexion.php');
+}
+
+$negocio_nombre = isset($_SESSION['negocio_nombre']) && is_string($_SESSION['negocio_nombre']) && $_SESSION['negocio_nombre'] !== ''
+    ? $_SESSION['negocio_nombre']
+    : 'Mi Negocio';
+
+ob_end_flush();
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Instalar PuenteSMS - <?php echo htmlspecialchars($negocio_nombre); ?></title>
+  <title>Instalar PuenteSMS - <?php echo htmlspecialchars($negocio_nombre, ENT_QUOTES, 'UTF-8'); ?></title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -28,7 +78,7 @@ $negocio_nombre = $_SESSION['negocio_nombre'] ?? 'Mi Negocio';
         </a>
         <div>
           <h1 class="text-sm font-bold text-white">Instalar PuenteSMS</h1>
-          <p class="text-[11px] text-emerald-400"><?php echo htmlspecialchars($negocio_nombre); ?></p>
+          <p class="text-[11px] text-emerald-400"><?php echo htmlspecialchars($negocio_nombre, ENT_QUOTES, 'UTF-8'); ?></p>
         </div>
       </div>
     </div>
@@ -44,7 +94,7 @@ $negocio_nombre = $_SESSION['negocio_nombre'] ?? 'Mi Negocio';
       </p>
     </div>
 
-    <!-- Paso 1 y 2 -->
+    <!-- Paso 1 a 3 -->
     <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-4">
       <h2 class="text-base font-bold text-white">Paso a paso de descarga e instalación</h2>
 
