@@ -170,7 +170,6 @@ function agendarTurnoCompleto($pdo, $negocio_id, $nombre_cliente, $telefono_clie
         }
 
         // Insertar turno en saas_turnos (listo para que el Cron lea los datos de seña)
-        // Si agregás una columna como sena_sms_enviado (DEFAULT 0), podés incluirla acá también.
         $stmtTurno = $pdo->prepare("
             INSERT INTO saas_turnos (
                 negocio_id, cliente_id, servicio_id, recurso_id,
@@ -305,11 +304,11 @@ function cancelarTurnoCompleto($pdo, $turno_id, $negocio_id) {
             // WebPush Cancelación para PuenteSMS
             if (function_exists('notificarNuevoTurnoWebPush')) {
                 try {
-                    $fechaStr   = date('Y-m-d', $fechaHora);
-                    $horaStr    = date('H:i:s', $fechaHora);
-                    $clienteNom = $turno['cliente_nombre'] ?? 'Cliente';
+                    $fechaStr    = date('Y-m-d', $fechaHora);
+                    $horaStr     = date('H:i:s', $fechaHora);
+                    $clienteNom  = $turno['cliente_nombre'] ?? 'Cliente';
                     $servicioNom = $turno['servicio_nombre'] ?? 'Turno';
-                    $negocioNom = $turno['negocio_nombre'] ?? 'Nuestro Comercio';
+                    $negocioNom  = $turno['negocio_nombre'] ?? 'Nuestro Comercio';
 
                     $mensajeCancelSMS = "Hola {$clienteNom}, tu turno de {$servicioNom} en {$negocioNom} para el {$fechaFmt} a las {$horaFmt} hs ha sido cancelado.";
 
@@ -520,6 +519,20 @@ if (!function_exists('notificarNuevoTurnoWebPush')) {
                 return;
             }
 
+            $nombreNegocio = 'Nuestro Comercio';
+            if ($pdo && !empty($negocio_id)) {
+                try {
+                    $stmtNeg = $pdo->prepare("SELECT nombre FROM saas_negocios WHERE id = ?");
+                    $stmtNeg->execute([$negocio_id]);
+                    $negRow = $stmtNeg->fetch(PDO::FETCH_ASSOC);
+                    if ($negRow && !empty($negRow['nombre'])) {
+                        $nombreNegocio = trim($negRow['nombre']);
+                    }
+                } catch (Exception $eNeg) {
+                    logTurnosHelper("WebPush: No se pudo obtener nombre de negocio ID {$negocio_id}: " . $eNeg->getMessage());
+                }
+            }
+
             $fechaFmt = date('d/m/Y', strtotime($fecha));
             $horaFmt  = date('H:i', strtotime($hora));
 
@@ -527,7 +540,9 @@ if (!function_exists('notificarNuevoTurnoWebPush')) {
             $prefijoTel = !empty($telefonoCliente) ? "[" . trim($telefonoCliente) . "] " : "";
 
             $titulo = $tituloPersonalizado ?: "SecretarioIA - Nuevo Turno";
-            $cuerpo = $cuerpoPersonalizado ? "{$prefijoTel}{$cuerpoPersonalizado}" : "{$prefijoTel}Hola {$nombreCliente}, tu turno de {$nombreServicio} quedo confirmado para el {$fechaFmt} a las {$horaFmt} hs.";
+            $cuerpo = $cuerpoPersonalizado
+                ? "{$prefijoTel}{$cuerpoPersonalizado}"
+                : "{$prefijoTel}Hola {$nombreCliente}, tu turno de {$nombreServicio} en {$nombreNegocio} quedo confirmado para el {$fechaFmt} a las {$horaFmt} hs.";
 
             $payload = json_encode([
                 'title' => $titulo,
